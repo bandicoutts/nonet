@@ -9,60 +9,20 @@ not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. There is no hosted Supabase project
+## 1. Email delivery: no domain, so no custom SMTP, so no code on hosted
 
-Everything in Phase 3 is verified against the **local stack only**. The daily
-publish job has never run on a real schedule, and `pg_cron` needs two Vault
-secrets set per environment before it does anything (see
-`supabase/migrations/*_schedule.sql`).
+*The hosted project itself is no longer a question — see DECISIONS.md NONET-22.
+It is provisioned and the publish chain is proven end to end, cron included.*
 
-**Recommendation:** create the project at the start of Phase 4 rather than
-Phase 5. Nothing is lost by waiting — every edition is derived from its date,
-so a missed day backfills byte-identically:
-
-```bash
-curl -X POST "$URL/functions/v1/publish-daily?date=2026-08-03" \
-  -H "Authorization: Bearer $SERVICE_ROLE_KEY"
-```
-
-But a cron that has never fired is an untested cron, and the failure mode is
-quiet — see NONET-17, where the job body referenced a function that did not
-exist and nothing would have said so until someone noticed no daily had
-appeared.
-
-**The project exists and is provisioned** (`vsabnsqwlagdxfmftovn`, West EU).
-Migrations pushed with no schema drift, the 4000-puzzle bank loaded, the edge
-function deployed, and edition No. 1 published *by the function itself* rather
-than by hand — the hosted job returned seed `1150819893`, byte-identical to what
-the browser and the local stack derive, so NONET-16's claim that three
-independent implementations agree now holds against the real thing. Running it a
-second time returned the same id, so the SQL idempotency holds too.
-
-**The only thing left is the two Vault secrets**, and the cron is correctly inert
-without them: `cron.job` holds `publish-daily` at `5 0 * * *`, active, and
-`vault.decrypted_secrets` is empty, so the `where exists` guard means it fires
-and does nothing. That is the last untested link in the chain — the function is
-now proven by hand, but the *cron calling it* is not.
-
-**A trap for whoever runs a schema diff.** `supabase db diff --linked` reports
-`drop extension if exists "pg_net"`. Do not apply it. `pg_net` is preinstalled on
-hosted and absent locally, so the diff reads the asymmetry as drift; dropping it
-breaks the publish job, which is the same extension-schema trap NONET-17 hit from
-the other direction.
-
-**`supabase db query --linked` avoids the connection string entirely** — it goes
-through the Management API, so it needs no database password and no `psql`. That
-is how the bank was loaded.
-
-**Custom SMTP is a hard dependency, and it is earlier than Phase 5 implies.**
 The hosted dashboard will not let you edit an email template at all until custom
 SMTP is configured, and the sign-in flow *is* a template — NONET-21 sends a code
 rather than a link, and Supabase decides which from whether the template
 references `{{ .Token }}`. So until SMTP is set up, **the hosted project sends
-magic links while local sends codes**, and nothing fails loudly. The built-in
-sender is development-only and rate-limited to a couple of emails an hour
-regardless, so this was always launch work; it is only listed here because the
-template lock makes it block auth rather than block launch.
+magic links while local sends codes**, and nothing fails loudly: the tests mock
+Supabase, so only reading a real email from production would reveal it. The
+built-in sender is development-only and rate-limited to a couple of emails an
+hour regardless, so this was always launch work; it is listed here because the
+template lock makes it block *auth* rather than block launch.
 
 SMTP needs a domain to authenticate against (SPF, DKIM, DMARC), and `nonet.app`
 is not owned yet — so the ordering is: domain, then SMTP, then paste
