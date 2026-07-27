@@ -9,24 +9,31 @@ not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. Email delivery: no domain, so no custom SMTP, so no code on hosted
+## 1. Email is sent from a domain that is not Nonet's
 
-*The hosted project itself is no longer a question — see DECISIONS.md NONET-22.
-It is provisioned and the publish chain is proven end to end, cron included.*
+`nonet.app` is not owned yet, and custom SMTP needs a domain to authenticate
+against — so sending runs on an unrelated domain already verified in Resend.
 
-The hosted dashboard will not let you edit an email template at all until custom
-SMTP is configured, and the sign-in flow *is* a template — NONET-21 sends a code
-rather than a link, and Supabase decides which from whether the template
-references `{{ .Token }}`. So until SMTP is set up, **the hosted project sends
-magic links while local sends codes**, and nothing fails loudly: the tests mock
-Supabase, so only reading a real email from production would reveal it. The
-built-in sender is development-only and rate-limited to a couple of emails an
-hour regardless, so this was always launch work; it is listed here because the
-template lock makes it block *auth* rather than block launch.
+**This is deliberate and temporary.** It is strictly better than the
+alternative: without custom SMTP the hosted dashboard refuses to edit an email
+template at all, and this product's sign-in flow *is* a template (NONET-21), so
+production would keep sending magic links while local sends codes with nothing
+failing loudly. The built-in sender is also capped at a couple of emails an hour
+and is development-only regardless.
 
-SMTP needs a domain to authenticate against (SPF, DKIM, DMARC), and `nonet.app`
-is not owned yet — so the ordering is: domain, then SMTP, then paste
-`supabase/templates/magic-link.html` into Authentication → Emails → Magic Link.
+**Swapping it later costs nothing that matters.** Change `admin_email` and the
+Resend credentials, run `supabase config push`. Nothing stored references the
+sender, so there is no migration — the only real cost of moving a sending domain
+is losing accumulated reputation and breaking recipients' filters, and with no
+users there is neither.
+
+`sender_name` is "Nonet", which is what most mail clients show, so the
+human-readable half is right even while the domain is not. A code is also far
+more forgiving here than a magic link: there is nothing to click, so a
+sender-domain mismatch cannot be leveraged for phishing — it merely looks odd.
+
+**Still to do at launch:** own `nonet.app`, verify it in Resend, point
+`admin_email` at it, and re-run `config push`.
 
 ---
 

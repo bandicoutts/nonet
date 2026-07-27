@@ -195,7 +195,12 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+#
+# 2 is the built-in sender's development cap and it is far too low for a real
+# sign-in flow — two people signing in within an hour would lock out the second.
+# Raised now that SMTP is real; still low enough that a bug or an abusive script
+# cannot spend the sending quota.
+email_sent = 30
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -236,15 +241,31 @@ otp_length = 6
 # trust it with their history.
 otp_expiry = 900
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# Custom SMTP, via Resend.
+#
+# **Not optional, and earlier than it looks.** Supabase's built-in sender is
+# development-only and capped at a couple of emails an hour — but more than
+# that, the hosted dashboard refuses to let you edit an email template at all
+# until custom SMTP is configured, and this product's sign-in flow *is* a
+# template (NONET-21). Without this, production sends magic links while local
+# sends codes, and nothing fails loudly enough to notice.
+#
+# The key is an env var reference, never a literal: `supabase config push` reads
+# it at push time, so the secret stays out of version control while the settings
+# that use it stay in.
+#
+# The sending domain is **temporary and unrelated to Nonet** — see
+# OPEN-QUESTIONS. `sender_name` is what most mail clients show, so the
+# human-readable half is right even while the domain is not, and swapping it
+# later is a credential change with nothing to migrate.
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 587
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "env(NONET_SENDER_EMAIL)"
+sender_name = "Nonet"
 
 # The sign-in email carries a code, not a link (NONET-21).
 #
