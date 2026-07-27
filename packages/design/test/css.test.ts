@@ -29,6 +29,18 @@ describe('colorVariables', () => {
   });
 });
 
+describe('themed shadow', () => {
+  test('the shadow is emitted per theme, not once', () => {
+    expect(colorVariables('light')).toContain('--shadow-elevation:');
+    expect(colorVariables('dark')).toContain('--shadow-elevation:');
+    expect(colorVariables('light')).not.toBe(colorVariables('dark'));
+  });
+
+  test('staticVariables no longer carries it', () => {
+    expect(staticVariables()).not.toContain('--shadow-elevation:');
+  });
+});
+
 describe('staticVariables', () => {
   test('emits spacing, motion, radius and the hatch', () => {
     const css = staticVariables();

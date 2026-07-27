@@ -70,8 +70,8 @@ The export files audited the prototype against its own token sheet and found rea
 
 **Theming**
 - Links are styled by a raw `a { color: #2C41C4 }` pair in `<helmet>` using light-theme hexes, so **links do not re-colour in dark mode**. Use `--accent` / `--fg`.
-- `--cell-hl` and `--hover` are the same value in dark, so unit shading and row hover are indistinguishable there.
-- The dialog shadow is a raw `rgba(0,0,0,.14)` and does not re-tone in dark.
+- ~~`--cell-hl` and `--hover` are the same value in dark~~ **RESOLVED — NONET-7.** Dark `--hover` is now `#24292D`; `--cell-hl` unchanged.
+- ~~The dialog shadow is a raw `rgba(0,0,0,.14)` and does not re-tone in dark.~~ **RESOLVED — NONET-7.** `SHADOWS` is themed; dark takes alpha 0.55. Note that in dark the dialog is separated by its `--rule` border rather than the shadow, so do not drop the border.
 
 **Behaviour**
 - `motion-place` is published and the `nonetPop` keyframe exists, but nothing references it — **placed digits and hints do not animate**. `state.hintCell` is written and never read.

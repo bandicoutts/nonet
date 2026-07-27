@@ -142,7 +142,21 @@ describe('borders, shadow, radius and hatch', () => {
   });
 
   test('elevation is the single drop shadow in the product', () => {
-    expect(Object.keys(SHADOWS)).toEqual(['elevation']);
+    expect(Object.keys(SHADOWS.light)).toEqual(['elevation']);
+    expect(Object.keys(SHADOWS.dark)).toEqual(['elevation']);
+  });
+
+  test('the shadow re-tones for dark (DECISIONS.md NONET-7)', () => {
+    // A black shadow over a near-black scrim reads as nothing. Dark needs a
+    // heavier alpha to contribute at all.
+    expect(SHADOWS.light.elevation).not.toBe(SHADOWS.dark.elevation);
+    expect(SHADOWS.light.elevation).toContain('0.14');
+    expect(SHADOWS.dark.elevation).toContain('0.55');
+  });
+
+  test('both shadows keep the same geometry — only the alpha changes', () => {
+    expect(SHADOWS.light.elevation).toContain('0 24px 60px');
+    expect(SHADOWS.dark.elevation).toContain('0 24px 60px');
   });
 
   test('the spent-key hatch is the non-colour cue for a spent pad key', () => {

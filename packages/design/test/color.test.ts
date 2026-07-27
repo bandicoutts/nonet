@@ -6,7 +6,7 @@ import {
   THEMES,
   palettes,
 } from '../src/color.js';
-import { AA_NORMAL_TEXT, contrastRatio } from '../src/contrast.js';
+import { AA_NORMAL_TEXT, contrastRatio, relativeLuminance } from '../src/contrast.js';
 
 describe('palettes', () => {
   test('both themes are defined', () => {
@@ -63,6 +63,40 @@ describe('the --fg3 split (DECISIONS.md NONET-5)', () => {
     expect(exempt).toContain('--deco');
     for (const entry of CONTRAST_EXEMPT) {
       expect(entry.reason.length, entry.token).toBeGreaterThan(20);
+    }
+  });
+});
+
+describe('shading tokens stay distinguishable (DECISIONS.md NONET-7)', () => {
+  test('unit shading and hover are different values in both themes', () => {
+    // They were identical in dark, so two semantically separate tokens moved
+    // as one. They never appear together — cell-hl is board unit shading,
+    // hover is outline buttons and list rows — but a shared value means
+    // changing one silently changes the other.
+    for (const theme of THEMES) {
+      expect(palettes[theme]['--hover'], theme).not.toBe(palettes[theme]['--cell-hl']);
+    }
+  });
+
+  test('hover sits slightly further from the ground than unit shading, as in light', () => {
+    // Hover is transient feedback and unit shading is persistent ambient, so
+    // hover reads a touch stronger. That relationship is the design's own; it
+    // just did not survive into dark.
+    for (const theme of THEMES) {
+      const ground = relativeLuminance(palettes[theme]['--bg']);
+      const hover = Math.abs(relativeLuminance(palettes[theme]['--hover']) - ground);
+      const unit = Math.abs(relativeLuminance(palettes[theme]['--cell-hl']) - ground);
+      expect(hover, theme).toBeGreaterThan(unit);
+    }
+  });
+
+  test('board shading stays ordered: selection reads strongest', () => {
+    for (const theme of THEMES) {
+      const ground = relativeLuminance(palettes[theme]['--bg']);
+      const distance = (token: '--cell-hl' | '--cell-same' | '--cell-sel') =>
+        Math.abs(relativeLuminance(palettes[theme][token]) - ground);
+      expect(distance('--cell-sel'), theme).toBeGreaterThan(distance('--cell-same'));
+      expect(distance('--cell-same'), theme).toBeGreaterThan(distance('--cell-hl'));
     }
   });
 });

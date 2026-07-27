@@ -70,17 +70,23 @@ widths the design was drawn at (390, 834, 1440). Joining the two is an inference
 - **Raw colours.** Link colours, the body ground, the frame edge and the dev
   switcher are not tokens and are not product.
 
-## Open token-level defects
+## Two departures from the export, beyond `--fg3`
 
-Two remain from `design/README.md` and both need a design decision, so they are
-transcribed as measured rather than silently re-authored:
+Both were recorded as defects in `design/README.md` and are resolved in
+**NONET-7**:
 
-1. **The dialog shadow does not re-tone.** `0 24px 60px rgba(0,0,0,.14)` is the
-   same black alpha in dark, where it reads as almost nothing against `--bg`.
-2. **`--cell-hl` and `--hover` are identical in dark** (`#22262A`), so unit
-   shading and row hover are indistinguishable there.
+1. **Dark `--hover` is `#24292D`**, not `#22262A`. The export shipped it equal
+   to `--cell-hl`, so board unit shading and list hover moved as one token.
+   Light draws them apart deliberately — hover reads a touch stronger, being
+   transient rather than ambient — and dark now does too. `--cell-hl` is
+   unchanged.
+2. **`SHADOWS` is themed.** Dark takes alpha `0.55` against light's `0.14`.
+   A black shadow over the near-black dark scrim darkens by ΔL\* 1.5, which is
+   nothing; 0.55 gets it to 5.1, and pure black would only reach 8.1. **In dark
+   the dialog is separated by its `--rule` border, not by the shadow** — do not
+   drop the border.
 
-Separately, the six sub-44px touch targets in `design/export/layout.md` are a
+Still open: the six sub-44px touch targets in `design/export/layout.md` are a
 live AA failure. `TAP_TARGET_MIN` is exported so components can assert against
 it.
 

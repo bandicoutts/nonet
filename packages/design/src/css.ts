@@ -24,13 +24,21 @@ function declarations(entries: ReadonlyArray<readonly [string, string]>, indent:
   return entries.map(([name, value]) => `${indent}${name}: ${value};`).join('\n');
 }
 
-/** Colour custom properties for one theme. */
+/**
+ * Everything that changes with theme: the palette, plus the elevation shadow,
+ * which needs a heavier alpha in dark to register at all.
+ */
 export function colorVariables(theme: ThemeName, indent = INDENT): string {
   const palette = palettes[theme];
-  return declarations(
-    COLOR_TOKENS.map((token) => [token, palette[token]] as const),
-    indent,
+  const entries: Array<readonly [string, string]> = COLOR_TOKENS.map(
+    (token) => [token, palette[token]] as const,
   );
+
+  for (const [name, value] of Object.entries(SHADOWS[theme])) {
+    entries.push([`--shadow-${name}`, value]);
+  }
+
+  return declarations(entries, indent);
 }
 
 /** Everything that does not change with theme or viewport. */
@@ -53,7 +61,7 @@ export function staticVariables(indent = INDENT): string {
   entries.push(['--focus-offset', `${FOCUS_OFFSET.default}px`]);
   entries.push(['--focus-offset-prominent', `${FOCUS_OFFSET.prominent}px`]);
 
-  for (const [name, value] of Object.entries(SHADOWS)) entries.push([`--shadow-${name}`, value]);
+  // The elevation shadow is themed, so it lives with the palette.
   for (const [name, value] of Object.entries(HATCH)) entries.push([`--hatch-${name}`, value]);
 
   return declarations(entries, indent);

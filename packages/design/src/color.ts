@@ -74,7 +74,10 @@ const dark: Palette = {
   '--cell-sel': '#2C365C',
   '--error': '#FF8A75',
   '--error-soft': '#3A211C',
-  '--hover': '#22262A',
+  // The export shipped this equal to --cell-hl, so unit shading and hover moved
+  // as one token. Lifted to sit the same fraction further from the ground as it
+  // does in light (DECISIONS.md NONET-7).
+  '--hover': '#24292D',
   '--rule': '#8B939A',
   '--deco': '#3D444A',
   '--veil': '#15181B',
