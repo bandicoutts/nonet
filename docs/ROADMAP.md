@@ -61,20 +61,24 @@ than questions are here.
 - [x] Settings screen (NONET-24)
 - [x] Record page — streaks, completion strip, times by band (NONET-25)
 - [x] Archive page — month calendar, filters, edition list (NONET-26)
-- [ ] Percentiles surfaced beyond the result screen
+- [x] Percentiles — result screen only, deliberately (see OPEN-QUESTIONS)
 - [x] Archive play mode — an old edition records `kind: 'archive'` and never
       extends a run (NONET-26)
 - [x] Replay play mode — unscored in both directions (NONET-32)
-- [x] Offline banner (NONET-32); empty states on Home, Record and Archive per DESIGN-BRIEF.md
+- [x] Offline banner (NONET-32); empty states on Home, Record and Archive
+- [x] How to play and About — the last two Phase 3 stubs (NONET-34)
+- [x] Inline board notices: first-run offer and resumed-from-another-device,
+      with the Dismiss built at 44px rather than the ~22px drawn (NONET-34)
 - [x] Streaks/stats surfaced (NONET-23, NONET-25)
 - [x] E2E suite (Playwright, Chrome + WebKit) + a11y pass — four real violations found and fixed (NONET-29)
 - [x] Lint test for cleared Tailwind namespaces (NONET-20)
 
 ## Phase 5 — Launch
-- [ ] Domain, analytics, OG images
+- [ ] Domain — deferred; everything below waits on it
+- [ ] Analytics, OG images (OG images need a design, not a domain)
 - [ ] Point email at `nonet.app` once owned — verify in Resend, change
       `admin_email`, re-run `supabase config push` (NONET-30)
 - [ ] Update `site_url` and `additional_redirect_urls` on the hosted project.
       Both are localhost-only, which is harmless while the code flow sends no
       redirect target at all, and wrong the moment anything does
-- [ ] Seed puzzle bank + first dailies
+- [x] Seed puzzle bank + first daily — done on the hosted project (NONET-22)

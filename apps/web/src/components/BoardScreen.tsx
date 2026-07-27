@@ -5,11 +5,20 @@ import Link from 'next/link';
 import { apply, createSession, generatePuzzle } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
 import { BoardLayout } from './BoardLayout';
+import { FirstRunNotice, ResumedNotice } from './BoardNotice';
+import { formatTime } from './BoardToolbar';
 import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
 import { canRetry, currentAttempt, dailyRef, recordFailure } from '@/lib/puzzles';
 import { DEFAULT_SETTINGS, readSettings } from '@/lib/settings';
-import { appendSolve, clearAutosave, localDate } from '@/lib/storage';
+import {
+  appendSolve,
+  clearAutosave,
+  listAutosaves,
+  localDate,
+  readSolves,
+  takeResumedElsewhere,
+} from '@/lib/storage';
 import type { PuzzleRef } from '@/lib/storage';
 
 /** How often the clock alone is worth a write, in milliseconds. */
@@ -75,6 +84,16 @@ export function BoardScreen({
     highlightUnits: DEFAULT_SETTINGS.highlightUnits,
   });
 
+  /*
+   * The two inline notices, both decided once on mount.
+   *
+   * `first-run` is for a player with no history at all, and dismissing it is
+   * remembered — an offer to read the rules that reappears every visit stops
+   * reading as an offer. `resumed` can only be known from a marker the sign-in
+   * merge left behind (NONET-34), and reading it consumes it.
+   */
+  const [notice, setNotice] = useState<'none' | 'first-run' | 'resumed'>('none');
+
   const [paused, setPaused] = useState(false);
   const [elapsedMs, setElapsed] = useState(0);
   const [confirmingHint, setConfirmingHint] = useState(false);
@@ -125,6 +144,10 @@ export function BoardScreen({
     });
 
     const saved = resume(ref, configured);
+
+    if (takeResumedElsewhere(ref) && saved !== null) setNotice('resumed');
+    else if (isFirstRun()) setNotice('first-run');
+
     if (saved === null) {
       setSession(configured);
       return;
@@ -258,8 +281,21 @@ export function BoardScreen({
     if (leaving.current !== null) clearTimeout(leaving.current);
   }, []);
 
+  const placed = 81 - session.grid.filter((cell) => cell === 0).length;
+
   return (
     <>
+      {notice === 'first-run' ? (
+        <FirstRunNotice onDismiss={() => { dismissFirstRun(); setNotice('none'); }} />
+      ) : null}
+      {notice === 'resumed' ? (
+        <ResumedNotice
+          placed={placed}
+          time={formatTime(elapsedMs)}
+          onDismiss={() => setNotice('none')}
+        />
+      ) : null}
+
       <BoardLayout
         session={session}
         onAction={dispatch}
@@ -307,6 +343,26 @@ export function BoardScreen({
       ) : null}
     </>
   );
+}
+
+const FIRST_RUN_KEY = 'nonet:seen-intro';
+
+/** A player with no history at all — never solved, never saved a board. */
+function isFirstRun(): boolean {
+  try {
+    if (window.localStorage.getItem(FIRST_RUN_KEY) !== null) return false;
+  } catch {
+    return false;
+  }
+  return readSolves().length === 0 && listAutosaves().length === 0;
+}
+
+function dismissFirstRun(): void {
+  try {
+    window.localStorage.setItem(FIRST_RUN_KEY, '1');
+  } catch {
+    // A player who cannot persist sees the offer again. Harmless.
+  }
 }
 
 /**

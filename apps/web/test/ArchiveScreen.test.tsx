@@ -28,6 +28,18 @@ function seed(...solves: GuestSolve[]): void {
 
 const show = () => render(<ArchiveScreen now={AT} />);
 
+/**
+ * Find a month control by its **glyph**, not its accessible name.
+ *
+ * The two were inverted — `→` carried the label "Earlier month" — and every
+ * name-based query passed throughout, because the label was accurate for the
+ * behaviour and wrong for the arrow. Selecting on the glyph is what makes the
+ * direction testable.
+ */
+function arrow(glyph: '←' | '→'): HTMLElement {
+  return screen.getByText(glyph).closest('button') as HTMLElement;
+}
+
 beforeEach(() => window.localStorage.clear());
 afterEach(cleanup);
 
@@ -43,13 +55,44 @@ describe('ArchiveScreen', () => {
     expect(screen.getByText(/10 of 10 in August/)).toBeDefined();
   });
 
-  it('walks back to an earlier month', async () => {
+  /*
+   * The arrows point the way a calendar points, and the assertion is on the
+   * glyph rather than the label for a reason: these were inverted, and both the
+   * unit test and the a11y scan passed throughout because they select by
+   * accessible name. A correct label on a backwards arrow is exactly the bug
+   * that hides from a name-based query.
+   */
+  it('walks back in time with the left arrow', async () => {
     show();
-    await userEvent.click(screen.getByRole('button', { name: 'Earlier month' }));
+    await userEvent.click(arrow('←'));
 
     expect(screen.getByText('July 2026')).toBeDefined();
     // A full month, now that the epoch is the start of the year (NONET-31).
     expect(screen.getByText(/31 of 31 in July/)).toBeDefined();
+  });
+
+  it('walks forward in time with the right arrow', async () => {
+    show();
+    await userEvent.click(arrow('←'));
+    expect(screen.getByText('July 2026')).toBeDefined();
+
+    await userEvent.click(arrow('→'));
+    expect(screen.getByText('August 2026')).toBeDefined();
+  });
+
+  /* There is no month after the current edition, and none before the epoch. */
+  it('stops at both ends', async () => {
+    show();
+    expect(arrow('→').getAttribute('aria-disabled')).toBe('true');
+    // And the labels match the direction the glyphs point.
+    expect(arrow('←').getAttribute('aria-label')).toBe('Earlier month');
+    expect(arrow('→').getAttribute('aria-label')).toBe('Later month');
+
+    for (let i = 0; i < 8; i += 1) {
+      await userEvent.click(arrow('←'));
+    }
+    expect(screen.getByText('January 2026')).toBeDefined();
+    expect(arrow('←').getAttribute('aria-disabled')).toBe('true');
   });
 
   it('links an edition to its board', () => {

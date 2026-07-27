@@ -32,20 +32,34 @@ be here, and at the moment nothing is.
 
 ## Smaller things, recorded so they are not rediscovered
 
-- **`hintedCells` is not persisted.** `restoreSession` accepts it and
-  `toRecord` does not write it, so a hinted cell loses its marker across a
-  reload. Currently cosmetic — the attribute drives an animation identical to
-  the ordinary one — but the field exists and is a lie by omission.
-- **`kind: 'replay'` is never written.** `BoardScreen` records `daily`,
-  `archive` and `practice`; replay mode does not exist, so the solved screen
-  omits its "Replay, unscored" action rather than linking to a board that would
-  record a second scored solve (NONET-23).
-- **One in-flight practice puzzle is enforced in the database, and now by the
-  abandon confirm on Home** (NONET-23) — but a guest who never passes through
-  Home can still accumulate several, and `practiceInFlight` deliberately takes
-  the most recent rather than assuming there is one.
+- **`hintedCells` is deliberately not persisted.** `restoreSession` accepts it
+  and `toRecord` does not write it. That is now a decision rather than an
+  omission: the marker exists to trigger `motion-place`, which fires *when a
+  hint is placed*, so it is a transient animation cue and not state — the same
+  category as the selection and the undo stack, neither of which survives a
+  reload either (NONET-9, NONET-15). Persisting it would mean a column on
+  `autosaves` to replay an animation for a placement that happened yesterday.
+
+- **Percentiles are shown on the result screen only, and that is the end of it.**
+  A percentile is a *live* comparison that moves as more people solve the same
+  edition. Storing one at solve time and listing it later would show a figure
+  that was true once; fetching them live for a month view is a database call per
+  row. Neither is worth it for a number whose whole meaning is "right now".
+
+- **"Puzzle unavailable" has copy and can no longer happen.** `copy.md` gives an
+  error state for "Today's edition did not load", which assumed the daily was
+  fetched. It is generated in the browser from the date (NONET-16), so there is
+  nothing to fail — and the two paths that could go wrong both degrade instead:
+  `/solved` with no recorded solve returns to Home, and `/board` with an
+  unparseable ref falls back to the daily. A decision made for offline play
+  turned out to delete a whole failure mode.
+
 - **Practice exclusion reads localStorage only.** A signed-in player's solves
   from another device are only reflected after the next merge, so a puzzle
   solved elsewhere today could be dealt again. Acceptable for v1 with a
   1000-puzzle bank; noted rather than fixed.
-- **The offline banner in `copy.md` is not built.**
+
+- **One in-flight practice puzzle is enforced in the database, and by the
+  abandon confirm on Home** (NONET-23) — but a guest who never passes through
+  Home can still accumulate several, and `practiceInFlight` deliberately takes
+  the most recent rather than assuming there is one.

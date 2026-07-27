@@ -16,6 +16,7 @@ import type { Difficulty } from '@nonet/engine';
 
 const AUTOSAVE_PREFIX = 'nonet:autosave:';
 const SOLVES_KEY = 'nonet:solves';
+const RESUMED_PREFIX = 'nonet:resumed:';
 
 /**
  * A bump means "this shape changed"; an older record is discarded rather than
@@ -164,6 +165,36 @@ export function clearAutosave(ref: PuzzleRef): void {
     // Nothing to do. A stale save is harmless: it is only read back for the
     // puzzle it belongs to, and that one is over.
   }
+}
+
+/**
+ * Mark a board as having arrived from another device.
+ *
+ * Only the sign-in merge can know this — by the time the board loads it is an
+ * ordinary local autosave, indistinguishable from one written here. Without the
+ * marker a player opening a puzzle on their laptop finds twenty cells already
+ * filled and no way to tell their own work from a bug (NONET-34).
+ *
+ * Cleared as soon as it is read, so the notice appears once rather than on
+ * every visit to that puzzle.
+ */
+export function markResumedElsewhere(ref: PuzzleRef): void {
+  write(`${RESUMED_PREFIX}${ref.kind}:${ref.difficulty}:${ref.seed}`, true);
+}
+
+/** Whether this board came from another device, consuming the marker. */
+export function takeResumedElsewhere(ref: PuzzleRef): boolean {
+  const key = `${RESUMED_PREFIX}${ref.kind}:${ref.difficulty}:${ref.seed}`;
+  const marked = read(key) === true;
+
+  try {
+    if (marked) window.localStorage.removeItem(key);
+  } catch {
+    // Unable to clear it, so the notice may show twice. Harmless next to the
+    // alternative of never showing it.
+  }
+
+  return marked;
 }
 
 export function readSolves(): GuestSolve[] {

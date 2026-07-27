@@ -141,11 +141,19 @@ export function ArchiveScreen({ now }: { now?: Date }) {
 
       <div className="flex flex-col gap-s">
         <div className="flex items-center justify-between gap-s">
+          {/*
+            * The left arrow goes *back* in time, which is the only thing a
+            * calendar arrow can mean — and is the opposite of what the index
+            * does, since `browsableMonths` returns newest first. Getting this
+            * backwards survived a unit test and an accessibility scan, because
+            * both select by accessible name and the labels were accurate for
+            * the behaviour rather than for the arrow (NONET-33).
+            */}
           <button
             type="button"
-            aria-label="Later month"
-            aria-disabled={index === 0 || undefined}
-            onClick={() => setIndex((i) => Math.max(0, i - 1))}
+            aria-label="Earlier month"
+            aria-disabled={index >= months.length - 1 || undefined}
+            onClick={() => setIndex((i) => Math.min(months.length - 1, i + 1))}
             className={NAV}
           >
             &larr;
@@ -155,9 +163,9 @@ export function ArchiveScreen({ now }: { now?: Date }) {
           </p>
           <button
             type="button"
-            aria-label="Earlier month"
-            aria-disabled={index >= months.length - 1 || undefined}
-            onClick={() => setIndex((i) => Math.min(months.length - 1, i + 1))}
+            aria-label="Later month"
+            aria-disabled={index === 0 || undefined}
+            onClick={() => setIndex((i) => Math.max(0, i - 1))}
             className={NAV}
           >
             &rarr;

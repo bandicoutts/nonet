@@ -14,7 +14,13 @@ import { mergeAutosave, mergeFailures, mergeSettings, mergeSolves } from './merg
 import type { GuestFailure, MergeReport } from './merge';
 import { fromProfileRow, readSettings, toProfileRow, writeSettings } from './settings';
 import { readFailures } from './puzzles';
-import { listAutosaves, localDate, readSolves, writeAutosave } from './storage';
+import {
+  listAutosaves,
+  localDate,
+  markResumedElsewhere,
+  readSolves,
+  writeAutosave,
+} from './storage';
 import type { AutosaveRecord, GuestSolve, PuzzleRef } from './storage';
 
 const SOLVES_KEY = 'nonet:solves';
@@ -246,6 +252,9 @@ async function mergeInProgress(
 
   if (result.keep === 'server' && server !== null) {
     writeAutosave(server);
+    // The board a player is about to find already part-filled. Marked here
+    // because this is the only moment anything knows where it came from.
+    markResumedElsewhere(server.ref);
     return result;
   }
 

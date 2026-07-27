@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { generatePuzzle } from '@nonet/engine';
 import { BoardScreen } from '@/components/BoardScreen';
 import { readAutosave, readSolves } from '@/lib/storage';
@@ -106,5 +107,77 @@ describe('BoardScreen, on resuming', () => {
     const [solve] = readSolves();
     expect(solve?.durationMs).toBeGreaterThanOrEqual(CARRIED_MS);
     expect(solve?.mistakes).toBe(1);
+  });
+});
+
+/*
+ * The two inline notices (NONET-34). Both are `copy.md` states that were never
+ * built, and both carry the Dismiss control that `layout.md` measured at ~22px
+ * — the single WCAG AA target-size breach in the design.
+ */
+describe('BoardScreen, the inline notices', () => {
+  it('offers the rules to a player with no history', () => {
+    render(<BoardScreen puzzleRef={REF} />);
+    expect(screen.getByText(/First time here/)).toBeDefined();
+  });
+
+  it('does not offer them to a player who has played', () => {
+    window.localStorage.setItem(
+      'nonet:solves',
+      JSON.stringify([{ ref: REF, kind: 'daily', localDate: '2026-07-01' }]),
+    );
+    render(<BoardScreen puzzleRef={REF} />);
+
+    expect(screen.queryByText(/First time here/)).toBeNull();
+  });
+
+  /* Dismissing is remembered, or the offer stops reading as an offer. */
+  it('remembers the offer being dismissed', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const view = render(<BoardScreen puzzleRef={REF} />);
+
+    await user.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(screen.queryByText(/First time here/)).toBeNull();
+
+    view.unmount();
+    render(<BoardScreen puzzleRef={REF} />);
+    expect(screen.queryByText(/First time here/)).toBeNull();
+  });
+
+  /*
+   * The dismiss is built at the product's 44px standard rather than the ~22px
+   * the design draws, which is the one thing in the export that fails AA.
+   */
+  it('gives the dismiss a real target', () => {
+    render(<BoardScreen puzzleRef={REF} />);
+    const dismiss = screen.getByRole('button', { name: 'Dismiss' });
+
+    expect(dismiss.className).toContain('min-h-(--tap-target-min)');
+  });
+
+  /*
+   * A board that arrived from another device says so — otherwise a player
+   * opening a part-filled puzzle cannot tell their own work from a bug.
+   */
+  it('says when the board came from another device', () => {
+    seedNearlyDone();
+    window.localStorage.setItem(`nonet:resumed:${REF.kind}:${REF.difficulty}:${REF.seed}`, 'true');
+
+    render(<BoardScreen puzzleRef={REF} />);
+    expect(screen.getByText(/Resumed from your other device/)).toBeDefined();
+    expect(screen.getByText(/80 of 81 placed/)).toBeDefined();
+  });
+
+  /* The marker is consumed, so the notice appears once and not every visit. */
+  it('says it only once', () => {
+    seedNearlyDone();
+    window.localStorage.setItem(`nonet:resumed:${REF.kind}:${REF.difficulty}:${REF.seed}`, 'true');
+
+    const view = render(<BoardScreen puzzleRef={REF} />);
+    expect(screen.getByText(/Resumed from your other device/)).toBeDefined();
+
+    view.unmount();
+    render(<BoardScreen puzzleRef={REF} />);
+    expect(screen.queryByText(/Resumed from your other device/)).toBeNull();
   });
 });
