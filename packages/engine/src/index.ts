@@ -14,8 +14,8 @@ export type {
   Grid,
   MutableGrid,
   Notes,
-} from './types';
-export { CELL_COUNT, DIFFICULTIES, DIGITS, UNIT_SIZE } from './types';
+} from './types.ts';
+export { CELL_COUNT, DIFFICULTIES, DIGITS, UNIT_SIZE } from './types.ts';
 
 export {
   boxOf,
@@ -31,12 +31,12 @@ export {
   parseGrid,
   rowOf,
   setCell,
-} from './grid';
+} from './grid.ts';
 
-export { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from './units';
-export type { Unit } from './units';
+export { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from './units.ts';
+export type { Unit } from './units.ts';
 
-export { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from './validate';
+export { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from './validate.ts';
 
 export {
   ALL_CANDIDATES,
@@ -49,15 +49,15 @@ export {
   singleCandidate,
   toggleCandidate,
   withCandidate,
-} from './candidates';
+} from './candidates.ts';
 
-export { analyse, easiestCell, solveHumanly } from './solver/index';
-export type { EasiestCell, SolveReport } from './solver/index';
-export { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './solver/step';
-export type { Elimination, Placement, Reduction, Step, Technique } from './solver/step';
-export type { SolverState, TechniqueFinder } from './solver/state';
+export { analyse, easiestCell, solveHumanly } from './solver/index.ts';
+export type { EasiestCell, SolveReport } from './solver/index.ts';
+export { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './solver/step.ts';
+export type { Elimination, Placement, Reduction, Step, Technique } from './solver/step.ts';
+export type { SolverState, TechniqueFinder } from './solver/state.ts';
 
-export { countSolutions, hasUniqueSolution, solveByBacktracking } from './uniqueness';
+export { countSolutions, hasUniqueSolution, solveByBacktracking } from './uniqueness.ts';
 
 export {
   SCORE_FLOORS,
@@ -66,7 +66,7 @@ export {
   bandForScore,
   rate,
   scoreOf,
-} from './difficulty';
+} from './difficulty.ts';
 
 export {
   GIVEN_TOLERANCE,
@@ -74,11 +74,11 @@ export {
   digToTarget,
   generatePuzzle,
   generateSolution,
-} from './generate';
-export type { GeneratedPuzzle } from './generate';
+} from './generate.ts';
+export type { GeneratedPuzzle } from './generate.ts';
 
-export { createRng } from './rng';
-export type { Rng } from './rng';
+export { createRng } from './rng.ts';
+export type { Rng } from './rng.ts';
 
 export {
   clearNotesAt,
@@ -87,7 +87,7 @@ export {
   notesAt,
   setNotesAt,
   toggleNote,
-} from './rules/notes';
+} from './rules/notes.ts';
 
 export {
   MAX_MISTAKES,
@@ -95,13 +95,21 @@ export {
   loadDigit,
   recordWrongPlacement,
   releaseContainment,
-} from './rules/mistakes';
-export type { InputMode, MistakeTracker } from './rules/mistakes';
+} from './rules/mistakes.ts';
+export type { InputMode, MistakeTracker } from './rules/mistakes.ts';
 
-export { MAX_HINTS, chooseHint, hintNeedsConfirmation } from './rules/hints';
-export type { Hint } from './rules/hints';
+export { MAX_HINTS, chooseHint, hintNeedsConfirmation } from './rules/hints.ts';
+export type { Hint } from './rules/hints.ts';
 
-export { apply, createSession, restoreSession } from './rules/session';
+export {
+  DAILY_RHYTHM,
+  PUZZLE_EPOCH,
+  dailyDifficulty,
+  dailySeed,
+  puzzleNumber,
+} from './daily.ts';
+
+export { apply, createSession, restoreSession } from './rules/session.ts';
 export type {
   Action,
   Loaded,
@@ -109,4 +117,4 @@ export type {
   SessionOptions,
   SessionState,
   SessionStatus,
-} from './rules/session';
+} from './rules/session.ts';

@@ -1,11 +1,11 @@
-import { hasCandidate } from '../../candidates';
-import { CELL_COUNT, DIGITS } from '../../types';
-import type { CellIndex, Digit } from '../../types';
-import { ALL_UNITS, PEERS } from '../../units';
-import type { SolverState } from '../state';
-import { reduction } from '../step';
-import type { Elimination, Step } from '../step';
-import { cellsFor } from './lockedCandidates';
+import { hasCandidate } from '../../candidates.ts';
+import { CELL_COUNT, DIGITS } from '../../types.ts';
+import type { CellIndex, Digit } from '../../types.ts';
+import { ALL_UNITS, PEERS } from '../../units.ts';
+import type { SolverState } from '../state.ts';
+import { reduction } from '../step.ts';
+import type { Elimination, Step } from '../step.ts';
+import { cellsFor } from './lockedCandidates.ts';
 
 type Colour = 0 | 1;
 

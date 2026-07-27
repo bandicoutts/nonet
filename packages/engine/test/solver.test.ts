@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { formatGrid, parseGrid } from '../src/grid';
-import { analyse, easiestCell, solveHumanly } from '../src/solver/index';
-import { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from '../src/solver/step';
-import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, TWO_SOLUTION_PUZZLE } from './fixtures';
+import { formatGrid, parseGrid } from '../src/grid.ts';
+import { analyse, easiestCell, solveHumanly } from '../src/solver/index.ts';
+import { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from '../src/solver/step.ts';
+import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, TWO_SOLUTION_PUZZLE } from './fixtures.ts';
 
 describe('technique order', () => {
   test('runs cheapest first, singles before subsets before fish before chains', () => {

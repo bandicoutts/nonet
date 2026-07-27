@@ -1,11 +1,11 @@
-import { hasCandidate } from '../../candidates';
-import { boxOf, colOf, rowOf } from '../../grid';
-import { DIGITS } from '../../types';
-import type { CellIndex, Digit } from '../../types';
-import { BOXES, COLS, ROWS } from '../../units';
-import type { SolverState } from '../state';
-import { reduction } from '../step';
-import type { Elimination, Step } from '../step';
+import { hasCandidate } from '../../candidates.ts';
+import { boxOf, colOf, rowOf } from '../../grid.ts';
+import { DIGITS } from '../../types.ts';
+import type { CellIndex, Digit } from '../../types.ts';
+import { BOXES, COLS, ROWS } from '../../units.ts';
+import type { SolverState } from '../state.ts';
+import { reduction } from '../step.ts';
+import type { Elimination, Step } from '../step.ts';
 
 /** Open cells of a unit that still list `digit`. */
 export function cellsFor(state: SolverState, unit: readonly CellIndex[], digit: Digit): CellIndex[] {

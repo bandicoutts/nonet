@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { digitsOf, maskOf } from '../src/candidates';
-import { boxOf, colOf, filledCount, formatGrid, rowOf } from '../src/grid';
+import { digitsOf, maskOf } from '../src/candidates.ts';
+import { boxOf, colOf, filledCount, formatGrid, rowOf } from '../src/grid.ts';
 import {
   SCORE_FLOORS,
   TARGET_GIVENS,
@@ -8,21 +8,21 @@ import {
   bandForScore,
   rate,
   scoreOf,
-} from '../src/difficulty';
+} from '../src/difficulty.ts';
 import {
   GIVEN_TOLERANCE,
   digToTarget,
   generatePuzzle,
   generateSolution,
-} from '../src/generate';
-import type { GeneratedPuzzle } from '../src/generate';
-import { createRng } from '../src/rng';
-import { clearPeerNotes, notesAt } from '../src/rules/notes';
-import { analyse } from '../src/solver/index';
-import { CELL_COUNT, DIFFICULTIES } from '../src/types';
-import type { Difficulty, Digit } from '../src/types';
-import { countSolutions } from '../src/uniqueness';
-import { isSolved } from '../src/validate';
+} from '../src/generate.ts';
+import type { GeneratedPuzzle } from '../src/generate.ts';
+import { createRng } from '../src/rng.ts';
+import { clearPeerNotes, notesAt } from '../src/rules/notes.ts';
+import { analyse } from '../src/solver/index.ts';
+import { CELL_COUNT, DIFFICULTIES } from '../src/types.ts';
+import type { Difficulty, Digit } from '../src/types.ts';
+import { countSolutions } from '../src/uniqueness.ts';
+import { isSolved } from '../src/validate.ts';
 
 /**
  * Seeded fuzzing. Every case comes from a seed named in the assertion message,

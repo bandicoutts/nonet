@@ -1,10 +1,10 @@
-import { countCandidates, digitsOf, hasCandidate } from '../../candidates';
-import type { CandidateMask, CellIndex } from '../../types';
-import { ALL_UNITS } from '../../units';
-import type { Unit } from '../../units';
-import type { SolverState } from '../state';
-import { reduction } from '../step';
-import type { Elimination, Step, Technique } from '../step';
+import { countCandidates, digitsOf, hasCandidate } from '../../candidates.ts';
+import type { CandidateMask, CellIndex } from '../../types.ts';
+import { ALL_UNITS } from '../../units.ts';
+import type { Unit } from '../../units.ts';
+import type { SolverState } from '../state.ts';
+import { reduction } from '../step.ts';
+import type { Elimination, Step, Technique } from '../step.ts';
 
 /** Cells of a unit that are still open, with their candidate masks. */
 function openCells(state: SolverState, unit: Unit): Array<{ cell: CellIndex; mask: CandidateMask }> {

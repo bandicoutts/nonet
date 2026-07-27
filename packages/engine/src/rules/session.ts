@@ -1,17 +1,17 @@
-import { getCell, setCell } from '../grid';
-import { CELL_COUNT } from '../types';
-import type { CellIndex, Digit, Grid, Notes } from '../types';
-import { isSolved } from '../validate';
-import { chooseHint, MAX_HINTS } from './hints';
+import { getCell, setCell } from '../grid.ts';
+import { CELL_COUNT } from '../types.ts';
+import type { CellIndex, Digit, Grid, Notes } from '../types.ts';
+import { isSolved } from '../validate.ts';
+import { chooseHint, MAX_HINTS } from './hints.ts';
 import {
   MAX_MISTAKES,
   createMistakeTracker,
   loadDigit as loadDigitInTracker,
   recordWrongPlacement,
   releaseContainment,
-} from './mistakes';
-import type { InputMode, MistakeTracker } from './mistakes';
-import { clearNotesAt, clearPeerNotes, emptyNotes, notesAt, toggleNote } from './notes';
+} from './mistakes.ts';
+import type { InputMode, MistakeTracker } from './mistakes.ts';
+import { clearNotesAt, clearPeerNotes, emptyNotes, notesAt, toggleNote } from './notes.ts';
 
 export type SessionStatus = 'playing' | 'solved' | 'failed';
 

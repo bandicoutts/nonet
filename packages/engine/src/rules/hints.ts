@@ -1,6 +1,6 @@
-import { getCell } from '../grid';
-import { easiestCell } from '../solver/index';
-import type { CellIndex, Digit, Grid } from '../types';
+import { getCell } from '../grid.ts';
+import { easiestCell } from '../solver/index.ts';
+import type { CellIndex, Digit, Grid } from '../types.ts';
 
 /** Three reveals per puzzle. */
 export const MAX_HINTS = 3;

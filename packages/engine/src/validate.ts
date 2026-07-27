@@ -1,7 +1,7 @@
-import { getCell } from './grid';
-import { PEERS } from './units';
-import { CELL_COUNT } from './types';
-import type { CellIndex, Digit, Grid } from './types';
+import { getCell } from './grid.ts';
+import { PEERS } from './units.ts';
+import { CELL_COUNT } from './types.ts';
+import type { CellIndex, Digit, Grid } from './types.ts';
 
 /** Whether `digit` may legally go in `index` given the digits already placed. */
 export function canPlace(grid: Grid, index: CellIndex, digit: Digit): boolean {

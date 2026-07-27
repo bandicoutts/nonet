@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { digitsOf, maskOf } from '../src/candidates';
-import { boxOf, colOf, rowOf } from '../src/grid';
-import { CELL_COUNT } from '../src/types';
-import type { Digit } from '../src/types';
+import { digitsOf, maskOf } from '../src/candidates.ts';
+import { boxOf, colOf, rowOf } from '../src/grid.ts';
+import { CELL_COUNT } from '../src/types.ts';
+import type { Digit } from '../src/types.ts';
 import {
   clearNotesAt,
   clearPeerNotes,
@@ -10,7 +10,7 @@ import {
   notesAt,
   setNotesAt,
   toggleNote,
-} from '../src/rules/notes';
+} from '../src/rules/notes.ts';
 
 describe('emptyNotes', () => {
   test('starts with nothing pencilled anywhere', () => {

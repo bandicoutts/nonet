@@ -1,7 +1,7 @@
-import { removeCandidate, toggleCandidate } from '../candidates';
-import { CELL_COUNT } from '../types';
-import type { CandidateMask, CellIndex, Digit, Notes } from '../types';
-import { PEERS } from '../units';
+import { removeCandidate, toggleCandidate } from '../candidates.ts';
+import { CELL_COUNT } from '../types.ts';
+import type { CandidateMask, CellIndex, Digit, Notes } from '../types.ts';
+import { PEERS } from '../units.ts';
 
 export function emptyNotes(): Notes {
   return new Array<CandidateMask>(CELL_COUNT).fill(0);

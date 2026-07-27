@@ -1,6 +1,6 @@
-import { boxOf, cellAt, colOf, rowOf } from './grid';
-import { CELL_COUNT, UNIT_SIZE } from './types';
-import type { CellIndex } from './types';
+import { boxOf, cellAt, colOf, rowOf } from './grid.ts';
+import { CELL_COUNT, UNIT_SIZE } from './types.ts';
+import type { CellIndex } from './types.ts';
 
 /** A constraint group: nine cells that must hold each digit exactly once. */
 export type Unit = readonly CellIndex[];

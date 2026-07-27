@@ -1,5 +1,5 @@
-import { BOX_SIZE, CELL_COUNT, UNIT_SIZE } from './types';
-import type { CellIndex, CellValue, Digit, Grid, MutableGrid } from './types';
+import { BOX_SIZE, CELL_COUNT, UNIT_SIZE } from './types.ts';
+import type { CellIndex, CellValue, Digit, Grid, MutableGrid } from './types.ts';
 
 const EMPTY_CHARS = new Set(['.', '0']);
 
@@ -29,8 +29,16 @@ export function parseGrid(source: string): Grid {
   });
 }
 
-export function formatGrid(grid: Grid): string {
-  return grid.map((value) => (value === 0 ? '.' : String(value))).join('');
+/**
+ * An 81-character grid.
+ *
+ * `empty` is what an unfilled cell becomes. The default `.` reads well in a
+ * fixture or a test failure; `0` is what persistence wants, because the columns
+ * holding a grid are constrained to digits — a dot is not a cell value, it is a
+ * way of drawing one. `parseGrid` accepts either.
+ */
+export function formatGrid(grid: Grid, empty: '.' | '0' = '.'): string {
+  return grid.map((value) => (value === 0 ? empty : String(value))).join('');
 }
 
 export function rowOf(index: CellIndex): number {

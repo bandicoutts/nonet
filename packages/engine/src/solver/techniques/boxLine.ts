@@ -1,1 +1,1 @@
-export { findBoxLine } from './lockedCandidates';
+export { findBoxLine } from './lockedCandidates.ts';

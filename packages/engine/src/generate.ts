@@ -1,12 +1,12 @@
-import { canPlace } from './validate';
-import { cloneGrid, emptyGrid, filledCount } from './grid';
-import { SCORE_FLOORS, TARGET_GIVENS, TECHNIQUE_CEILINGS, bandForScore } from './difficulty';
-import { createRng } from './rng';
-import type { Rng } from './rng';
-import { analyse } from './solver/index';
-import { CELL_COUNT, DIGITS } from './types';
-import type { CellIndex, Difficulty, Grid, MutableGrid } from './types';
-import { hasUniqueSolution } from './uniqueness';
+import { canPlace } from './validate.ts';
+import { cloneGrid, emptyGrid, filledCount } from './grid.ts';
+import { SCORE_FLOORS, TARGET_GIVENS, TECHNIQUE_CEILINGS, bandForScore } from './difficulty.ts';
+import { createRng } from './rng.ts';
+import type { Rng } from './rng.ts';
+import { analyse } from './solver/index.ts';
+import { CELL_COUNT, DIGITS } from './types.ts';
+import type { CellIndex, Difficulty, Grid, MutableGrid } from './types.ts';
+import { hasUniqueSolution } from './uniqueness.ts';
 
 /**
  * How far above the design given count a puzzle may finish. Digging stops when

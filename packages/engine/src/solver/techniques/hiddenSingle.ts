@@ -1,10 +1,10 @@
-import { hasCandidate } from '../../candidates';
-import { DIGITS } from '../../types';
-import type { CellIndex } from '../../types';
-import { ALL_UNITS } from '../../units';
-import type { SolverState } from '../state';
-import { placement } from '../step';
-import type { Step } from '../step';
+import { hasCandidate } from '../../candidates.ts';
+import { DIGITS } from '../../types.ts';
+import type { CellIndex } from '../../types.ts';
+import { ALL_UNITS } from '../../units.ts';
+import type { SolverState } from '../state.ts';
+import { placement } from '../step.ts';
+import type { Step } from '../step.ts';
 
 /** A digit that fits exactly one cell of a unit, even if that cell has others. */
 export function findHiddenSingle(state: SolverState): Step | null {

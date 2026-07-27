@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_HINTS, MAX_MISTAKES, apply, createSession, emptyNotes, parseGrid, restoreSession, setNotesAt } from '../src/index';
-import type { Grid } from '../src/index';
+import { MAX_HINTS, MAX_MISTAKES, apply, createSession, emptyNotes, parseGrid, restoreSession, setNotesAt } from '../src/index.ts';
+import type { Grid } from '../src/index.ts';
 
 /**
  * Resuming a puzzle is the engine's job, not the app's.

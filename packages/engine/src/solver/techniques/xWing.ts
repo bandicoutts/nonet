@@ -1,11 +1,11 @@
-import { colOf, rowOf } from '../../grid';
-import { DIGITS } from '../../types';
-import type { CellIndex } from '../../types';
-import { COLS, ROWS } from '../../units';
-import type { SolverState } from '../state';
-import { reduction } from '../step';
-import type { Elimination, Step } from '../step';
-import { cellsFor } from './lockedCandidates';
+import { colOf, rowOf } from '../../grid.ts';
+import { DIGITS } from '../../types.ts';
+import type { CellIndex } from '../../types.ts';
+import { COLS, ROWS } from '../../units.ts';
+import type { SolverState } from '../state.ts';
+import { reduction } from '../step.ts';
+import type { Elimination, Step } from '../step.ts';
+import { cellsFor } from './lockedCandidates.ts';
 
 /**
  * X-wing: a digit that fits exactly two cells in each of two rows, and those

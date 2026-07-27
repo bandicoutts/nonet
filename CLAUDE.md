@@ -3,7 +3,7 @@
 Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UTC publish, weekly difficulty rhythm) plus unlimited practice. Sibling product to Halve (`~/Documents/Github/parity`): same architecture patterns, deliberately distinct design. Web-first (Next.js + Supabase + Vercel). Working name/domain: `nonet.app`.
 
 ## Repo map (pnpm monorepo)
-- `apps/web` — Next.js 16 app (the only planned frontend). **Stub until Phase 3.**
+- `apps/web` — Next.js 16 app (App Router, Tailwind v4). **Built: nine routes, the board, guest autosave.**
 - `packages/engine` — pure TS sudoku generator + solver + difficulty rater + play rules (no runtime deps, no DOM). **Built.** API in `packages/engine/README.md`.
 - `packages/design` — design tokens; single source of truth for styling. Claude Design prototype is the pixel reference.
 - `supabase/` — migrations, edge functions, seed
@@ -22,8 +22,8 @@ Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UT
 Global Next.js 16 / Supabase / TypeScript rules apply. Project-specific:
 - Design tokens in `packages/design` are the source of truth — never hardcode colors/spacing in components. They are transcribed from the Claude Design prototype's **Tokens** screen.
 - **Styling is Tailwind v4, and the tokens are its only vocabulary.** `apps/web/src/app/theme.generated.css` is generated from `@nonet/design` (`pnpm --filter @nonet/web theme:gen`) and a test fails if it drifts. Tailwind's own palette, numeric spacing scale and breakpoints are cleared, so `bg-red-500`, `p-4` and `md:` do not exist — use a token utility, or an arbitrary value with a stated reason. Type roles are `type-*` utilities. DECISIONS.md NONET-11.
-- **Relative imports carry no extension.** Turbopack does not resolve `./x.js` to `x.ts`. App code imports through the `@/` alias.
-- `pnpm --filter @nonet/web dev` is the app on 3000; `dev:harness` is the Phase 2 component harness on 5173.
+- **Import extensions differ by package, and both forms have a reason.** `packages/engine` names `.ts` on every relative import, because Deno consumes it in the edge functions and cannot resolve an extensionless specifier. Everywhere else is extensionless, because Turbopack cannot resolve `./x.js` to `x.ts`. `.ts` is the one form all three resolvers accept; the engine uses it because it is the only package crossing the Deno boundary. App code imports through the `@/` alias. DECISIONS.md NONET-16.
+- `pnpm --filter @nonet/web dev` is the app on 3000. The Phase 2 Vite harness is retired — `/board` is the real thing.
 - `packages/engine` is framework-agnostic and must stay fully unit-tested; UI depends on it, not vice versa.
 - **pnpm is pinned to 9.15.9.** Do not run `corepack prepare pnpm@latest` — pnpm 11 requires Node 22 and imports `node:sqlite`; this project is on Node 20.18. Use `corepack enable` and let `packageManager` resolve.
 - Streaks/stats are **derived from the `solves` table**, never denormalized. Streak days use the player's LOCAL calendar day.

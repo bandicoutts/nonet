@@ -9,9 +9,9 @@ import {
   removeCandidate,
   singleCandidate,
   withCandidate,
-} from '../src/candidates';
-import { parseGrid } from '../src/grid';
-import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures';
+} from '../src/candidates.ts';
+import { parseGrid } from '../src/grid.ts';
+import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures.ts';
 
 describe('candidate masks', () => {
   test('maskOf and digitsOf round-trip', () => {

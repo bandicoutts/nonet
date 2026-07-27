@@ -327,3 +327,71 @@ $$;
 
 revoke execute on function public.daily_percentile(uuid, integer) from public;
 grant execute on function public.daily_percentile(uuid, integer) to authenticated, anon;
+
+-- ---------------------------------------------------------------------------
+-- Publishing
+-- ---------------------------------------------------------------------------
+
+-- Insert one edition, or do nothing because it is already there.
+--
+-- Idempotency lives here rather than in the edge function because it is a
+-- property of the table, not of the caller: a cron that fires twice, a retry
+-- after a timeout, and a manual backfill all have to be safe, and they are only
+-- safe together if one statement decides. `on conflict` against the partial
+-- unique index is that statement.
+--
+-- The existing id comes back on a repeat, so a second run is indistinguishable
+-- from the first to whoever called it — the function reports what the edition
+-- is, not what it did.
+--
+-- `published_at` is derived here rather than passed in, so the 00:05 UTC rule
+-- has one home and a caller cannot publish an edition early by asking nicely.
+create function public.publish_daily(
+  p_publish_date date,
+  p_difficulty public.difficulty,
+  p_givens text,
+  p_solution text,
+  p_score integer,
+  p_seed bigint
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  insert into public.puzzles (
+    kind, difficulty, givens, solution, score, seed, publish_date, published_at
+  )
+  values (
+    'daily', p_difficulty, p_givens, p_solution, p_score, p_seed, p_publish_date,
+    (p_publish_date + time '00:05') at time zone 'UTC'
+  )
+  on conflict (publish_date) where kind = 'daily' do nothing
+  returning id into v_id;
+
+  if v_id is null then
+    select id into v_id
+    from public.puzzles
+    where kind = 'daily' and publish_date = p_publish_date;
+  end if;
+
+  return v_id;
+end;
+$$;
+
+-- Minting editions is not a player action. Only the service role — the publish
+-- job and a deliberate backfill — may call this.
+--
+-- **`anon` and `authenticated` are revoked by name, not just `public`.** Supabase
+-- sets default privileges that grant execute on new functions to both roles
+-- explicitly, and an explicit grant survives a revoke from `public`. Revoking
+-- only from `public` leaves this callable by anyone with the anon key — which
+-- is published in the client — and the test suite is how that was found rather
+-- than shipped.
+revoke execute on function public.publish_daily(date, public.difficulty, text, text, integer, bigint)
+  from public, anon, authenticated;
+grant execute on function public.publish_daily(date, public.difficulty, text, text, integer, bigint)
+  to service_role;

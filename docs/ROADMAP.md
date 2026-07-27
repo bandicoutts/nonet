@@ -37,7 +37,8 @@ Phases & milestones. Check off as completed.
 - [ ] Mobile drawer below 768 (full-frame overlay, focus-trapped, Esc closes) — the nav stays visible at every width until it exists
 - [x] Schema + RLS migrations (`puzzles`, `profiles`, `solves`) — 23 pgTAP assertions, incl. that anon cannot read an unpublished daily
 - [x] Streak derivation over solve rows, shared by guest and signed-in
-- [ ] Daily-puzzle edge function (00:05 UTC, weekly rhythm, idempotent)
+- [x] Daily-puzzle edge function (00:05 UTC, weekly rhythm, idempotent) — idempotency in SQL, verified against the local stack
+- [x] Practice bank: 1000 puzzles per difficulty, reproducible from seeds
 - [x] Guest localStorage play + autosave/resume — `restoreSession` in the engine, storage and autosave in `apps/web/src/lib`
 - [ ] Sign-in sync (magic link; merge rules per ARCHITECTURE.md — tested, plus the post-sign-in merge summary)
 

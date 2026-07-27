@@ -1,4 +1,4 @@
-import type { Digit } from '../types';
+import type { Digit } from '../types.ts';
 
 /** Three strikes and the board locks. */
 export const MAX_MISTAKES = 3;

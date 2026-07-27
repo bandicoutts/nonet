@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { digitsOf } from '../src/candidates';
-import { getCell, parseGrid } from '../src/grid';
-import { MAX_HINTS, hintNeedsConfirmation } from '../src/rules/hints';
-import { notesAt } from '../src/rules/notes';
-import { apply, createSession } from '../src/rules/session';
-import type { SessionOptions, SessionState } from '../src/rules/session';
-import type { CellIndex, Digit } from '../src/types';
-import { CLASSIC_PUZZLE, CLASSIC_SOLUTION } from './fixtures';
+import { digitsOf } from '../src/candidates.ts';
+import { getCell, parseGrid } from '../src/grid.ts';
+import { MAX_HINTS, hintNeedsConfirmation } from '../src/rules/hints.ts';
+import { notesAt } from '../src/rules/notes.ts';
+import { apply, createSession } from '../src/rules/session.ts';
+import type { SessionOptions, SessionState } from '../src/rules/session.ts';
+import type { CellIndex, Digit } from '../src/types.ts';
+import { CLASSIC_PUZZLE, CLASSIC_SOLUTION } from './fixtures.ts';
 
 function newSession(overrides: Partial<SessionOptions> = {}): SessionState {
   return createSession({

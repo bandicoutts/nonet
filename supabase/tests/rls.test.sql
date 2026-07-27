@@ -6,11 +6,18 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(41);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
 -- ---------------------------------------------------------------------------
+
+-- Start from an empty table. `seed.sql` loads a 4000-puzzle practice bank on
+-- every `db reset`, and assertions that count rows would otherwise be counting
+-- it. Rolled back with everything else at the end.
+delete from public.solves;
+delete from public.autosaves;
+delete from public.puzzles;
 
 -- Two real auth users, so the cross-user checks exercise auth.uid() rather
 -- than a stand-in.
@@ -281,6 +288,70 @@ select throws_ok(
   '23514',
   null,
   'a one-character display name is rejected'
+);
+
+-- ---------------------------------------------------------------------------
+-- Publishing
+-- ---------------------------------------------------------------------------
+
+-- A cron that fires twice, a retry after a timeout and a manual backfill all
+-- have to be safe. They are only safe together if one statement decides, so
+-- this is asserted rather than left to the caller.
+select is(
+  public.publish_daily('2026-09-01', 'hard', repeat('0', 81), repeat('123456789', 9), 61, 5001),
+  public.publish_daily('2026-09-01', 'hard', repeat('0', 81), repeat('123456789', 9), 61, 5001),
+  'publishing the same edition twice returns the same puzzle'
+);
+
+select is(
+  (select count(*)::int from public.puzzles where publish_date = '2026-09-01'),
+  1,
+  'and leaves exactly one row'
+);
+
+-- A re-run with different content must not silently replace the edition people
+-- are already playing.
+select is(
+  (select score from public.puzzles where publish_date = '2026-09-01'),
+  61,
+  'a second run cannot overwrite the edition already published'
+);
+
+-- 00:05 UTC is the rule, and it is derived here rather than passed in, so no
+-- caller can publish an edition early by asking nicely.
+select is(
+  (select published_at from public.puzzles where publish_date = '2026-09-01'),
+  '2026-09-01 00:05:00+00'::timestamptz,
+  'an edition publishes at 00:05 UTC on its own date'
+);
+
+-- Asserted from the catalogue rather than by calling it and expecting 42501.
+--
+-- Two reasons, and the second is the load-bearing one. It is the more direct
+-- claim: the grant is the thing that matters, and an error is only its symptom.
+-- And on the local stack — PostgreSQL 17.6, arm64 — calling *any* function the
+-- current role lacks EXECUTE on segfaults the backend, security definer or not.
+-- An invoking test would take the database down rather than fail.
+--
+-- Revoking from `public` alone is not enough here: Supabase's default
+-- privileges grant execute on new functions to `anon` and `authenticated` by
+-- name, and a named grant survives a revoke from `public`. Both are checked.
+select is(
+  has_function_privilege('anon', 'public.publish_daily(date, public.difficulty, text, text, integer, bigint)', 'EXECUTE'),
+  false,
+  'anon cannot mint an edition'
+);
+
+select is(
+  has_function_privilege('authenticated', 'public.publish_daily(date, public.difficulty, text, text, integer, bigint)', 'EXECUTE'),
+  false,
+  'nor can a signed-in player'
+);
+
+select is(
+  has_function_privilege('service_role', 'public.publish_daily(date, public.difficulty, text, text, integer, bigint)', 'EXECUTE'),
+  true,
+  'the publish job can'
 );
 
 select finish();

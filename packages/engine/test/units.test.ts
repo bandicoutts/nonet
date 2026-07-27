@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from '../src/units';
-import { boxOf, colOf, rowOf } from '../src/grid';
+import { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from '../src/units.ts';
+import { boxOf, colOf, rowOf } from '../src/grid.ts';
 
 describe('unit tables', () => {
   test('there are 9 rows, 9 columns and 9 boxes of 9 cells each', () => {

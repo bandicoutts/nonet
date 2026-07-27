@@ -1,9 +1,9 @@
-import { computeCandidates, countCandidates, digitsOf, removeCandidate } from './candidates';
-import { cloneGrid } from './grid';
-import { CELL_COUNT } from './types';
-import type { CandidateMask, CellIndex, Digit, Grid, MutableGrid } from './types';
-import { PEERS } from './units';
-import { isLegal } from './validate';
+import { computeCandidates, countCandidates, digitsOf, removeCandidate } from './candidates.ts';
+import { cloneGrid } from './grid.ts';
+import { CELL_COUNT } from './types.ts';
+import type { CandidateMask, CellIndex, Digit, Grid, MutableGrid } from './types.ts';
+import { PEERS } from './units.ts';
+import { isLegal } from './validate.ts';
 
 /**
  * Backtracking search over a live candidate table. This is the ground truth for

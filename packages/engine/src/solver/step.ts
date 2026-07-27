@@ -1,4 +1,4 @@
-import type { CellIndex, Digit } from '../types';
+import type { CellIndex, Digit } from '../types.ts';
 
 /**
  * The solving techniques the engine knows, in the order it applies them.

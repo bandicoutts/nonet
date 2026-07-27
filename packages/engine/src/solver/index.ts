@@ -1,22 +1,22 @@
-import { computeCandidates, removeCandidate } from '../candidates';
-import { cloneGrid, emptyCells } from '../grid';
-import { countCandidates } from '../candidates';
-import type { CandidateMask, CellIndex, Digit, Grid } from '../types';
-import { PEERS } from '../units';
-import { isSolved } from '../validate';
-import { solveByBacktracking } from '../uniqueness';
-import type { SolverState, TechniqueFinder } from './state';
-import { TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './step';
-import type { Step, Technique } from './step';
-import { findNakedSingle } from './techniques/nakedSingle';
-import { findHiddenSingle } from './techniques/hiddenSingle';
-import { findNakedPair } from './techniques/nakedPair';
-import { findHiddenPair } from './techniques/hiddenPair';
-import { findNakedTriple } from './techniques/nakedTriple';
-import { findPointingPair } from './techniques/pointingPair';
-import { findBoxLine } from './techniques/boxLine';
-import { findXWing } from './techniques/xWing';
-import { findChain } from './techniques/chain';
+import { computeCandidates, removeCandidate } from '../candidates.ts';
+import { cloneGrid, emptyCells } from '../grid.ts';
+import { countCandidates } from '../candidates.ts';
+import type { CandidateMask, CellIndex, Digit, Grid } from '../types.ts';
+import { PEERS } from '../units.ts';
+import { isSolved } from '../validate.ts';
+import { solveByBacktracking } from '../uniqueness.ts';
+import type { SolverState, TechniqueFinder } from './state.ts';
+import { TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './step.ts';
+import type { Step, Technique } from './step.ts';
+import { findNakedSingle } from './techniques/nakedSingle.ts';
+import { findHiddenSingle } from './techniques/hiddenSingle.ts';
+import { findNakedPair } from './techniques/nakedPair.ts';
+import { findHiddenPair } from './techniques/hiddenPair.ts';
+import { findNakedTriple } from './techniques/nakedTriple.ts';
+import { findPointingPair } from './techniques/pointingPair.ts';
+import { findBoxLine } from './techniques/boxLine.ts';
+import { findXWing } from './techniques/xWing.ts';
+import { findChain } from './techniques/chain.ts';
 
 /** Finders in TECHNIQUE_ORDER. The solver always tries them in this order. */
 const FINDERS: ReadonlyArray<readonly [Technique, TechniqueFinder]> = [

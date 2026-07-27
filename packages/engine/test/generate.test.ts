@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { DIFFICULTIES } from '../src/types';
-import type { Difficulty } from '../src/types';
-import { filledCount, formatGrid } from '../src/grid';
+import { DIFFICULTIES } from '../src/types.ts';
+import type { Difficulty } from '../src/types.ts';
+import { filledCount, formatGrid } from '../src/grid.ts';
 import {
   SCORE_FLOORS,
   TARGET_GIVENS,
@@ -9,17 +9,17 @@ import {
   bandForScore,
   rate,
   scoreOf,
-} from '../src/difficulty';
+} from '../src/difficulty.ts';
 import {
   GIVEN_TOLERANCE,
   digToTarget,
   generatePuzzle,
   generateSolution,
-} from '../src/generate';
-import { createRng } from '../src/rng';
-import { analyse } from '../src/solver/index';
-import { hasUniqueSolution } from '../src/uniqueness';
-import { isSolved } from '../src/validate';
+} from '../src/generate.ts';
+import { createRng } from '../src/rng.ts';
+import { analyse } from '../src/solver/index.ts';
+import { hasUniqueSolution } from '../src/uniqueness.ts';
+import { isSolved } from '../src/validate.ts';
 
 describe('generateSolution', () => {
   test('produces a complete, legal grid', () => {

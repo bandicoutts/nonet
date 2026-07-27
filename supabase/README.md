@@ -57,9 +57,43 @@ All of the above is asserted in `tests/rls.test.sql`. A table with policies but
 RLS switched off is wide open and looks entirely correct in a migration diff,
 so even that is checked against the catalogue.
 
-## Still to come in Phase 3
+## Publishing
 
-`functions/` — the daily publish job (00:05 UTC, weekly rhythm, idempotent) —
-and `seed.sql`, the practice bank.
+`functions/publish-daily` generates the edition and hands it to
+`publish_daily()`. The function holds no state — seed, difficulty and number
+are all derived from the date — and **idempotency lives in the SQL**, not the
+function: one `on conflict` statement covers a cron that fires twice, a retry
+after a timeout and a manual backfill alike, and returns the existing id so a
+repeat is indistinguishable from the first run.
+
+`?date=YYYY-MM-DD` backfills a missed day. `published_at` is derived inside the
+function as 00:05 UTC on the edition's own date, so no caller can publish early.
+
+Only `service_role` may execute it. Note that revoking from `PUBLIC` is *not*
+enough: Supabase's default privileges grant execute on new functions to `anon`
+and `authenticated` by name, and a named grant survives a revoke from `PUBLIC`.
+Both are revoked explicitly, and the suite asserts the privilege directly.
+
+## The practice bank
+
+`seed.sql` holds 1000 puzzles per difficulty, generated with seeds `1..1000` per
+band:
+
+```bash
+pnpm --filter @nonet/engine seed-bank 1000   # ~35s, 790 KB
+```
+
+Checked in, but reproducible byte-for-byte, and any single puzzle can be rebuilt
+from its band and seed. Loading it twice is a no-op. Measured score ranges match
+the calibrated bands (NONET-4): easy 43-46, medium 47-57, hard 58-82, expert
+83-346.
+
+## A local-stack landmine
+
+On the local image (PostgreSQL 17.6, arm64) calling **any** function the current
+role lacks EXECUTE on **segfaults the backend** — security definer or not, and
+regardless of the function body. Function-permission tests therefore assert
+`has_function_privilege` rather than expecting a `42501`. Table-level denials
+raise normally; it is only function execute.
 
 Not a pnpm workspace package.

@@ -1,6 +1,6 @@
-import { CELL_COUNT, DIGITS } from './types';
-import type { CandidateMask, Digit, Grid } from './types';
-import { PEERS } from './units';
+import { CELL_COUNT, DIGITS } from './types.ts';
+import type { CandidateMask, Digit, Grid } from './types.ts';
+import { PEERS } from './units.ts';
 
 /** Every digit 1-9. */
 export const ALL_CANDIDATES: CandidateMask = 0b111_111_111;

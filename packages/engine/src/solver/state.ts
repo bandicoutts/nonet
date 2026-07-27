@@ -1,5 +1,5 @@
-import type { CandidateMask, Grid } from '../types';
-import type { Step } from './step';
+import type { CandidateMask, Grid } from '../types.ts';
+import type { Step } from './step.ts';
 
 /** What a technique sees: the placed digits and the current candidate table. */
 export interface SolverState {

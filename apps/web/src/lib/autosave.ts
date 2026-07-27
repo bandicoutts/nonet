@@ -25,7 +25,9 @@ export function toRecord(
   return {
     version: 1,
     ref,
-    grid: formatGrid(session.grid),
+    // Zeros, not dots: this record is the `autosaves` row's shape, and that
+    // column is constrained to digits.
+    grid: formatGrid(session.grid, '0'),
     notes: [...session.notes],
     elapsedMs,
     mistakes: session.mistakes,

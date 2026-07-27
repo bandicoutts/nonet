@@ -1,16 +1,16 @@
 import { describe, expect, test } from 'vitest';
-import { digitsOf } from '../src/candidates';
-import { findBoxLine } from '../src/solver/techniques/boxLine';
-import { findChain } from '../src/solver/techniques/chain';
-import { findHiddenPair } from '../src/solver/techniques/hiddenPair';
-import { findHiddenSingle } from '../src/solver/techniques/hiddenSingle';
-import { findNakedPair } from '../src/solver/techniques/nakedPair';
-import { findNakedSingle } from '../src/solver/techniques/nakedSingle';
-import { findNakedTriple } from '../src/solver/techniques/nakedTriple';
-import { findPointingPair } from '../src/solver/techniques/pointingPair';
-import { findXWing } from '../src/solver/techniques/xWing';
-import { eliminationsOf, stateFromGrid, stateWithCandidates } from './helpers';
-import { HIDDEN_SINGLE_GRID, NAKED_SINGLE_GRID } from './fixtures';
+import { digitsOf } from '../src/candidates.ts';
+import { findBoxLine } from '../src/solver/techniques/boxLine.ts';
+import { findChain } from '../src/solver/techniques/chain.ts';
+import { findHiddenPair } from '../src/solver/techniques/hiddenPair.ts';
+import { findHiddenSingle } from '../src/solver/techniques/hiddenSingle.ts';
+import { findNakedPair } from '../src/solver/techniques/nakedPair.ts';
+import { findNakedSingle } from '../src/solver/techniques/nakedSingle.ts';
+import { findNakedTriple } from '../src/solver/techniques/nakedTriple.ts';
+import { findPointingPair } from '../src/solver/techniques/pointingPair.ts';
+import { findXWing } from '../src/solver/techniques/xWing.ts';
+import { eliminationsOf, stateFromGrid, stateWithCandidates } from './helpers.ts';
+import { HIDDEN_SINGLE_GRID, NAKED_SINGLE_GRID } from './fixtures.ts';
 
 describe('naked single', () => {
   test('places the only digit a cell can take', () => {

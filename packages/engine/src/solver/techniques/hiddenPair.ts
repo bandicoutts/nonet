@@ -1,6 +1,6 @@
-import type { SolverState } from '../state';
-import type { Step } from '../step';
-import { findHiddenSubset } from './subsets';
+import type { SolverState } from '../state.ts';
+import type { Step } from '../step.ts';
+import { findHiddenSubset } from './subsets.ts';
 
 /** Two digits that between them fit only two cells of a unit. */
 export function findHiddenPair(state: SolverState): Step | null {
