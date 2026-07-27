@@ -33,6 +33,12 @@ export interface BoardToolbarProps {
    */
   readonly onConfirmHint: () => void;
   readonly elapsedMs: number;
+  /**
+   * Hiding the timer does not stop it (Settings copy): the time is still
+   * recorded and shown at the end. So this hides the readout and nothing else —
+   * `elapsedMs` keeps arriving and keeps being saved.
+   */
+  readonly showTimer?: boolean;
 }
 
 /** Display caps at 99:59+, so a long session never breaks the layout. */
@@ -50,6 +56,7 @@ export function BoardToolbar({
   onPause,
   onConfirmHint,
   elapsedMs,
+  showTimer = true,
 }: BoardToolbarProps) {
   const locked = session.status !== 'playing';
   const hintsLeft = MAX_HINTS - session.hintsUsed;
@@ -64,9 +71,15 @@ export function BoardToolbar({
   return (
     <div className="flex flex-col gap-sm">
       <div className="flex items-baseline justify-between gap-s">
-        <p className="type-timer m-0 text-fg" aria-label={`Elapsed time ${formatTime(elapsedMs)}`}>
-          <span aria-hidden="true">{formatTime(elapsedMs)}</span>
-        </p>
+        {showTimer ? (
+          <p className="type-timer m-0 text-fg" aria-label={`Elapsed time ${formatTime(elapsedMs)}`}>
+            <span aria-hidden="true">{formatTime(elapsedMs)}</span>
+          </p>
+        ) : (
+          /* Something has to hold the row's left edge, or the mistake dots
+             slide across when the timer is hidden. */
+          <span aria-hidden="true" />
+        )}
 
         {session.checking ? (
           <p

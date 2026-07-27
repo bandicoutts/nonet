@@ -62,6 +62,9 @@ export function resume(ref: PuzzleRef, fresh: SessionState): Resumed | null {
       solution: fresh.solution,
       mode: fresh.mode,
       checking: fresh.checking,
+      // Carried explicitly. A play setting the restore forgets is one that
+      // silently stops working the moment the player reloads.
+      autoAdvance: fresh.autoAdvance,
       grid: parseGrid(saved.grid),
       notes: saved.notes as readonly CandidateMask[] as Notes,
       mistakes: saved.mistakes,

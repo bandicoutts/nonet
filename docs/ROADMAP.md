@@ -55,10 +55,9 @@ than questions are here.
       text, and the dwell-then-navigate from a finished board (DECISIONS.md NONET-20)
 - [x] Home: daily hero across six states, streak band, practice picker + resume
       + abandon confirm; `/board` now takes a puzzle in the URL (NONET-23)
-- [ ] Honour the four settings that are stored and synced but read by nothing —
-      `showTimer`, `highlightMatching`, `highlightUnits`, `autoAdvance`.
-      `autoAdvance` needs a new engine action; it is a play rule, not React state
-- [ ] Settings screen (the store, columns and sync shape already exist)
+- [x] Honour the four settings that were stored and synced but read by nothing;
+      `autoAdvance` is an engine rule, not React state (NONET-24)
+- [x] Settings screen (NONET-24)
 - [ ] Archive + Record pages, percentiles
 - [ ] Archive and replay play modes — `solves.kind` can hold them, nothing writes them
 - [ ] Offline banner, edge/empty/error states per DESIGN-BRIEF.md

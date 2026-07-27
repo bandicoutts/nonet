@@ -30,22 +30,7 @@ is not owned yet — so the ordering is: domain, then SMTP, then paste
 
 ---
 
-## 2. Four settings are stored and synced, and honoured by nothing
-
-`showTimer`, `highlightMatching`, `highlightUnits` and `autoAdvance` round-trip
-through `profiles` and are read back by the merge, but **no component consumes
-them**. Only `inputMode` and `checking` reach the board.
-
-**Recommendation:** wire them in Phase 4 with the Settings screen. Note that
-`autoAdvance` needs engine work — there is no action for "move to the next
-empty cell in reading order", and it belongs in the session reducer with the
-other play rules rather than in React (NONET-8).
-
-Flagged because the columns existing makes this look finished when it is not.
-
----
-
-## 3. Archive: pre-generate editions, or publish forward only?
+## 2. Archive: pre-generate editions, or publish forward only?
 
 The `published_at <= now()` policy exists precisely so a pre-generated future
 edition stays hidden (NONET-14). Nothing pre-generates yet, so that guard is
@@ -57,7 +42,7 @@ puts every future answer in a world-readable table behind a single predicate.
 
 ---
 
-## 4. Run `security-review` on the branch
+## 3. Run `security-review` on the branch
 
 RLS policies and the auth callback now exist, which is the point the original
 Phase 3 handoff said to wait for.

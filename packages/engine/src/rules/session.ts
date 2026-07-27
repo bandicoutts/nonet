@@ -33,6 +33,11 @@ export interface SessionOptions {
    * is flagged and no mistake is tallied.
    */
   readonly checking?: boolean;
+  /**
+   * After a correct placement, move the selection to the next empty cell in
+   * reading order. Off by default, and **cell-first only** (NONET-2).
+   */
+  readonly autoAdvance?: boolean;
 }
 
 export interface SessionState {
@@ -49,6 +54,8 @@ export interface SessionState {
 
   readonly mode: InputMode;
   readonly checking: boolean;
+  /** Cell-first only. See `SessionOptions`. */
+  readonly autoAdvance: boolean;
   readonly notesMode: boolean;
   readonly selected: CellIndex | null;
   /**
@@ -93,6 +100,7 @@ export function createSession(options: SessionOptions): SessionState {
     assisted: false,
     mode: options.mode ?? 'cellFirst',
     checking: options.checking ?? true,
+    autoAdvance: options.autoAdvance ?? false,
     notesMode: false,
     selected: null,
     loadedDigit: null,
@@ -207,7 +215,7 @@ function statusOf(grid: Grid, tracker: MistakeTracker): SessionStatus {
 /** Commit an undoable change: push the previous state and drop any redo stack. */
 function commit(
   state: SessionState,
-  next: { grid: Grid; notes: Notes; tracker?: MistakeTracker },
+  next: { grid: Grid; notes: Notes; tracker?: MistakeTracker; selected?: CellIndex | null },
 ): SessionState {
   const tracker = next.tracker ?? state.tracker;
 
@@ -215,6 +223,9 @@ function commit(
     ...state,
     grid: next.grid,
     notes: next.notes,
+    // Auto-advance is the only thing that moves the selection as part of a
+    // move; everything else leaves it where the player put it.
+    selected: next.selected === undefined ? state.selected : next.selected,
     tracker,
     mistakes: tracker.mistakes,
     status: statusOf(next.grid, tracker),
@@ -273,15 +284,43 @@ function placeDigit(state: SessionState, cell: CellIndex, digit: Digit): Session
   const notes = clearPeerNotes(state.notes, cell, digit);
   const correct = state.solution[cell] === digit;
 
+  /*
+   * Where the selection lands next is a play rule, not React state (NONET-8).
+   *
+   * Only on a **correct** placement: a wrong digit has to be fixed, and moving
+   * the player off the cell they just got wrong is the opposite of helpful.
+   * Only in **cell-first**: in digit-first the digit stays loaded and the
+   * player taps every cell that takes it, so advancing would fight the gesture.
+   */
+  const advanced =
+    state.autoAdvance && state.mode === 'cellFirst' && correct
+      ? nextEmptyCell(grid, cell)
+      : state.selected;
+
   // With checking off nothing is flagged and nothing is tallied, so a wrong
   // digit simply sits on the board until the player revisits it.
-  if (!state.checking) return commit(state, { grid, notes });
+  if (!state.checking) return commit(state, { grid, notes, selected: advanced });
 
   const tracker = correct
     ? releaseContainment(state.tracker)
     : recordWrongPlacement(state.tracker, { mode: state.mode, digit });
 
-  return commit(state, { grid, notes, tracker });
+  return commit(state, { grid, notes, tracker, selected: advanced });
+}
+
+/**
+ * The next empty cell after `from`, wrapping.
+ *
+ * Wraps rather than stopping at the end, because a player filling the grid out
+ * of order would otherwise be stranded at cell 80 with gaps behind them.
+ * Returns `from` when nothing is empty, which is the solved board.
+ */
+function nextEmptyCell(grid: Grid, from: CellIndex): CellIndex {
+  for (let step = 1; step <= CELL_COUNT; step += 1) {
+    const candidate = ((from + step) % CELL_COUNT) as CellIndex;
+    if (getCell(grid, candidate) === 0) return candidate;
+  }
+  return from;
 }
 
 function writeNote(state: SessionState, cell: CellIndex, digit: Digit): SessionState {

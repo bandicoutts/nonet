@@ -290,3 +290,72 @@ describe('completion', () => {
     expect(state.status).toBe('solved');
   });
 });
+
+/*
+ * Auto-advance.
+ *
+ * A play rule, not React state (NONET-8): where the selection lands after a
+ * placement is part of how the board plays, and reimplementing it in a
+ * component is exactly the split the engine exists to prevent.
+ */
+describe('auto-advance', () => {
+  test('does not move the selection when it is off', () => {
+    const state = apply(newSession(), { type: 'selectCell', cell: 2 });
+    const after = apply(state, { type: 'placeDigit', cell: 2, digit: 4 });
+
+    expect(after.selected).toBe(2);
+  });
+
+  test('moves to the next empty cell in reading order', () => {
+    const state = apply(newSession({ autoAdvance: true }), { type: 'selectCell', cell: 2 });
+    const after = apply(state, { type: 'placeDigit', cell: 2, digit: 4 });
+
+    // Row 0 is `53..7....`, so cell 3 is the next empty one.
+    expect(after.selected).toBe(3);
+  });
+
+  /* It skips what is already filled, givens included. */
+  test('skips filled cells', () => {
+    const state = apply(newSession({ autoAdvance: true }), { type: 'selectCell', cell: 3 });
+    const after = apply(state, { type: 'placeDigit', cell: 3, digit: 6 });
+
+    // Cell 4 is a given (7), so the next empty is 5.
+    expect(after.selected).toBe(5);
+  });
+
+  /*
+   * Cell-first only, which the Settings copy states. In digit-first the digit
+   * stays loaded and the player taps every cell that takes it — advancing the
+   * selection would fight the gesture rather than help it.
+   */
+  test('does nothing in digit-first', () => {
+    const state = apply(newSession({ autoAdvance: true, mode: 'digitFirst' }), {
+      type: 'selectCell',
+      cell: 2,
+    });
+    const after = apply(state, { type: 'placeDigit', cell: 2, digit: 4 });
+
+    expect(after.selected).toBe(2);
+  });
+
+  /*
+   * A wrong digit keeps the selection. The player has to fix it, and moving
+   * them off the cell they just got wrong is the opposite of helpful.
+   */
+  test('stays put on a wrong placement', () => {
+    const state = apply(newSession({ autoAdvance: true }), { type: 'selectCell', cell: 2 });
+    const after = apply(state, { type: 'placeDigit', cell: 2, digit: 9 });
+
+    expect(after.selected).toBe(2);
+  });
+
+  /* Wraps to the start rather than stopping at the end of the grid. */
+  test('wraps around the end of the grid', () => {
+    // 78 is the last *empty* cell — 79 and 80 are givens — so the next one is
+    // back at the top of the grid.
+    let state = apply(newSession({ autoAdvance: true }), { type: 'selectCell', cell: 78 });
+    state = apply(state, { type: 'placeDigit', cell: 78, digit: 1 });
+
+    expect(state.selected).toBe(2);
+  });
+});

@@ -449,3 +449,48 @@ describe('cell rules and the selection ring coexist', () => {
     expect(shadow.indexOf('var(--rule)')).toBeLessThan(shadow.indexOf('--border-cell-thin'));
   });
 });
+
+/*
+ * The settings that were stored, synced, and read by nothing (OPEN-QUESTIONS
+ * #2). A control that persists a value the board ignores is worse than no
+ * control, because it looks finished.
+ */
+describe('honouring the display settings', () => {
+  /* Cell 0 holds a 5, so selecting it gives both a unit and a match to shade. */
+  function board(props: Partial<Parameters<typeof Board>[0]> = {}) {
+    return render(
+      <Board
+        session={apply(session(), { type: 'selectCell', cell: 0 })}
+        onAction={() => undefined}
+        {...props}
+      />,
+    );
+  }
+
+  it('shades matching digits by default', () => {
+    board();
+    expect(document.querySelectorAll('[data-matching]').length).toBeGreaterThan(0);
+  });
+
+  it('shades no matching digits when the setting is off', () => {
+    board({ highlightMatching: false });
+    expect(document.querySelectorAll('[data-matching]')).toHaveLength(0);
+  });
+
+  it('shades the three units by default', () => {
+    board();
+    expect(document.querySelectorAll('[data-unit]').length).toBeGreaterThan(0);
+  });
+
+  it('shades no units when the setting is off', () => {
+    board({ highlightUnits: false });
+    expect(document.querySelectorAll('[data-unit]')).toHaveLength(0);
+  });
+
+  /* Selection is not a highlight. Turning the shading off must not take the
+     board's most important affordance with it (DESIGN.md). */
+  it('keeps the selection ring when both highlights are off', () => {
+    board({ highlightMatching: false, highlightUnits: false });
+    expect(document.querySelectorAll('[data-selected]')).toHaveLength(1);
+  });
+});

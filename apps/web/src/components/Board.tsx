@@ -88,6 +88,16 @@ export interface BoardProps {
    */
   readonly onPause?: () => void;
   readonly label?: string;
+  /**
+   * Shading, from Settings.
+   *
+   * Both default on, matching the stored defaults — a board rendered without
+   * them behaves as it always did. These are *display* settings and never touch
+   * the session, so turning them off changes what is drawn and nothing about
+   * what is true (OPEN-QUESTIONS #2, NONET-24).
+   */
+  readonly highlightMatching?: boolean;
+  readonly highlightUnits?: boolean;
 }
 
 const DIGIT_KEYS = new Set(['1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -105,7 +115,14 @@ const DIGIT_KEYS = new Set(['1', '2', '3', '4', '5', '6', '7', '8', '9']);
  * control is a `<span onClick>` and the accessibility tree comes back empty.
  * The roles, labels and roving tabindex below are new work, not a port.
  */
-export function Board({ session, onAction, onPause, label = 'Sudoku puzzle' }: BoardProps) {
+export function Board({
+  session,
+  onAction,
+  onPause,
+  label = 'Sudoku puzzle',
+  highlightMatching = true,
+  highlightUnits = true,
+}: BoardProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const locked = session.status !== 'playing';
 
@@ -233,6 +250,8 @@ export function Board({ session, onAction, onPause, label = 'Sudoku puzzle' }: B
               cell={cellAt(row, col)}
               session={session}
               isFocused={cellAt(row, col) === focused}
+              highlightMatching={highlightMatching}
+              highlightUnits={highlightUnits}
               onSelect={() => onAction({ type: 'selectCell', cell: cellAt(row, col) })}
               onActivate={() => activate(cellAt(row, col))}
             />
@@ -247,11 +266,21 @@ interface CellProps {
   readonly cell: CellIndex;
   readonly session: SessionState;
   readonly isFocused: boolean;
+  readonly highlightMatching: boolean;
+  readonly highlightUnits: boolean;
   readonly onSelect: () => void;
   readonly onActivate: () => void;
 }
 
-function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
+function Cell({
+  cell,
+  session,
+  isFocused,
+  highlightMatching,
+  highlightUnits,
+  onSelect,
+  onActivate,
+}: CellProps) {
   const value = getCell(session.grid, cell);
   const given = getCell(session.givens, cell) !== 0;
   const notes = digitsOf(session.notes[cell] ?? 0);
@@ -272,6 +301,11 @@ function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
   const selected = session.selected === cell;
   const flagged = wrong || conflicting;
 
+  // Selection is not a highlight. Turning the shading off must not take the
+  // board's most important affordance with it (DESIGN.md).
+  const matching = highlightMatching && matchesSelectedDigit(session, cell);
+  const unit = highlightUnits && inSelectedUnit(session, cell);
+
   const className = [
     'relative grid cursor-pointer place-items-center select-none',
     'type-cell-digit transition-colors duration-(--motion-hover) ease-(--ease-hover)',
@@ -281,7 +315,7 @@ function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
       ? 'cursor-default font-[number:var(--type-cell-digit-weight)] text-fg'
       : 'font-normal text-accent',
     flagged && 'text-error [text-decoration:var(--border-error-underline)] underline-offset-[0.18em]',
-    cellBackground(flagged, selected, matchesSelectedDigit(session, cell), inSelectedUnit(session, cell)),
+    cellBackground(flagged, selected, matching, unit),
     cellShadow(col % 3 === 0 && col !== 0, row % 3 === 0 && row !== 0, selected),
     FOCUS_RINGS,
   ]
@@ -296,8 +330,8 @@ function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
       data-given={given ? '' : undefined}
       data-selected={selected ? '' : undefined}
       data-hinted={session.hintedCells.includes(cell) ? '' : undefined}
-      data-unit={inSelectedUnit(session, cell) ? '' : undefined}
-      data-matching={matchesSelectedDigit(session, cell) ? '' : undefined}
+      data-unit={unit ? '' : undefined}
+      data-matching={matching ? '' : undefined}
       tabIndex={isFocused ? 0 : -1}
       aria-label={describe(cell, value, given, notes, wrong)}
       aria-readonly={given ? true : undefined}

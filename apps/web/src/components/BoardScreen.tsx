@@ -8,7 +8,7 @@ import { BoardLayout } from './BoardLayout';
 import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
 import { canRetry, currentAttempt, recordFailure } from '@/lib/puzzles';
-import { readSettings } from '@/lib/settings';
+import { DEFAULT_SETTINGS, readSettings } from '@/lib/settings';
 import { appendSolve, clearAutosave, localDate } from '@/lib/storage';
 import type { PuzzleRef } from '@/lib/storage';
 
@@ -52,6 +52,19 @@ export function BoardScreen({
     setSession((state) => apply(state, action));
   }, []);
 
+  /*
+   * The display settings, read alongside the session.
+   *
+   * Kept in state rather than read at render time because there is no
+   * localStorage on the server, and held here rather than passed down from a
+   * page because the board is the only thing that consumes them.
+   */
+  const [display, setDisplay] = useState({
+    showTimer: DEFAULT_SETTINGS.showTimer,
+    highlightMatching: DEFAULT_SETTINGS.highlightMatching,
+    highlightUnits: DEFAULT_SETTINGS.highlightUnits,
+  });
+
   const [paused, setPaused] = useState(false);
   const [elapsedMs, setElapsed] = useState(0);
   const [confirmingHint, setConfirmingHint] = useState(false);
@@ -72,6 +85,11 @@ export function BoardScreen({
     // Settings are read here for the same reason: there is no localStorage on
     // the server, and the board's input mode and checking come from them.
     const settings = readSettings();
+    setDisplay({
+      showTimer: settings.showTimer,
+      highlightMatching: settings.highlightMatching,
+      highlightUnits: settings.highlightUnits,
+    });
 
     /*
      * Built outside `setSession`, deliberately.
@@ -93,6 +111,7 @@ export function BoardScreen({
       solution: puzzle.solution,
       mode: settings.inputMode,
       checking: settings.checking,
+      autoAdvance: settings.autoAdvance,
     });
 
     const saved = resume(ref, configured);
@@ -222,6 +241,9 @@ export function BoardScreen({
         session={session}
         onAction={dispatch}
         elapsedMs={elapsedMs}
+        showTimer={display.showTimer}
+        highlightMatching={display.highlightMatching}
+        highlightUnits={display.highlightUnits}
         paused={paused}
         onPause={() => setPaused(true)}
         onResume={() => setPaused(false)}

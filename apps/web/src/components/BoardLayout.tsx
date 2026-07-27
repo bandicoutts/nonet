@@ -36,6 +36,10 @@ export interface BoardLayoutProps {
   readonly session: SessionState;
   readonly onAction: (action: Action) => void;
   readonly elapsedMs: number;
+  /** Display settings, from the player's own choices. Default to the stored defaults. */
+  readonly showTimer?: boolean;
+  readonly highlightMatching?: boolean;
+  readonly highlightUnits?: boolean;
   readonly paused: boolean;
   readonly onPause: () => void;
   readonly onResume: () => void;
@@ -58,6 +62,9 @@ export function BoardLayout({
   session,
   onAction,
   elapsedMs,
+  showTimer = true,
+  highlightMatching = true,
+  highlightUnits = true,
   paused,
   onPause,
   onResume,
@@ -81,7 +88,13 @@ export function BoardLayout({
             A veil a screen reader reads straight through is not a pause.
           */}
           <div aria-hidden={veiled ? true : undefined} inert={veiled}>
-            <Board session={session} onAction={onAction} onPause={onPause} />
+            <Board
+              session={session}
+              onAction={onAction}
+              onPause={onPause}
+              highlightMatching={highlightMatching}
+              highlightUnits={highlightUnits}
+            />
           </div>
 
           {veiled ? (
@@ -102,6 +115,7 @@ export function BoardLayout({
           onPause={onPause}
           onConfirmHint={onConfirmHint}
           elapsedMs={elapsedMs}
+          showTimer={showTimer}
         />
         <NumberPad session={session} onAction={onAction} />
       </aside>

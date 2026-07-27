@@ -98,3 +98,27 @@ describe('refusing a save that did not come from playing', () => {
     expect(resume(ref, fresh())).toBeNull();
   });
 });
+
+/*
+ * Settings survive a resume.
+ *
+ * `resume` rebuilds the session from the fresh one, so anything it forgets to
+ * carry across is a setting that silently stops working the moment a player
+ * reloads — the same shape of bug as the timer in NONET-20.
+ */
+it('carries the play settings onto a resumed board', () => {
+  const session = createSession({
+    givens: parseGrid(PUZZLE),
+    solution: parseGrid(SOLUTION),
+    mode: 'digitFirst',
+    checking: false,
+    autoAdvance: true,
+  });
+
+  save(ref, session, 1000);
+  const resumed = resume(ref, session);
+
+  expect(resumed?.session.autoAdvance).toBe(true);
+  expect(resumed?.session.mode).toBe('digitFirst');
+  expect(resumed?.session.checking).toBe(false);
+});
