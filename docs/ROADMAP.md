@@ -21,7 +21,7 @@ Phases & milestones. Check off as completed.
 - [x] Fuzz tests asserting invariants
 
 ## Phase 2 — Design system + board UI
-- [ ] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow) — apply the `--fg3` / `--fg3-text` split when transcribing
+- [x] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow) — with the `--fg3` / `--fg3-text` split applied and AA enforced by test
 - [x] Resolve the AA failure on `--fg3` before it is baked in — split into `--fg3` (disabled/spent, WCAG-exempt) and `--fg3-text` (light `#5A5F65` / dark `#A0A6AA`); DECISIONS.md NONET-5
 - [ ] Fix the six sub-44px touch targets (`design/export/layout.md`) — the remaining AA blocker before launch
 - [ ] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
