@@ -35,7 +35,8 @@ Phases & milestones. Check off as completed.
 ## Phase 3 — App shell + Supabase
 - [x] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home
 - [ ] Mobile drawer below 768 (full-frame overlay, focus-trapped, Esc closes) — the nav stays visible at every width until it exists
-- [ ] Schema + RLS migrations (`puzzles`, `profiles`, `solves`)
+- [x] Schema + RLS migrations (`puzzles`, `profiles`, `solves`) — 23 pgTAP assertions, incl. that anon cannot read an unpublished daily
+- [x] Streak derivation over solve rows, shared by guest and signed-in
 - [ ] Daily-puzzle edge function (00:05 UTC, weekly rhythm, idempotent)
 - [ ] Guest localStorage play + autosave/resume
 - [ ] Sign-in sync (magic link; merge rules per ARCHITECTURE.md — tested, plus the post-sign-in merge summary)
