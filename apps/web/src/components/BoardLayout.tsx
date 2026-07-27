@@ -39,7 +39,8 @@ export interface BoardLayoutProps {
   readonly paused: boolean;
   readonly onPause: () => void;
   readonly onResume: () => void;
-  readonly onRetry: () => void;
+  /** Absent when the retry is spent — there is no third attempt. */
+  readonly onRetry?: () => void;
   readonly onConfirmHint: () => void;
   /** The back control, labelled for where the player came from. */
   readonly back: ReactNode;
@@ -86,8 +87,9 @@ export function BoardLayout({
           {veiled ? (
             <PauseVeil
               reason={locked ? 'locked' : 'paused'}
+              elapsedMs={elapsedMs}
               onResume={onResume}
-              onRetry={onRetry}
+              {...(onRetry === undefined ? {} : { onRetry })}
             />
           ) : null}
         </div>

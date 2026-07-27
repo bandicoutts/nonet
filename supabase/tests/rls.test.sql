@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(41);
+select plan(48);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -352,6 +352,45 @@ select is(
   has_function_privilege('service_role', 'public.publish_daily(date, public.difficulty, text, text, integer, bigint)', 'EXECUTE'),
   true,
   'the publish job can'
+);
+
+-- ---------------------------------------------------------------------------
+-- Settings
+-- ---------------------------------------------------------------------------
+
+-- "Sign in and they follow you, along with the streak" — so every setting a
+-- player can change needs somewhere on the profile to land.
+select has_column('public', 'profiles', 'theme', 'theme follows the account');
+select has_column('public', 'profiles', 'input_mode', 'input mode follows the account');
+select has_column('public', 'profiles', 'checking', 'the purist toggle follows the account');
+select has_column('public', 'profiles', 'auto_advance', 'auto-advance follows the account');
+
+-- Defaults are the product's, not Postgres's: a new account must behave like a
+-- new guest, or signing in would silently change how the board plays.
+select results_eq(
+  $$select theme, input_mode, checking, auto_advance, highlight_matching, highlight_units, show_timer
+    from public.profiles where id = '11111111-1111-1111-1111-111111111111'$$,
+  $$values ('system', 'cellFirst', true, false, true, true, true)$$,
+  'a new profile starts on the product defaults'
+);
+
+select throws_ok(
+  $$update public.profiles set theme = 'sepia' where id = '11111111-1111-1111-1111-111111111111'$$,
+  '23514',
+  null,
+  'a theme the product does not have is rejected'
+);
+
+-- ---------------------------------------------------------------------------
+-- Scheduling
+-- ---------------------------------------------------------------------------
+
+-- The schedule is in a migration rather than the dashboard, so it is asserted
+-- like anything else in version control.
+select is(
+  (select schedule from cron.job where jobname = 'publish-daily'),
+  '5 0 * * *',
+  'the daily is scheduled for 00:05 UTC'
 );
 
 select finish();

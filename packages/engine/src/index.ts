@@ -103,11 +103,14 @@ export type { Hint } from './rules/hints.ts';
 
 export {
   DAILY_RHYTHM,
+  PUBLISH_MINUTE,
   PUZZLE_EPOCH,
+  currentEdition,
   dailyDifficulty,
   dailySeed,
   puzzleNumber,
 } from './daily.ts';
+export type { Weekday } from './daily.ts';
 
 export { apply, createSession, restoreSession } from './rules/session.ts';
 export type {

@@ -225,7 +225,7 @@ describe('PauseVeil', () => {
     expect(screen.getByRole('dialog', { name: /locked/i })).toBeDefined();
     expect(screen.queryByRole('button', { name: /resume/i })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: /try again/i }));
+    await user.click(screen.getByRole('button', { name: /start again/i }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
@@ -236,5 +236,32 @@ describe('PauseVeil', () => {
 
     await user.keyboard('{Escape}');
     expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Copy is verbatim from `design/export/copy.md`. The Phase 2 build invented
+   * its own strings, which read fine and were not the design's.
+   */
+  test('names the time it was paused at', () => {
+    render(<PauseVeil reason="paused" elapsedMs={432_000} onResume={() => undefined} />);
+    expect(screen.getByText(/paused at 7:12/i)).toBeDefined();
+  });
+
+  test('says what actually happened when the board locks', () => {
+    render(<PauseVeil reason="locked" onRetry={() => undefined} />);
+    expect(screen.getByText(/three mistakes — locked/i)).toBeDefined();
+  });
+
+  /**
+   * Retry is allowed once and there is no third. With it spent, the veil keeps
+   * its message and loses its action rather than offering a control that would
+   * do nothing (GAME-RULES.md).
+   */
+  test('offers no action once both attempts are spent', () => {
+    render(<PauseVeil reason="locked" />);
+
+    expect(screen.getByRole('dialog', { name: /locked/i })).toBeDefined();
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByText(/both attempts are spent/i)).toBeDefined();
   });
 });

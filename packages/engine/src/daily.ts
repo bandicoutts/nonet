@@ -120,3 +120,23 @@ export function puzzleNumber(date: string): number {
   const days = (utcMidnight(date).getTime() - utcMidnight(PUZZLE_EPOCH).getTime()) / DAY_MS;
   return Math.round(days) + 1;
 }
+
+/** Minutes past UTC midnight at which an edition becomes available. */
+export const PUBLISH_MINUTE = 5;
+
+/**
+ * Which edition is current.
+ *
+ * Not simply today's UTC date. An edition publishes at 00:05 UTC, so for the
+ * five minutes after midnight the current puzzle is still **yesterday's** — and
+ * a client that assumed otherwise would ask for a row the database is correctly
+ * refusing to serve, and show a player an error instead of the puzzle they were
+ * in the middle of.
+ *
+ * This is the client's half of the `published_at <= now()` policy. The two have
+ * to agree, so the rule is written once, here, where both can read it.
+ */
+export function currentEdition(at: Date = new Date()): string {
+  const shifted = new Date(at.getTime() - PUBLISH_MINUTE * 60_000);
+  return shifted.toISOString().slice(0, 10);
+}

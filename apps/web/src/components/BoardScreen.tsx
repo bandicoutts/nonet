@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apply, createSession, generatePuzzle } from '@nonet/engine';
-import type { Action, Difficulty, SessionState } from '@nonet/engine';
+import type { Action, SessionState } from '@nonet/engine';
 import { BoardLayout } from './BoardLayout';
 import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
+import { canRetry, currentAttempt, recordFailure } from '@/lib/puzzles';
+import { readSettings } from '@/lib/settings';
 import { appendSolve, clearAutosave, localDate } from '@/lib/storage';
 import type { PuzzleRef } from '@/lib/storage';
 
@@ -21,17 +23,9 @@ const TIMER_SAVE_MS = 10_000;
  * that line is final: the session reducer is the engine's, so no rule is
  * reimplemented here.
  */
-export function BoardScreen({
-  difficulty = 'medium',
-  seed = 20260727,
-  kind = 'practice',
-}: {
-  difficulty?: Difficulty;
-  seed?: number;
-  kind?: PuzzleRef['kind'];
-}) {
-  const [puzzle] = useState(() => generatePuzzle(difficulty, seed));
-  const ref: PuzzleRef = { kind, difficulty, seed };
+export function BoardScreen({ puzzleRef }: { puzzleRef: PuzzleRef }) {
+  const ref = puzzleRef;
+  const [puzzle] = useState(() => generatePuzzle(ref.difficulty, ref.seed));
 
   const [session, setSession] = useState<SessionState>(() =>
     createSession({ givens: puzzle.givens, solution: puzzle.solution }),
@@ -58,9 +52,27 @@ export function BoardScreen({
     if (restored.current) return;
     restored.current = true;
 
+    // Settings are read here for the same reason: there is no localStorage on
+    // the server, and the board's input mode and checking come from them.
+    const settings = readSettings();
+
     setSession((fresh) => {
-      const saved = resume(ref, fresh);
-      if (saved === null) return fresh;
+      const configured = apply(
+        apply(fresh, { type: 'setMode', mode: settings.inputMode }),
+        { type: 'selectCell', cell: null },
+      );
+      const withChecking =
+        settings.checking === configured.checking
+          ? configured
+          : createSession({
+              givens: fresh.givens,
+              solution: fresh.solution,
+              mode: settings.inputMode,
+              checking: settings.checking,
+            });
+
+      const saved = resume(ref, withChecking);
+      if (saved === null) return withChecking;
       setElapsed(saved.elapsedMs);
       return saved.session;
     });
@@ -120,7 +132,24 @@ export function BoardScreen({
    */
   const recorded = useRef(false);
   useEffect(() => {
-    if (session.status !== 'solved' || recorded.current) return;
+    if (recorded.current) return;
+
+    /*
+     * A locked board spends an attempt.
+     *
+     * Recorded here rather than on the retry, because the attempt is spent the
+     * moment the third mistake lands — a player who closes the tab on a locked
+     * board has still used it. No `solves` row: a failed board is not a solve,
+     * and inventing one would put a run in the stats that never finished.
+     */
+    if (session.status === 'failed') {
+      recorded.current = true;
+      recordFailure(ref);
+      clearAutosave(ref);
+      return;
+    }
+
+    if (session.status !== 'solved') return;
     recorded.current = true;
 
     appendSolve({
@@ -131,9 +160,11 @@ export function BoardScreen({
       durationMs: latest.current.elapsedMs,
       mistakes: session.mistakes,
       usedHint: session.assisted,
-      attempt: 1,
+      // Solving a retry before local midnight keeps the streak, marked second
+      // attempt, with no percentile (GAME-RULES.md).
+      attempt: currentAttempt(ref),
       checked: session.checking,
-      kind: kind === 'daily' ? 'daily' : 'practice',
+      kind: ref.kind === 'daily' ? 'daily' : 'practice',
     });
 
     clearAutosave(ref);
@@ -149,12 +180,19 @@ export function BoardScreen({
         paused={paused}
         onPause={() => setPaused(true)}
         onResume={() => setPaused(false)}
-        onRetry={() => {
-          // A retry starts the same puzzle from scratch, so the saved board is
-          // gone rather than resumed into on the next load.
-          clearAutosave(ref);
-          window.location.reload();
-        }}
+        // There is no third attempt. When the retry is spent the prop is
+        // absent, so the veil keeps its message and loses its action rather
+        // than offering a control that would do nothing.
+        {...(canRetry(ref)
+          ? {
+              onRetry: () => {
+                // A retry starts the same puzzle from scratch, so the saved
+                // board is gone rather than resumed into on the next load.
+                clearAutosave(ref);
+                window.location.reload();
+              },
+            }
+          : {})}
         onConfirmHint={() => setConfirmingHint(true)}
         back={
           /* Labelled for its origin, never "close" — the puzzle is autosaved

@@ -37,5 +37,7 @@ Full detail in DECISIONS.md NONET-2. The short version:
 - **The first hint per puzzle confirms.** Hints are irreversible and are not undoable.
 - **Leaving a puzzle is a back control** labelled for its origin (`← TODAY` / `← ARCHIVE`), never "close".
 - **Sign-in merge:** server wins for completed solves, latest autosave wins for in-progress. Enforce in code and test it — the design mock cannot.
+- **The daily is generated in the browser, not fetched.** It derives entirely from the date, so client, edge function and seed script all mint the identical grid. The row is resolved only to record a solve or read a percentile. `currentEdition` accounts for the 00:05 UTC publish — for five minutes after midnight the current puzzle is still yesterday's.
+- **The mobile boundary is 768, and that is closed.** `design/export/layout.md` measures the prototype at 430; that is which artboard it was drawn on, not a product decision. DECISIONS.md NONET-17.
 - **The prototype has no real accessibility semantics.** It designs focus *visuals* only; roles, `aria-*`, roving tabindex and focus trapping are yours to write.
 - **Difficulty is one number: the engine's weighted effort score.** Given count no longer rates anything. `TECHNIQUE_WEIGHTS` and `TECHNIQUE_ORDER` are load-bearing — changing either silently re-rates every puzzle in the bank, so rerun `pnpm --filter @nonet/engine calibrate` and paste the new `SCORE_FLOORS`. Detail in DECISIONS.md NONET-4.

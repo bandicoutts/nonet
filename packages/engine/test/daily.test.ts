@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DAILY_RHYTHM,
+  currentEdition,
   PUZZLE_EPOCH,
   dailyDifficulty,
   dailySeed,
@@ -103,6 +104,32 @@ describe('the puzzle number', () => {
   it('is unaffected by a daylight-saving boundary', () => {
     // The UK springs forward on 2026-03-29.
     expect(puzzleNumber('2026-03-30') - puzzleNumber('2026-03-28')).toBe(2);
+  });
+});
+
+/**
+ * An edition publishes at 00:05 UTC, so for five minutes after midnight the
+ * current puzzle is still yesterday's. This is the client's half of the
+ * `published_at <= now()` policy: a client that assumed "today" would ask for a
+ * row the database is correctly refusing to serve.
+ */
+describe('which edition is current', () => {
+  it('is yesterday in the minutes before the publish time', () => {
+    expect(currentEdition(new Date('2026-07-28T00:00:00Z'))).toBe('2026-07-27');
+    expect(currentEdition(new Date('2026-07-28T00:04:59Z'))).toBe('2026-07-27');
+  });
+
+  it('turns over exactly at 00:05 UTC', () => {
+    expect(currentEdition(new Date('2026-07-28T00:05:00Z'))).toBe('2026-07-28');
+  });
+
+  it('is today for the rest of the day', () => {
+    expect(currentEdition(new Date('2026-07-28T23:59:59Z'))).toBe('2026-07-28');
+  });
+
+  it('does not care what timezone the reader is in', () => {
+    // A single instant has one edition, whoever is looking at it.
+    expect(currentEdition(new Date('2026-07-28T12:00:00Z'))).toBe('2026-07-28');
   });
 });
 
