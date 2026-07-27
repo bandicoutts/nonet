@@ -145,17 +145,13 @@ export function readFailures(): FailureRecord[] {
       const key = window.localStorage.key(i);
       if (key === null || !key.startsWith(ATTEMPT_PREFIX)) continue;
 
+      // Reconstructed from the key, which is the only place the ref lives —
+      // and validated rather than cast, because localStorage is editable by
+      // hand and a malformed key would otherwise reach a database query as a
+      // ref that type-checks and is not one.
       const [kind, difficulty, seed] = key.slice(ATTEMPT_PREFIX.length).split(':');
-      if (kind === undefined || difficulty === undefined || seed === undefined) continue;
-
-      const ref = {
-        kind,
-        difficulty,
-        seed: Number(seed),
-        // Reconstructed from the key, which is the only place the ref lives.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the key
-        // was written from a valid ref, and a malformed one is dropped below.
-      } as any as PuzzleRef;
+      const ref = parsePuzzleRef({ kind, difficulty, seed });
+      if (ref === null) continue;
 
       const record = readAttempt(ref);
       // A legacy record has no date, so it is not a *dated* failure and cannot
