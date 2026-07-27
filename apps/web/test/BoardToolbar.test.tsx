@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { apply, createSession, parseGrid } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import { BoardToolbar, formatTime } from '../src/components/BoardToolbar.js';
-import { PauseVeil } from '../src/components/PauseVeil.js';
+import { BoardToolbar, formatTime } from '../src/components/BoardToolbar';
+import { PauseVeil } from '../src/components/PauseVeil';
 
 const PUZZLE =
   '53..7....' + '6..195...' + '.98....6.' + '8...6...3' + '4..8.3..1' +

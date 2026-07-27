@@ -1,4 +1,4 @@
-import type { ThemeName } from './color.js';
+import type { ThemeName } from './color';
 
 /**
  * The only drop shadow in the product, on the confirmation dialog.

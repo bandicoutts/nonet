@@ -33,7 +33,8 @@ Phases & milestones. Check off as completed.
 - [x] Board layout at all three viewports — rail at 1100+, band below, sticky at mobile
 
 ## Phase 3 — App shell + Supabase
-- [ ] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home
+- [x] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home
+- [ ] Mobile drawer below 768 (full-frame overlay, focus-trapped, Esc closes) — the nav stays visible at every width until it exists
 - [ ] Schema + RLS migrations (`puzzles`, `profiles`, `solves`)
 - [ ] Daily-puzzle edge function (00:05 UTC, weekly rhythm, idempotent)
 - [ ] Guest localStorage play + autosave/resume

@@ -2,9 +2,15 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "web-harness",
+      "name": "web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@nonet/web", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "web-harness",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@nonet/web", "dev:harness"],
       "port": 5173
     }
   ]

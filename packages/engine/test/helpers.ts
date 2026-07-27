@@ -1,9 +1,9 @@
-import { computeCandidates, maskOf } from '../src/candidates.js';
-import { emptyGrid, parseGrid } from '../src/grid.js';
-import { CELL_COUNT } from '../src/types.js';
-import type { CandidateMask, CellIndex, Digit, Grid } from '../src/types.js';
-import type { SolverState } from '../src/solver/state.js';
-import type { Step } from '../src/solver/step.js';
+import { computeCandidates, maskOf } from '../src/candidates';
+import { emptyGrid, parseGrid } from '../src/grid';
+import { CELL_COUNT } from '../src/types';
+import type { CandidateMask, CellIndex, Digit, Grid } from '../src/types';
+import type { SolverState } from '../src/solver/state';
+import type { Step } from '../src/solver/step';
 
 /**
  * Build a solver state with candidates set only where the fixture says so.

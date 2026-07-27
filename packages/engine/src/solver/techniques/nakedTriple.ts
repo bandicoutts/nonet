@@ -1,6 +1,6 @@
-import type { SolverState } from '../state.js';
-import type { Step } from '../step.js';
-import { findNakedSubset } from './subsets.js';
+import type { SolverState } from '../state';
+import type { Step } from '../step';
+import { findNakedSubset } from './subsets';
 
 /** Three cells in a unit spanning exactly three candidates between them. */
 export function findNakedTriple(state: SolverState): Step | null {

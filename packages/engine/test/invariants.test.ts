@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { digitsOf, maskOf } from '../src/candidates.js';
-import { boxOf, colOf, filledCount, formatGrid, rowOf } from '../src/grid.js';
+import { digitsOf, maskOf } from '../src/candidates';
+import { boxOf, colOf, filledCount, formatGrid, rowOf } from '../src/grid';
 import {
   SCORE_FLOORS,
   TARGET_GIVENS,
@@ -8,21 +8,21 @@ import {
   bandForScore,
   rate,
   scoreOf,
-} from '../src/difficulty.js';
+} from '../src/difficulty';
 import {
   GIVEN_TOLERANCE,
   digToTarget,
   generatePuzzle,
   generateSolution,
-} from '../src/generate.js';
-import type { GeneratedPuzzle } from '../src/generate.js';
-import { createRng } from '../src/rng.js';
-import { clearPeerNotes, notesAt } from '../src/rules/notes.js';
-import { analyse } from '../src/solver/index.js';
-import { CELL_COUNT, DIFFICULTIES } from '../src/types.js';
-import type { Difficulty, Digit } from '../src/types.js';
-import { countSolutions } from '../src/uniqueness.js';
-import { isSolved } from '../src/validate.js';
+} from '../src/generate';
+import type { GeneratedPuzzle } from '../src/generate';
+import { createRng } from '../src/rng';
+import { clearPeerNotes, notesAt } from '../src/rules/notes';
+import { analyse } from '../src/solver/index';
+import { CELL_COUNT, DIFFICULTIES } from '../src/types';
+import type { Difficulty, Digit } from '../src/types';
+import { countSolutions } from '../src/uniqueness';
+import { isSolved } from '../src/validate';
 
 /**
  * Seeded fuzzing. Every case comes from a seed named in the assertion message,

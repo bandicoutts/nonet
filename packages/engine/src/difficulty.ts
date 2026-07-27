@@ -1,7 +1,7 @@
-import { analyse } from './solver/index.js';
-import { rankOf } from './solver/step.js';
-import { DIFFICULTIES } from './types.js';
-import type { Difficulty, Grid } from './types.js';
+import { analyse } from './solver/index';
+import { rankOf } from './solver/step';
+import { DIFFICULTIES } from './types';
+import type { Difficulty, Grid } from './types';
 
 /**
  * Given counts, from the design. The generator digs to these; they no longer

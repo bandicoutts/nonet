@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parseGrid } from '../src/grid.js';
+import { parseGrid } from '../src/grid';
 import {
   SCORE_FLOORS,
   TARGET_GIVENS,
@@ -7,10 +7,10 @@ import {
   bandForScore,
   rate,
   scoreOf,
-} from '../src/difficulty.js';
-import { rankOf } from '../src/solver/step.js';
-import { DIFFICULTIES } from '../src/types.js';
-import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, TWO_SOLUTION_PUZZLE } from './fixtures.js';
+} from '../src/difficulty';
+import { rankOf } from '../src/solver/step';
+import { DIFFICULTIES } from '../src/types';
+import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, TWO_SOLUTION_PUZZLE } from './fixtures';
 
 describe('design targets', () => {
   test('given counts match the design', () => {

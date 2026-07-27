@@ -21,6 +21,9 @@ Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UT
 ## Conventions (delta vs global CLAUDE.md)
 Global Next.js 16 / Supabase / TypeScript rules apply. Project-specific:
 - Design tokens in `packages/design` are the source of truth — never hardcode colors/spacing in components. They are transcribed from the Claude Design prototype's **Tokens** screen.
+- **Styling is Tailwind v4, and the tokens are its only vocabulary.** `apps/web/src/app/theme.generated.css` is generated from `@nonet/design` (`pnpm --filter @nonet/web theme:gen`) and a test fails if it drifts. Tailwind's own palette, numeric spacing scale and breakpoints are cleared, so `bg-red-500`, `p-4` and `md:` do not exist — use a token utility, or an arbitrary value with a stated reason. Type roles are `type-*` utilities. DECISIONS.md NONET-11.
+- **Relative imports carry no extension.** Turbopack does not resolve `./x.js` to `x.ts`. App code imports through the `@/` alias.
+- `pnpm --filter @nonet/web dev` is the app on 3000; `dev:harness` is the Phase 2 component harness on 5173.
 - `packages/engine` is framework-agnostic and must stay fully unit-tested; UI depends on it, not vice versa.
 - **pnpm is pinned to 9.15.9.** Do not run `corepack prepare pnpm@latest` — pnpm 11 requires Node 22 and imports `node:sqlite`; this project is on Node 20.18. Use `corepack enable` and let `packageManager` resolve.
 - Streaks/stats are **derived from the `solves` table**, never denormalized. Streak days use the player's LOCAL calendar day.

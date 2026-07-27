@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import type { Action, SessionState } from '@nonet/engine';
-import { Board } from './Board.js';
-import { BoardToolbar } from './BoardToolbar.js';
-import { NumberPad } from './NumberPad.js';
-import { PauseVeil } from './PauseVeil.js';
+import { Board } from './Board';
+import { BoardToolbar } from './BoardToolbar';
+import { NumberPad } from './NumberPad';
+import { PauseVeil } from './PauseVeil';
 import styles from './BoardLayout.module.css';
 
 export interface BoardLayoutProps {

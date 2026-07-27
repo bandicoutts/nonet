@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { formatGrid, parseGrid } from '../src/grid.js';
-import { countSolutions, hasUniqueSolution, solveByBacktracking } from '../src/uniqueness.js';
-import { isSolved } from '../src/validate.js';
+import { formatGrid, parseGrid } from '../src/grid';
+import { countSolutions, hasUniqueSolution, solveByBacktracking } from '../src/uniqueness';
+import { isSolved } from '../src/validate';
 import {
   CONTRADICTORY_PUZZLE,
   CLASSIC_PUZZLE,
@@ -9,7 +9,7 @@ import {
   CLASSIC_SOLUTION,
   EMPTY_PUZZLE,
   TWO_SOLUTION_PUZZLE,
-} from './fixtures.js';
+} from './fixtures';
 
 describe('solveByBacktracking', () => {
   test('solves a well-formed puzzle', () => {

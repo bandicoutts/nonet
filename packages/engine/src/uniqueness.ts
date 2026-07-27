@@ -1,9 +1,9 @@
-import { computeCandidates, countCandidates, digitsOf, removeCandidate } from './candidates.js';
-import { cloneGrid } from './grid.js';
-import { CELL_COUNT } from './types.js';
-import type { CandidateMask, CellIndex, Digit, Grid, MutableGrid } from './types.js';
-import { PEERS } from './units.js';
-import { isLegal } from './validate.js';
+import { computeCandidates, countCandidates, digitsOf, removeCandidate } from './candidates';
+import { cloneGrid } from './grid';
+import { CELL_COUNT } from './types';
+import type { CandidateMask, CellIndex, Digit, Grid, MutableGrid } from './types';
+import { PEERS } from './units';
+import { isLegal } from './validate';
 
 /**
  * Backtracking search over a live candidate table. This is the ground truth for

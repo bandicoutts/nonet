@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { BREAKPOINTS, VIEWPORTS } from '../src/viewports.js';
-import { TYPE_ROLES, resolveType } from '../src/type.js';
-import { SPACE, TAP_TARGET_AA_MIN, TAP_TARGET_MIN } from '../src/space.js';
-import { MOTION } from '../src/motion.js';
-import { BORDERS } from '../src/border.js';
-import { SHADOWS } from '../src/shadow.js';
-import { RADIUS } from '../src/radius.js';
-import { HATCH } from '../src/hatch.js';
+import { BREAKPOINTS, VIEWPORTS } from '../src/viewports';
+import { TYPE_ROLES, resolveType } from '../src/type';
+import { SPACE, TAP_TARGET_AA_MIN, TAP_TARGET_MIN } from '../src/space';
+import { MOTION } from '../src/motion';
+import { BORDERS } from '../src/border';
+import { SHADOWS } from '../src/shadow';
+import { RADIUS } from '../src/radius';
+import { HATCH } from '../src/hatch';
 
 describe('viewports and breakpoints', () => {
   test('the design was drawn at three widths', () => {

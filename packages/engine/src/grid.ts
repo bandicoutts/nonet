@@ -1,5 +1,5 @@
-import { BOX_SIZE, CELL_COUNT, UNIT_SIZE } from './types.js';
-import type { CellIndex, CellValue, Digit, Grid, MutableGrid } from './types.js';
+import { BOX_SIZE, CELL_COUNT, UNIT_SIZE } from './types';
+import type { CellIndex, CellValue, Digit, Grid, MutableGrid } from './types';
 
 const EMPTY_CHARS = new Set(['.', '0']);
 

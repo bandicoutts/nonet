@@ -1,6 +1,6 @@
-import type { SolverState } from '../state.js';
-import type { Step } from '../step.js';
-import { findNakedSubset } from './subsets.js';
+import type { SolverState } from '../state';
+import type { Step } from '../step';
+import { findNakedSubset } from './subsets';
 
 /** Two cells in a unit sharing the same two candidates. */
 export function findNakedPair(state: SolverState): Step | null {

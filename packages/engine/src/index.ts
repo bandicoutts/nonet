@@ -14,8 +14,8 @@ export type {
   Grid,
   MutableGrid,
   Notes,
-} from './types.js';
-export { CELL_COUNT, DIFFICULTIES, DIGITS, UNIT_SIZE } from './types.js';
+} from './types';
+export { CELL_COUNT, DIFFICULTIES, DIGITS, UNIT_SIZE } from './types';
 
 export {
   boxOf,
@@ -31,12 +31,12 @@ export {
   parseGrid,
   rowOf,
   setCell,
-} from './grid.js';
+} from './grid';
 
-export { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from './units.js';
-export type { Unit } from './units.js';
+export { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from './units';
+export type { Unit } from './units';
 
-export { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from './validate.js';
+export { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from './validate';
 
 export {
   ALL_CANDIDATES,
@@ -49,15 +49,15 @@ export {
   singleCandidate,
   toggleCandidate,
   withCandidate,
-} from './candidates.js';
+} from './candidates';
 
-export { analyse, easiestCell, solveHumanly } from './solver/index.js';
-export type { EasiestCell, SolveReport } from './solver/index.js';
-export { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './solver/step.js';
-export type { Elimination, Placement, Reduction, Step, Technique } from './solver/step.js';
-export type { SolverState, TechniqueFinder } from './solver/state.js';
+export { analyse, easiestCell, solveHumanly } from './solver/index';
+export type { EasiestCell, SolveReport } from './solver/index';
+export { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './solver/step';
+export type { Elimination, Placement, Reduction, Step, Technique } from './solver/step';
+export type { SolverState, TechniqueFinder } from './solver/state';
 
-export { countSolutions, hasUniqueSolution, solveByBacktracking } from './uniqueness.js';
+export { countSolutions, hasUniqueSolution, solveByBacktracking } from './uniqueness';
 
 export {
   SCORE_FLOORS,
@@ -66,7 +66,7 @@ export {
   bandForScore,
   rate,
   scoreOf,
-} from './difficulty.js';
+} from './difficulty';
 
 export {
   GIVEN_TOLERANCE,
@@ -74,11 +74,11 @@ export {
   digToTarget,
   generatePuzzle,
   generateSolution,
-} from './generate.js';
-export type { GeneratedPuzzle } from './generate.js';
+} from './generate';
+export type { GeneratedPuzzle } from './generate';
 
-export { createRng } from './rng.js';
-export type { Rng } from './rng.js';
+export { createRng } from './rng';
+export type { Rng } from './rng';
 
 export {
   clearNotesAt,
@@ -87,7 +87,7 @@ export {
   notesAt,
   setNotesAt,
   toggleNote,
-} from './rules/notes.js';
+} from './rules/notes';
 
 export {
   MAX_MISTAKES,
@@ -95,17 +95,17 @@ export {
   loadDigit,
   recordWrongPlacement,
   releaseContainment,
-} from './rules/mistakes.js';
-export type { InputMode, MistakeTracker } from './rules/mistakes.js';
+} from './rules/mistakes';
+export type { InputMode, MistakeTracker } from './rules/mistakes';
 
-export { MAX_HINTS, chooseHint, hintNeedsConfirmation } from './rules/hints.js';
-export type { Hint } from './rules/hints.js';
+export { MAX_HINTS, chooseHint, hintNeedsConfirmation } from './rules/hints';
+export type { Hint } from './rules/hints';
 
-export { apply, createSession } from './rules/session.js';
+export { apply, createSession } from './rules/session';
 export type {
   Action,
   Loaded,
   SessionOptions,
   SessionState,
   SessionStatus,
-} from './rules/session.js';
+} from './rules/session';

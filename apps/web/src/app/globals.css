@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+@import './theme.generated.css';
+
+/*
+ * The token custom properties themselves are injected by `<TokenStyles />` in
+ * the root layout, not imported here. They are emitted from `@nonet/design` at
+ * render so the values can never drift from the tests that enforce AA on them
+ * (NONET-6); this file only teaches Tailwind their names.
+ */
+
+/*
+ * The loaded faces behind the two families.
+ *
+ * `next/font` self-hosts under a generated family name, so the literal
+ * `Archivo` and `IBM Plex Mono` in the token sheet would never match a loaded
+ * face and every role would render in a system fallback. This points the two
+ * family tokens at the generated names instead.
+ *
+ * Deliberately unlayered and at `:root:root`: the token sheet is an unlayered
+ * `<style>` that React hoists into `<head>`, so a `@layer base` rule would lose
+ * to it outright and a plain `:root` would depend on which of the two happened
+ * to come last. Doubling the selector wins on specificity, whatever the order.
+ */
+:root:root {
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  /* Square corners are the design's, not a reset's oversight (RADIUS.none). */
+  *,
+  *::before,
+  *::after {
+    border-radius: var(--radius-none);
+  }
+
+  /* Focus is a designed layer, so never let a stock outline stand in for it. */
+  :focus-visible {
+    outline: var(--border-focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+}

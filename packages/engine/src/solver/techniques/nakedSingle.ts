@@ -1,8 +1,8 @@
-import { singleCandidate } from '../../candidates.js';
-import { CELL_COUNT } from '../../types.js';
-import type { SolverState } from '../state.js';
-import { placement } from '../step.js';
-import type { Step } from '../step.js';
+import { singleCandidate } from '../../candidates';
+import { CELL_COUNT } from '../../types';
+import type { SolverState } from '../state';
+import { placement } from '../step';
+import type { Step } from '../step';
 
 /** A cell with exactly one candidate left. */
 export function findNakedSingle(state: SolverState): Step | null {

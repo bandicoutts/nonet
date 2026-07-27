@@ -6,8 +6,8 @@ import { StrictMode, useEffect, useReducer, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { apply, createSession, generatePuzzle } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import { BoardLayout } from '../components/BoardLayout.js';
-import { TokenStyles } from '../components/TokenStyles.js';
+import { BoardLayout } from '../components/BoardLayout';
+import { TokenStyles } from '../components/TokenStyles';
 import './harness.css';
 
 const puzzle = generatePuzzle('medium', 20260727);

@@ -5,7 +5,7 @@ import {
   loadDigit,
   recordWrongPlacement,
   releaseContainment,
-} from '../src/rules/mistakes.js';
+} from '../src/rules/mistakes';
 
 describe('the tally', () => {
   test('starts empty and unlocked', () => {

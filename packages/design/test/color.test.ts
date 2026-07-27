@@ -5,8 +5,8 @@ import {
   TEXT_PAIRINGS,
   THEMES,
   palettes,
-} from '../src/color.js';
-import { AA_NORMAL_TEXT, contrastRatio, relativeLuminance } from '../src/contrast.js';
+} from '../src/color';
+import { AA_NORMAL_TEXT, contrastRatio, relativeLuminance } from '../src/contrast';
 
 describe('palettes', () => {
   test('both themes are defined', () => {

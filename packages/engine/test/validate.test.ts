@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { parseGrid, setCell } from '../src/grid.js';
-import { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from '../src/validate.js';
-import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures.js';
+import { parseGrid, setCell } from '../src/grid';
+import { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from '../src/validate';
+import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures';
 
 describe('canPlace', () => {
   const grid = parseGrid(CLASSIC_PUZZLE);

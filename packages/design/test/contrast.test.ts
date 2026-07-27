@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { AA_LARGE_TEXT, AA_NORMAL_TEXT, contrastRatio, meetsAA, relativeLuminance } from '../src/contrast.js';
+import { AA_LARGE_TEXT, AA_NORMAL_TEXT, contrastRatio, meetsAA, relativeLuminance } from '../src/contrast';
 
 describe('relativeLuminance', () => {
   test('black is 0 and white is 1', () => {

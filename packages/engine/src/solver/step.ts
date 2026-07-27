@@ -1,4 +1,4 @@
-import type { CellIndex, Digit } from '../types.js';
+import type { CellIndex, Digit } from '../types';
 
 /**
  * The solving techniques the engine knows, in the order it applies them.

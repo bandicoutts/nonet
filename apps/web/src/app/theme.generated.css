@@ -1,0 +1,209 @@
+/* Generated from @nonet/design by `pnpm --filter @nonet/web theme:gen`. Do not edit. */
+
+@theme inline {
+  /* Only the design has colours. */
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-fg2: var(--fg2);
+  --color-fg3: var(--fg3);
+  --color-fg3-text: var(--fg3-text);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-cell-hl: var(--cell-hl);
+  --color-cell-same: var(--cell-same);
+  --color-cell-sel: var(--cell-sel);
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
+  --color-hover: var(--hover);
+  --color-rule: var(--rule);
+  --color-deco: var(--deco);
+  --color-veil: var(--veil);
+
+  /* The 12-step scale only — no numeric `p-4`, which is how the
+     prototype accumulated 26 off-scale values (NONET-6). Use an
+     arbitrary value and a reason when a measurement genuinely
+     falls between steps. */
+  --spacing: initial;
+  --spacing-*: initial;
+  --spacing-3xs: var(--space-3xs);
+  --spacing-2xs: var(--space-2xs);
+  --spacing-xs: var(--space-xs);
+  --spacing-s: var(--space-s);
+  --spacing-sm: var(--space-sm);
+  --spacing-m: var(--space-m);
+  --spacing-ml: var(--space-ml);
+  --spacing-l: var(--space-l);
+  --spacing-xl: var(--space-xl);
+  --spacing-2xl: var(--space-2xl);
+  --spacing-3xl: var(--space-3xl);
+  --spacing-4xl: var(--space-4xl);
+
+  /* Where the layout actually switches, not where it was drawn. */
+  --breakpoint-*: initial;
+  --breakpoint-drawer: 768px;
+  --breakpoint-rail: 1100px;
+
+  /* `font-sans` and `font-mono` must mean Archivo and IBM Plex Mono,
+     never Tailwind’s stock stacks. */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+@utility type-display {
+  font-family: var(--font-sans);
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line-height);
+  letter-spacing: var(--type-display-letter-spacing);
+  font-weight: var(--type-display-weight);
+}
+
+@utility type-hero-number {
+  font-family: var(--font-sans);
+  font-size: var(--type-hero-number-size);
+  line-height: var(--type-hero-number-line-height);
+  letter-spacing: var(--type-hero-number-letter-spacing);
+  font-weight: var(--type-hero-number-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-result-number {
+  font-family: var(--font-sans);
+  font-size: var(--type-result-number-size);
+  line-height: var(--type-result-number-line-height);
+  letter-spacing: var(--type-result-number-letter-spacing);
+  font-weight: var(--type-result-number-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-streak-number {
+  font-family: var(--font-sans);
+  font-size: var(--type-streak-number-size);
+  line-height: var(--type-streak-number-line-height);
+  letter-spacing: var(--type-streak-number-letter-spacing);
+  font-weight: var(--type-streak-number-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-timer {
+  font-family: var(--font-sans);
+  font-size: var(--type-timer-size);
+  line-height: var(--type-timer-line-height);
+  letter-spacing: var(--type-timer-letter-spacing);
+  font-weight: var(--type-timer-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-stat-number {
+  font-family: var(--font-sans);
+  font-size: var(--type-stat-number-size);
+  line-height: var(--type-stat-number-line-height);
+  letter-spacing: var(--type-stat-number-letter-spacing);
+  font-weight: var(--type-stat-number-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-month-number {
+  font-family: var(--font-sans);
+  font-size: var(--type-month-number-size);
+  line-height: var(--type-month-number-line-height);
+  letter-spacing: var(--type-month-number-letter-spacing);
+  font-weight: var(--type-month-number-weight);
+}
+
+@utility type-cell-digit {
+  font-family: var(--font-sans);
+  font-size: var(--type-cell-digit-size);
+  line-height: var(--type-cell-digit-line-height);
+  letter-spacing: var(--type-cell-digit-letter-spacing);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-wordmark {
+  font-family: var(--font-sans);
+  font-size: var(--type-wordmark-size);
+  line-height: var(--type-wordmark-line-height);
+  letter-spacing: var(--type-wordmark-letter-spacing);
+  font-weight: var(--type-wordmark-weight);
+}
+
+@utility type-cell-note {
+  font-family: var(--font-sans);
+  font-size: var(--type-cell-note-size);
+  line-height: var(--type-cell-note-line-height);
+  letter-spacing: var(--type-cell-note-letter-spacing);
+  font-weight: var(--type-cell-note-weight);
+}
+
+@utility type-body {
+  font-family: var(--font-sans);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  letter-spacing: var(--type-body-letter-spacing);
+  font-weight: var(--type-body-weight);
+}
+
+@utility type-body-small {
+  font-family: var(--font-sans);
+  font-size: var(--type-body-small-size);
+  line-height: var(--type-body-small-line-height);
+  letter-spacing: var(--type-body-small-letter-spacing);
+  font-weight: var(--type-body-small-weight);
+}
+
+@utility type-control {
+  font-family: var(--font-mono);
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-line-height);
+  letter-spacing: var(--type-control-letter-spacing);
+  font-weight: var(--type-control-weight);
+  text-transform: uppercase;
+}
+
+@utility type-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--type-kicker-size);
+  line-height: var(--type-kicker-line-height);
+  letter-spacing: var(--type-kicker-letter-spacing);
+  font-weight: var(--type-kicker-weight);
+  text-transform: uppercase;
+}
+
+@utility type-mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-label-size);
+  line-height: var(--type-mono-label-line-height);
+  letter-spacing: var(--type-mono-label-letter-spacing);
+  font-weight: var(--type-mono-label-weight);
+  text-transform: uppercase;
+}
+
+@utility type-mono-data {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-data-size);
+  line-height: var(--type-mono-data-line-height);
+  letter-spacing: var(--type-mono-data-letter-spacing);
+  font-weight: var(--type-mono-data-weight);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-chip {
+  font-family: var(--font-mono);
+  font-size: var(--type-chip-size);
+  line-height: var(--type-chip-line-height);
+  letter-spacing: var(--type-chip-letter-spacing);
+  font-weight: var(--type-chip-weight);
+  text-transform: uppercase;
+}
+
+@utility type-button {
+  font-family: var(--font-mono);
+  font-size: var(--type-button-size);
+  line-height: var(--type-button-line-height);
+  letter-spacing: var(--type-button-letter-spacing);
+  font-weight: var(--type-button-weight);
+  text-transform: uppercase;
+}

@@ -1,15 +1,15 @@
-import { getCell, setCell } from '../grid.js';
-import type { CellIndex, Digit, Grid, Notes } from '../types.js';
-import { isSolved } from '../validate.js';
-import { chooseHint, MAX_HINTS } from './hints.js';
+import { getCell, setCell } from '../grid';
+import type { CellIndex, Digit, Grid, Notes } from '../types';
+import { isSolved } from '../validate';
+import { chooseHint, MAX_HINTS } from './hints';
 import {
   createMistakeTracker,
   loadDigit as loadDigitInTracker,
   recordWrongPlacement,
   releaseContainment,
-} from './mistakes.js';
-import type { InputMode, MistakeTracker } from './mistakes.js';
-import { clearNotesAt, clearPeerNotes, emptyNotes, notesAt, toggleNote } from './notes.js';
+} from './mistakes';
+import type { InputMode, MistakeTracker } from './mistakes';
+import { clearNotesAt, clearPeerNotes, emptyNotes, notesAt, toggleNote } from './notes';
 
 export type SessionStatus = 'playing' | 'solved' | 'failed';
 

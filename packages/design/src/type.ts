@@ -5,8 +5,8 @@
  * export's `_discrepancies` list is carried into the notes below so the
  * off-role renderings are visible rather than quietly reproduced.
  */
-import { atViewport } from './viewports.js';
-import type { Responsive, Viewport } from './viewports.js';
+import { atViewport } from './viewports';
+import type { Responsive, Viewport } from './viewports';
 
 export const FAMILIES = {
   sans: 'Archivo',

@@ -1,11 +1,11 @@
-import { hasCandidate } from '../../candidates.js';
-import { CELL_COUNT, DIGITS } from '../../types.js';
-import type { CellIndex, Digit } from '../../types.js';
-import { ALL_UNITS, PEERS } from '../../units.js';
-import type { SolverState } from '../state.js';
-import { reduction } from '../step.js';
-import type { Elimination, Step } from '../step.js';
-import { cellsFor } from './lockedCandidates.js';
+import { hasCandidate } from '../../candidates';
+import { CELL_COUNT, DIGITS } from '../../types';
+import type { CellIndex, Digit } from '../../types';
+import { ALL_UNITS, PEERS } from '../../units';
+import type { SolverState } from '../state';
+import { reduction } from '../step';
+import type { Elimination, Step } from '../step';
+import { cellsFor } from './lockedCandidates';
 
 type Colour = 0 | 1;
 

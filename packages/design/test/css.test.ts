@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { colorVariables, stylesheet, staticVariables, typeVariables } from '../src/css.js';
-import { palettes } from '../src/color.js';
-import { viewportForWidth } from '../src/viewports.js';
+import { colorVariables, stylesheet, staticVariables, typeVariables } from '../src/css';
+import { palettes } from '../src/color';
+import { viewportForWidth } from '../src/viewports';
 
 describe('viewportForWidth', () => {
   test('maps a real width to the design viewport it was drawn at', () => {

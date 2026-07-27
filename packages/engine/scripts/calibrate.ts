@@ -20,11 +20,11 @@
  * digits showing", and the acceptance target is the knob that sets the margin.
  * Lower acceptance buys a harder, more distinctive band and costs re-rolls.
  */
-import { SCORE_FLOORS, TARGET_GIVENS } from '../src/difficulty.js';
-import { digToTarget } from '../src/generate.js';
-import { createRng } from '../src/rng.js';
-import { DIFFICULTIES } from '../src/types.js';
-import type { Difficulty } from '../src/types.js';
+import { SCORE_FLOORS, TARGET_GIVENS } from '../src/difficulty';
+import { digToTarget } from '../src/generate';
+import { createRng } from '../src/rng';
+import { DIFFICULTIES } from '../src/types';
+import type { Difficulty } from '../src/types';
 
 const SAMPLES = Number(process.argv[2] ?? 500);
 const SEED_BASE = 1_000_000;

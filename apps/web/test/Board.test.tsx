@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createSession, parseGrid, apply } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import { Board } from '../src/components/Board.js';
+import { Board } from '../src/components/Board';
 
 /** Row 0 is `53..7....`, so cells 2, 3, 5, 6, 7, 8 start empty. */
 const PUZZLE =

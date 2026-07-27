@@ -1,1 +1,1 @@
-export { findBoxLine } from './lockedCandidates.js';
+export { findBoxLine } from './lockedCandidates';

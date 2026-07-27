@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { DIFFICULTIES } from '../src/types.js';
-import type { Difficulty } from '../src/types.js';
-import { filledCount, formatGrid } from '../src/grid.js';
+import { DIFFICULTIES } from '../src/types';
+import type { Difficulty } from '../src/types';
+import { filledCount, formatGrid } from '../src/grid';
 import {
   SCORE_FLOORS,
   TARGET_GIVENS,
@@ -9,17 +9,17 @@ import {
   bandForScore,
   rate,
   scoreOf,
-} from '../src/difficulty.js';
+} from '../src/difficulty';
 import {
   GIVEN_TOLERANCE,
   digToTarget,
   generatePuzzle,
   generateSolution,
-} from '../src/generate.js';
-import { createRng } from '../src/rng.js';
-import { analyse } from '../src/solver/index.js';
-import { hasUniqueSolution } from '../src/uniqueness.js';
-import { isSolved } from '../src/validate.js';
+} from '../src/generate';
+import { createRng } from '../src/rng';
+import { analyse } from '../src/solver/index';
+import { hasUniqueSolution } from '../src/uniqueness';
+import { isSolved } from '../src/validate';
 
 describe('generateSolution', () => {
   test('produces a complete, legal grid', () => {

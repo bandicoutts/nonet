@@ -11,7 +11,7 @@
  * failing WCAG AA. See DECISIONS.md NONET-5.
  */
 
-export { AA_LARGE_TEXT, AA_NORMAL_TEXT, contrastRatio, meetsAA, relativeLuminance } from './contrast.js';
+export { AA_LARGE_TEXT, AA_NORMAL_TEXT, contrastRatio, meetsAA, relativeLuminance } from './contrast';
 
 export {
   COLOR_TOKENS,
@@ -19,8 +19,8 @@ export {
   TEXT_PAIRINGS,
   THEMES,
   palettes,
-} from './color.js';
-export type { ColorToken, Palette, ThemeName } from './color.js';
+} from './color';
+export type { ColorToken, Palette, ThemeName } from './color';
 
 export {
   BREAKPOINTS,
@@ -28,28 +28,30 @@ export {
   atViewport,
   isResponsive,
   viewportForWidth,
-} from './viewports.js';
-export type { Responsive, Viewport } from './viewports.js';
+} from './viewports';
+export type { Responsive, Viewport } from './viewports';
 
-export { FAMILIES, TYPE_ROLES, WEIGHTS, resolveType } from './type.js';
-export type { FamilyName, ResolvedType, TypeRole, TypeRoleName } from './type.js';
+export { FAMILIES, TYPE_ROLES, WEIGHTS, resolveType } from './type';
+export type { FamilyName, ResolvedType, TypeRole, TypeRoleName } from './type';
 
-export { SPACE, TAP_TARGET_AA_MIN, TAP_TARGET_MIN, nearestSpace } from './space.js';
-export type { SpaceToken } from './space.js';
+export { SPACE, TAP_TARGET_AA_MIN, TAP_TARGET_MIN, nearestSpace } from './space';
+export type { SpaceToken } from './space';
 
-export { MOTION, MOTION_DEFECTS } from './motion.js';
-export type { MotionDuration, MotionEasing } from './motion.js';
+export { MOTION, MOTION_DEFECTS } from './motion';
+export type { MotionDuration, MotionEasing } from './motion';
 
-export { BORDERS, FOCUS_OFFSET } from './border.js';
-export type { BorderToken } from './border.js';
+export { BORDERS, FOCUS_OFFSET } from './border';
+export type { BorderToken } from './border';
 
-export { SHADOWS } from './shadow.js';
-export type { ShadowToken } from './shadow.js';
+export { SHADOWS } from './shadow';
+export type { ShadowToken } from './shadow';
 
-export { RADIUS } from './radius.js';
-export type { RadiusToken } from './radius.js';
+export { RADIUS } from './radius';
+export type { RadiusToken } from './radius';
 
-export { HATCH } from './hatch.js';
-export type { HatchToken } from './hatch.js';
+export { HATCH } from './hatch';
+export type { HatchToken } from './hatch';
 
-export { colorVariables, staticVariables, stylesheet, typeVariables } from './css.js';
+export { colorVariables, staticVariables, stylesheet, typeVariables } from './css';
+
+export { tailwindLayer } from './tailwind';

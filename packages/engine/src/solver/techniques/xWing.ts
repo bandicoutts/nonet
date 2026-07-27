@@ -1,11 +1,11 @@
-import { colOf, rowOf } from '../../grid.js';
-import { DIGITS } from '../../types.js';
-import type { CellIndex } from '../../types.js';
-import { COLS, ROWS } from '../../units.js';
-import type { SolverState } from '../state.js';
-import { reduction } from '../step.js';
-import type { Elimination, Step } from '../step.js';
-import { cellsFor } from './lockedCandidates.js';
+import { colOf, rowOf } from '../../grid';
+import { DIGITS } from '../../types';
+import type { CellIndex } from '../../types';
+import { COLS, ROWS } from '../../units';
+import type { SolverState } from '../state';
+import { reduction } from '../step';
+import type { Elimination, Step } from '../step';
+import { cellsFor } from './lockedCandidates';
 
 /**
  * X-wing: a digit that fits exactly two cells in each of two rows, and those

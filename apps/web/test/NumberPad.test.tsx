@@ -3,7 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { apply, createSession, parseGrid } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import { HOLD_MS, NumberPad } from '../src/components/NumberPad.js';
+import { HOLD_MS, NumberPad } from '../src/components/NumberPad';
 
 const PUZZLE =
   '53..7....' + '6..195...' + '.98....6.' + '8...6...3' + '4..8.3..1' +

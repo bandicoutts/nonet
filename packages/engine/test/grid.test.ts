@@ -12,8 +12,8 @@ import {
   parseGrid,
   rowOf,
   setCell,
-} from '../src/grid.js';
-import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures.js';
+} from '../src/grid';
+import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures';
 
 describe('parseGrid', () => {
   test('reads an 81-char string in reading order', () => {

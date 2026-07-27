@@ -1,1 +1,1 @@
-export { findPointingPair } from './lockedCandidates.js';
+export { findPointingPair } from './lockedCandidates';

@@ -5,18 +5,18 @@
  * every component reads `var(--…)`. Colour re-tones with the theme for free,
  * and nothing hardcodes a value.
  */
-import { BORDERS, FOCUS_OFFSET } from './border.js';
-import { COLOR_TOKENS, palettes } from './color.js';
-import type { ThemeName } from './color.js';
-import { HATCH } from './hatch.js';
-import { MOTION } from './motion.js';
-import { RADIUS } from './radius.js';
-import { SHADOWS } from './shadow.js';
-import { SPACE, TAP_TARGET_MIN } from './space.js';
-import { FAMILIES, TYPE_ROLES, resolveType } from './type.js';
-import type { TypeRoleName } from './type.js';
-import { BREAKPOINTS } from './viewports.js';
-import type { Viewport } from './viewports.js';
+import { BORDERS, FOCUS_OFFSET } from './border';
+import { COLOR_TOKENS, palettes } from './color';
+import type { ThemeName } from './color';
+import { HATCH } from './hatch';
+import { MOTION } from './motion';
+import { RADIUS } from './radius';
+import { SHADOWS } from './shadow';
+import { SPACE, TAP_TARGET_MIN } from './space';
+import { FAMILIES, TYPE_ROLES, resolveType } from './type';
+import type { TypeRoleName } from './type';
+import { BREAKPOINTS } from './viewports';
+import type { Viewport } from './viewports';
 
 const INDENT = '  ';
 
