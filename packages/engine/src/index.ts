@@ -53,22 +53,28 @@ export {
 
 export { analyse, easiestCell, solveHumanly } from './solver/index.js';
 export type { EasiestCell, SolveReport } from './solver/index.js';
-export { MAX_RANK, TECHNIQUE_ORDER, rankOf } from './solver/step.js';
+export { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './solver/step.js';
 export type { Elimination, Placement, Reduction, Step, Technique } from './solver/step.js';
 export type { SolverState, TechniqueFinder } from './solver/state.js';
 
 export { countSolutions, hasUniqueSolution, solveByBacktracking } from './uniqueness.js';
 
 export {
-  TECHNIQUE_CEILINGS,
+  SCORE_FLOORS,
   TARGET_GIVENS,
-  bandForCeiling,
-  bandForGivens,
-  hardestBand,
+  TECHNIQUE_CEILINGS,
+  bandForScore,
   rate,
+  scoreOf,
 } from './difficulty.js';
 
-export { GIVEN_TOLERANCE, MAX_ATTEMPTS, generatePuzzle, generateSolution } from './generate.js';
+export {
+  GIVEN_TOLERANCE,
+  MAX_ATTEMPTS,
+  digToTarget,
+  generatePuzzle,
+  generateSolution,
+} from './generate.js';
 export type { GeneratedPuzzle } from './generate.js';
 
 export { createRng } from './rng.js';

@@ -1,13 +1,13 @@
-import { filledCount } from './grid.js';
 import { analyse } from './solver/index.js';
-import { MAX_RANK, rankOf } from './solver/step.js';
+import { rankOf } from './solver/step.js';
 import { DIFFICULTIES } from './types.js';
 import type { Difficulty, Grid } from './types.js';
 
 /**
- * Given counts, from the design. Even numbers throughout, which is why the
- * generator digs without 180-degree symmetry: symmetric digging removes cells
- * in pairs from a full grid and can only ever leave an odd count.
+ * Given counts, from the design. The generator digs to these; they no longer
+ * rate anything. Even numbers throughout, which is why digging carries no
+ * 180-degree symmetry: symmetric digging removes cells in pairs from a full
+ * grid and can only ever leave an odd count.
  */
 export const TARGET_GIVENS: Readonly<Record<Difficulty, number>> = {
   easy: 38,
@@ -21,11 +21,8 @@ export const TARGET_GIVENS: Readonly<Record<Difficulty, number>> = {
  * removal that pushes a puzzle past its band's ceiling, so an Easy puzzle
  * always falls to singles and a Hard one never needs an X-wing.
  *
- * These are ceilings, not requirements. Measured over generated batches, the
- * hardest technique a puzzle *needs* is only weakly related to how many givens
- * it has: digging to 24 givens still leaves a singles-only grid most of the
- * time. So the ceiling bounds a band from above and cannot define it from
- * below — that job belongs to the given count.
+ * This bounds a band from above during generation. It does not rate anything —
+ * that is the score's job.
  */
 export const TECHNIQUE_CEILINGS: Readonly<Record<Difficulty, number>> = {
   easy: rankOf('hiddenSingle'),
@@ -34,53 +31,59 @@ export const TECHNIQUE_CEILINGS: Readonly<Record<Difficulty, number>> = {
   expert: rankOf('chain'),
 };
 
-/** Lowest given count still inside each band. */
-const GIVEN_THRESHOLDS: ReadonlyArray<readonly [Difficulty, number]> = [
-  ['easy', 37],
-  ['medium', 33],
-  ['hard', 27],
-];
-
 /**
- * The band a given count implies on its own. This is the primary axis: it is
- * what the design specifies per band, and it is what a player feels — a grid
- * with fewer starting digits takes longer to read however simple its logic.
- */
-export function bandForGivens(givens: number): Difficulty {
-  for (const [difficulty, floor] of GIVEN_THRESHOLDS) {
-    if (givens >= floor) return difficulty;
-  }
-  return 'expert';
-}
-
-/** The band a technique ceiling implies on its own. */
-export function bandForCeiling(ceiling: number): Difficulty {
-  if (ceiling > MAX_RANK) return 'expert';
-  for (const difficulty of DIFFICULTIES) {
-    if (ceiling <= TECHNIQUE_CEILINGS[difficulty]) return difficulty;
-  }
-  return 'expert';
-}
-
-/** The harder of two bands. */
-export function hardestBand(a: Difficulty, b: Difficulty): Difficulty {
-  return DIFFICULTIES.indexOf(a) >= DIFFICULTIES.indexOf(b) ? a : b;
-}
-
-/**
- * Rate a puzzle on both axes and take the harder answer.
+ * Lowest score in each band, in naked singles. Calibrated by
+ * `scripts/calibrate.ts` against the weights in `TECHNIQUE_WEIGHTS` — change a
+ * weight or the technique ladder and these must be re-derived, or every puzzle
+ * silently re-rates.
  *
- * Given count sets the baseline; the technique ceiling can only raise it. A
- * grid that needs an X-wing is Expert however generous its givens, and a grid
- * with 24 givens is Expert even if it happens to fall to singles. A grid
- * deduction cannot finish at all rates Expert — the player would be guessing,
- * which is the hardest thing a board can ask.
+ * For scale: a puzzle solved entirely by naked singles scores `81 - givens`, so
+ * the singles-only baselines are Easy 43, Medium 47, Hard 51, Expert 57. The
+ * Hard and Expert floors sit clear of their baselines — 7 and 26 points of
+ * technique work respectively — which is what makes those labels mean "this
+ * needs real technique" rather than "this has few digits showing".
+ *
+ * Calibrated over 500 digs per band. In-band rates for a single dig: Easy 97%,
+ * Medium 95%, Hard 42%, Expert 26%.
+ */
+export const SCORE_FLOORS: Readonly<Record<Difficulty, number>> = {
+  easy: 0,
+  medium: 47,
+  hard: 58,
+  expert: 83,
+};
+
+/** The band a score falls in. */
+export function bandForScore(score: number): Difficulty {
+  let band: Difficulty = 'easy';
+  for (const difficulty of DIFFICULTIES) {
+    if (score >= SCORE_FLOORS[difficulty]) band = difficulty;
+  }
+  return band;
+}
+
+/**
+ * How much work a grid takes, in naked singles: the summed weight of every step
+ * the human solver needs. Infinite when deduction cannot finish, because the
+ * player would be guessing — the hardest thing a board can ask.
+ */
+export function scoreOf(grid: Grid): number {
+  const report = analyse(grid);
+  return report.solved ? report.score : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Rate a puzzle by the effort its solve demands.
+ *
+ * One axis, not two. Given count is not consulted: it is already implicit,
+ * since every placement costs at least one point and a puzzle needs
+ * `81 - givens` of them. What the score adds on top is the technique work, and
+ * that is the part a ceiling could never measure — a ceiling is a maximum over
+ * the solve, so it throws away how *much* of the hard work there was.
  *
  * Deterministic: the solver applies techniques in a fixed order over fixed cell
- * iteration, so the same grid always yields the same rating.
+ * iteration, so the same grid always scores the same.
  */
 export function rate(grid: Grid): Difficulty {
-  const report = analyse(grid);
-  const byTechnique = report.solved ? bandForCeiling(report.ceiling) : 'expert';
-  return hardestBand(byTechnique, bandForGivens(filledCount(grid)));
+  return bandForScore(scoreOf(grid));
 }

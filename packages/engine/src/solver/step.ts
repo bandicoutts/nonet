@@ -30,6 +30,34 @@ export function rankOf(technique: Technique): number {
 
 export const MAX_RANK = TECHNIQUE_ORDER.length;
 
+/**
+ * What each deduction costs, in naked singles.
+ *
+ * A puzzle's difficulty is the summed weight of every step its solve requires,
+ * so these numbers decide the bands. The shape is deliberate: subset techniques
+ * are a small multiple of a single because they are found by reading one unit,
+ * while X-wings and chains are a step change because they need a search across
+ * units.
+ *
+ * **These weights are judgement, not measurement.** Calibrating them properly
+ * needs human solve times, which will not exist until the product ships — so
+ * the plan is to persist each puzzle's score, then re-derive these from real
+ * completion times and re-band the bank with a script. The band thresholds in
+ * `difficulty.ts` are measured against *these* weights: change a number here
+ * and the thresholds must be recalibrated, or every puzzle silently re-rates.
+ */
+export const TECHNIQUE_WEIGHTS: Readonly<Record<Technique, number>> = {
+  nakedSingle: 1,
+  hiddenSingle: 2,
+  nakedPair: 5,
+  hiddenPair: 8,
+  nakedTriple: 10,
+  pointingPair: 12,
+  boxLine: 14,
+  xWing: 30,
+  chain: 50,
+};
+
 /** A technique that determines a cell's digit outright. */
 export interface Placement {
   readonly kind: 'placement';

@@ -1,8 +1,20 @@
 import { describe, expect, test } from 'vitest';
 import { digitsOf, maskOf } from '../src/candidates.js';
 import { boxOf, colOf, filledCount, formatGrid, rowOf } from '../src/grid.js';
-import { TARGET_GIVENS, TECHNIQUE_CEILINGS, rate } from '../src/difficulty.js';
-import { GIVEN_TOLERANCE, generatePuzzle, generateSolution } from '../src/generate.js';
+import {
+  SCORE_FLOORS,
+  TARGET_GIVENS,
+  TECHNIQUE_CEILINGS,
+  bandForScore,
+  rate,
+  scoreOf,
+} from '../src/difficulty.js';
+import {
+  GIVEN_TOLERANCE,
+  digToTarget,
+  generatePuzzle,
+  generateSolution,
+} from '../src/generate.js';
 import type { GeneratedPuzzle } from '../src/generate.js';
 import { createRng } from '../src/rng.js';
 import { clearPeerNotes, notesAt } from '../src/rules/notes.js';
@@ -75,6 +87,27 @@ describe('generated puzzles', () => {
         }
       });
 
+      test('every score sits inside the band', () => {
+        for (const { seed, puzzle } of batch(difficulty)) {
+          expect(puzzle.score, `seed ${seed}`).toBe(scoreOf(puzzle.givens));
+          expect(bandForScore(puzzle.score), `seed ${seed}`).toBe(difficulty);
+        }
+      });
+
+      test('the band demands more work than pure scanning at that given count', () => {
+        // The singles-only floor for a grid is 81 - givens. A band whose score
+        // floor sits at or below that floor is just the given count relabelled.
+        const scanningBaseline = 81 - TARGET_GIVENS[difficulty];
+        for (const { seed, puzzle } of batch(difficulty)) {
+          if (difficulty === 'hard' || difficulty === 'expert') {
+            expect(puzzle.score, `seed ${seed}`).toBeGreaterThan(scanningBaseline);
+          }
+          expect(SCORE_FLOORS[difficulty], `seed ${seed}`).toBeGreaterThanOrEqual(
+            difficulty === 'easy' ? 0 : 1,
+          );
+        }
+      });
+
       test('the rating is stable across runs', () => {
         for (const { seed, puzzle } of batch(difficulty)) {
           const ratings = Array.from({ length: 3 }, () => rate(puzzle.givens));
@@ -102,6 +135,34 @@ describe('generated puzzles', () => {
       });
     });
   }
+});
+
+describe('calibration still holds', () => {
+  test.each(DIFFICULTIES)(
+    'at least 95%% of %s digs that reach the target land in a band at or above it',
+    (difficulty: Difficulty) => {
+      // Guards the thresholds against weight or ladder changes. A dig may score
+      // above its band — that is a re-roll, not a miscalibration — but a dig
+      // landing *below* its own floor means the floor has drifted upward past
+      // what the given count can support, and the generator would start
+      // thrashing. Rerun `pnpm --filter @nonet/engine calibrate` if this fails.
+      const floor = SCORE_FLOORS[difficulty];
+      const digs = Array.from({ length: 40 }, (_, i) => digToTarget(difficulty, createRng(i)));
+      const reached = digs.filter((dug) => dug !== null);
+
+      expect(reached.length).toBeGreaterThan(0);
+
+      // Hard and Expert are deliberately selective, so only assert the weaker
+      // property there: the floor must remain reachable in a healthy fraction.
+      const clearing = reached.filter((dug) => (dug?.score ?? 0) >= floor).length;
+      const share = clearing / reached.length;
+      const required = difficulty === 'easy' || difficulty === 'medium' ? 0.95 : 0.15;
+
+      expect(share, `${clearing}/${reached.length} cleared floor ${floor}`).toBeGreaterThanOrEqual(
+        required,
+      );
+    },
+  );
 });
 
 describe('generation is robust across arbitrary seeds', () => {

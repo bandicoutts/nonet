@@ -1,14 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import { parseGrid } from '../src/grid.js';
 import {
+  SCORE_FLOORS,
   TARGET_GIVENS,
   TECHNIQUE_CEILINGS,
-  bandForCeiling,
-  bandForGivens,
-  hardestBand,
+  bandForScore,
   rate,
+  scoreOf,
 } from '../src/difficulty.js';
 import { rankOf } from '../src/solver/step.js';
+import { DIFFICULTIES } from '../src/types.js';
 import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, TWO_SOLUTION_PUZZLE } from './fixtures.js';
 
 describe('design targets', () => {
@@ -24,70 +25,70 @@ describe('design targets', () => {
   });
 });
 
-describe('bandForGivens', () => {
-  test('puts each design target in its own band', () => {
-    expect(bandForGivens(TARGET_GIVENS.easy)).toBe('easy');
-    expect(bandForGivens(TARGET_GIVENS.medium)).toBe('medium');
-    expect(bandForGivens(TARGET_GIVENS.hard)).toBe('hard');
-    expect(bandForGivens(TARGET_GIVENS.expert)).toBe('expert');
+describe('SCORE_FLOORS', () => {
+  test('easy starts at zero so every grid lands in a band', () => {
+    expect(SCORE_FLOORS.easy).toBe(0);
   });
 
-  test('bands are contiguous across the boundaries', () => {
-    expect(bandForGivens(37)).toBe('easy');
-    expect(bandForGivens(36)).toBe('medium');
-    expect(bandForGivens(33)).toBe('medium');
-    expect(bandForGivens(32)).toBe('hard');
-    expect(bandForGivens(27)).toBe('hard');
-    expect(bandForGivens(26)).toBe('expert');
+  test('floors ascend with difficulty', () => {
+    const floors = DIFFICULTIES.map((difficulty) => SCORE_FLOORS[difficulty]);
+    for (let i = 1; i < floors.length; i += 1) {
+      expect(floors[i] ?? 0).toBeGreaterThan(floors[i - 1] ?? 0);
+    }
   });
 
-  test('a full grid is easy', () => {
-    expect(bandForGivens(81)).toBe('easy');
-  });
-
-  test('tolerates the generator finishing a little above the expert target', () => {
-    expect(bandForGivens(25)).toBe('expert');
-    expect(bandForGivens(26)).toBe('expert');
+  test('the expert floor clears the singles-only baseline by a real margin', () => {
+    // A 24-given puzzle solved entirely by naked singles scores 81 - 24 = 57.
+    // Expert must demand meaningfully more work than that, or the band is just
+    // the given count wearing a different hat.
+    expect(SCORE_FLOORS.expert).toBeGreaterThan(57 + 20);
   });
 });
 
-describe('bandForCeiling', () => {
-  test('maps every rank to exactly one band', () => {
-    expect(bandForCeiling(1)).toBe('easy');
-    expect(bandForCeiling(2)).toBe('easy');
-    expect(bandForCeiling(3)).toBe('medium');
-    expect(bandForCeiling(5)).toBe('medium');
-    expect(bandForCeiling(6)).toBe('hard');
-    expect(bandForCeiling(7)).toBe('hard');
-    expect(bandForCeiling(8)).toBe('expert');
-    expect(bandForCeiling(9)).toBe('expert');
+describe('bandForScore', () => {
+  test('places each floor in its own band', () => {
+    for (const difficulty of DIFFICULTIES) {
+      expect(bandForScore(SCORE_FLOORS[difficulty])).toBe(difficulty);
+    }
   });
 
-  test('a grid needing more than the ladder offers is expert', () => {
-    expect(bandForCeiling(99)).toBe('expert');
+  test('a score just below a floor belongs to the band beneath', () => {
+    expect(bandForScore(SCORE_FLOORS.medium - 1)).toBe('easy');
+    expect(bandForScore(SCORE_FLOORS.hard - 1)).toBe('medium');
+    expect(bandForScore(SCORE_FLOORS.expert - 1)).toBe('hard');
   });
 
-  test('a grid needing no technique at all is easy', () => {
-    expect(bandForCeiling(0)).toBe('easy');
+  test('an empty grid rates easy', () => {
+    expect(bandForScore(0)).toBe('easy');
+  });
+
+  test('an unrateable grid is expert', () => {
+    expect(bandForScore(Number.POSITIVE_INFINITY)).toBe('expert');
   });
 });
 
-describe('hardestBand', () => {
-  test('picks the harder of two bands', () => {
-    expect(hardestBand('easy', 'hard')).toBe('hard');
-    expect(hardestBand('expert', 'medium')).toBe('expert');
-    expect(hardestBand('medium', 'medium')).toBe('medium');
+describe('scoreOf', () => {
+  test('is the solver score when deduction finishes the grid', () => {
+    expect(scoreOf(parseGrid(CLASSIC_PUZZLE))).toBe(51);
+  });
+
+  test('a solved grid costs nothing', () => {
+    expect(scoreOf(parseGrid(CLASSIC_SOLUTION))).toBe(0);
+  });
+
+  test('is infinite when deduction cannot finish', () => {
+    expect(scoreOf(parseGrid(TWO_SOLUTION_PUZZLE))).toBe(Number.POSITIVE_INFINITY);
   });
 });
 
 describe('rate', () => {
-  test('the given count sets the baseline band', () => {
-    // 30 givens, and it falls to singles — the count is what makes it Hard.
-    expect(rate(parseGrid(CLASSIC_PUZZLE))).toBe('hard');
+  test('rates by effort, not by how many digits are showing', () => {
+    // 30 givens but it falls to singles: 51 points of work, which is Medium.
+    // The old given-count rater called this Hard purely for being sparse.
+    expect(rate(parseGrid(CLASSIC_PUZZLE))).toBe('medium');
   });
 
-  test('the technique ceiling can only raise the band, never lower it', () => {
-    // A grid deduction cannot finish is Expert whatever its given count.
+  test('a grid deduction cannot finish is expert', () => {
     expect(rate(parseGrid(TWO_SOLUTION_PUZZLE))).toBe('expert');
   });
 
@@ -97,7 +98,11 @@ describe('rate', () => {
 
   test('is stable across repeated calls', () => {
     const grid = parseGrid(CLASSIC_PUZZLE);
-    const ratings = Array.from({ length: 5 }, () => rate(grid));
-    expect(new Set(ratings).size).toBe(1);
+    expect(new Set(Array.from({ length: 5 }, () => rate(grid))).size).toBe(1);
+  });
+
+  test('agrees with bandForScore on the same grid', () => {
+    const grid = parseGrid(CLASSIC_PUZZLE);
+    expect(rate(grid)).toBe(bandForScore(scoreOf(grid)));
   });
 });

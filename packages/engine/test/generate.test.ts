@@ -2,8 +2,20 @@ import { describe, expect, test } from 'vitest';
 import { DIFFICULTIES } from '../src/types.js';
 import type { Difficulty } from '../src/types.js';
 import { filledCount, formatGrid } from '../src/grid.js';
-import { TARGET_GIVENS, TECHNIQUE_CEILINGS, rate } from '../src/difficulty.js';
-import { GIVEN_TOLERANCE, generatePuzzle, generateSolution } from '../src/generate.js';
+import {
+  SCORE_FLOORS,
+  TARGET_GIVENS,
+  TECHNIQUE_CEILINGS,
+  bandForScore,
+  rate,
+  scoreOf,
+} from '../src/difficulty.js';
+import {
+  GIVEN_TOLERANCE,
+  digToTarget,
+  generatePuzzle,
+  generateSolution,
+} from '../src/generate.js';
 import { createRng } from '../src/rng.js';
 import { analyse } from '../src/solver/index.js';
 import { hasUniqueSolution } from '../src/uniqueness.js';
@@ -56,6 +68,13 @@ describe('generatePuzzle', () => {
     expect(puzzle.ceiling).toBe(analyse(puzzle.givens).ceiling);
   });
 
+  test.each(DIFFICULTIES)('%s puzzles carry a score inside the band', (difficulty: Difficulty) => {
+    const puzzle = generatePuzzle(difficulty, 7000 + DIFFICULTIES.indexOf(difficulty));
+    expect(puzzle.score).toBe(scoreOf(puzzle.givens));
+    expect(bandForScore(puzzle.score)).toBe(difficulty);
+    expect(puzzle.score).toBeGreaterThanOrEqual(SCORE_FLOORS[difficulty]);
+  });
+
   test.each(DIFFICULTIES)('%s puzzles never require a guess', (difficulty: Difficulty) => {
     const puzzle = generatePuzzle(difficulty, 4000 + DIFFICULTIES.indexOf(difficulty));
     expect(analyse(puzzle.givens).solved).toBe(true);
@@ -96,5 +115,28 @@ describe('generatePuzzle', () => {
       (value, index) => (value !== 0) === (puzzle.givens[80 - index] !== 0),
     );
     expect(symmetric).toBe(false);
+  });
+});
+
+describe('digToTarget', () => {
+  test('digs to the design given count under the band ceiling', () => {
+    const dug = digToTarget('hard', createRng(4242));
+    expect(dug).not.toBeNull();
+    expect(dug?.givenCount).toBeGreaterThanOrEqual(TARGET_GIVENS.hard);
+    expect(dug?.ceiling).toBeLessThanOrEqual(TECHNIQUE_CEILINGS.hard);
+  });
+
+  test('does not filter on score, so calibration sees the raw distribution', () => {
+    // Whether a dug puzzle lands in band is exactly what calibration measures,
+    // so this rung must not pre-select for it. Over a run of seeds at the Hard
+    // target, some digs score below the Hard floor — that is the point.
+    const scores = Array.from({ length: 12 }, (_, i) => digToTarget('hard', createRng(i))?.score ?? 0);
+    expect(scores.some((score) => score < SCORE_FLOORS.hard)).toBe(true);
+  });
+
+  test('is deterministic for a seed', () => {
+    expect(digToTarget('medium', createRng(11))?.givens).toEqual(
+      digToTarget('medium', createRng(11))?.givens,
+    );
   });
 });

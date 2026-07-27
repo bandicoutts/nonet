@@ -6,7 +6,7 @@ import { PEERS } from '../units.js';
 import { isSolved } from '../validate.js';
 import { solveByBacktracking } from '../uniqueness.js';
 import type { SolverState, TechniqueFinder } from './state.js';
-import { TECHNIQUE_ORDER, rankOf } from './step.js';
+import { TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from './step.js';
 import type { Step, Technique } from './step.js';
 import { findNakedSingle } from './techniques/nakedSingle.js';
 import { findHiddenSingle } from './techniques/hiddenSingle.js';
@@ -40,6 +40,13 @@ export interface SolveReport {
   readonly steps: readonly Step[];
   /** Rank of the hardest technique the solve required; 0 if none was needed. */
   readonly ceiling: number;
+  /**
+   * Summed weight of every step taken, in naked singles. This is the difficulty
+   * signal — see `TECHNIQUE_WEIGHTS`. It counts the work actually done, so a
+   * solve that ran out of technique still reports how far it got; callers that
+   * want "unrateable" semantics should check `solved` too, as `scoreOf` does.
+   */
+  readonly score: number;
   readonly hardestTechnique: Technique | null;
   readonly counts: Readonly<Record<Technique, number>>;
 }
@@ -81,12 +88,17 @@ export function analyse(grid: Grid): SolveReport {
   }
 
   const hardestTechnique = hardestOf(counts);
+  let score = 0;
+  for (const technique of TECHNIQUE_ORDER) {
+    score += (counts[technique] ?? 0) * TECHNIQUE_WEIGHTS[technique];
+  }
 
   return {
     solved: isSolved(working),
     grid: working,
     steps,
     ceiling: hardestTechnique === null ? 0 : rankOf(hardestTechnique),
+    score,
     hardestTechnique,
     counts,
   };

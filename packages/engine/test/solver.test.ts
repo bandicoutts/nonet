@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { formatGrid, parseGrid } from '../src/grid.js';
 import { analyse, easiestCell, solveHumanly } from '../src/solver/index.js';
-import { MAX_RANK, TECHNIQUE_ORDER, rankOf } from '../src/solver/step.js';
+import { MAX_RANK, TECHNIQUE_ORDER, TECHNIQUE_WEIGHTS, rankOf } from '../src/solver/step.js';
 import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, TWO_SOLUTION_PUZZLE } from './fixtures.js';
 
 describe('technique order', () => {
@@ -23,6 +23,30 @@ describe('technique order', () => {
     expect(rankOf('nakedSingle')).toBe(1);
     expect(rankOf('chain')).toBe(MAX_RANK);
     expect(rankOf('nakedPair')).toBeLessThan(rankOf('xWing'));
+  });
+});
+
+describe('technique weights', () => {
+  test('every technique is priced', () => {
+    for (const technique of TECHNIQUE_ORDER) {
+      expect(TECHNIQUE_WEIGHTS[technique]).toBeGreaterThan(0);
+    }
+  });
+
+  test('weights never fall as the ladder gets harder', () => {
+    const weights = TECHNIQUE_ORDER.map((technique) => TECHNIQUE_WEIGHTS[technique]);
+    for (let i = 1; i < weights.length; i += 1) {
+      expect(weights[i] ?? 0).toBeGreaterThan(weights[i - 1] ?? 0);
+    }
+  });
+
+  test('a naked single is the unit of account', () => {
+    expect(TECHNIQUE_WEIGHTS.nakedSingle).toBe(1);
+  });
+
+  test('cross-unit techniques cost a step change over within-unit ones', () => {
+    expect(TECHNIQUE_WEIGHTS.xWing).toBeGreaterThan(2 * (TECHNIQUE_WEIGHTS.boxLine ?? 0));
+    expect(TECHNIQUE_WEIGHTS.chain).toBeGreaterThan(TECHNIQUE_WEIGHTS.xWing);
   });
 });
 
@@ -49,7 +73,30 @@ describe('analyse', () => {
     expect(report.solved).toBe(true);
     expect(report.steps).toHaveLength(0);
     expect(report.ceiling).toBe(0);
+    expect(report.score).toBe(0);
     expect(report.hardestTechnique).toBeNull();
+  });
+
+  test('scores the solve by summing the weight of every step', () => {
+    const report = analyse(parseGrid(CLASSIC_PUZZLE));
+    const expected = TECHNIQUE_ORDER.reduce(
+      (total, technique) => total + report.counts[technique] * TECHNIQUE_WEIGHTS[technique],
+      0,
+    );
+    expect(report.score).toBe(expected);
+  });
+
+  test('the canonical puzzle scores 51', () => {
+    // 51 placements, all singles. Pinned deliberately: if the weights or the
+    // technique ladder change, this number moves and the bands need recalibrating.
+    expect(analyse(parseGrid(CLASSIC_PUZZLE)).score).toBe(51);
+  });
+
+  test('reports the work actually done even when it cannot finish', () => {
+    const report = analyse(parseGrid(TWO_SOLUTION_PUZZLE));
+    expect(report.solved).toBe(false);
+    expect(report.score).toBeGreaterThanOrEqual(0);
+    expect(Number.isFinite(report.score)).toBe(true);
   });
 
   test('gives up rather than guessing when logic runs out', () => {

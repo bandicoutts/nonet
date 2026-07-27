@@ -1,6 +1,6 @@
 import { canPlace } from './validate.js';
 import { cloneGrid, emptyGrid, filledCount } from './grid.js';
-import { TARGET_GIVENS, TECHNIQUE_CEILINGS, rate } from './difficulty.js';
+import { SCORE_FLOORS, TARGET_GIVENS, TECHNIQUE_CEILINGS, bandForScore } from './difficulty.js';
 import { createRng } from './rng.js';
 import type { Rng } from './rng.js';
 import { analyse } from './solver/index.js';
@@ -15,8 +15,16 @@ import { hasUniqueSolution } from './uniqueness.js';
  */
 export const GIVEN_TOLERANCE = 3;
 
-/** Dig orders tried before giving up on a difficulty. */
-export const MAX_ATTEMPTS = 12;
+/**
+ * Dig orders tried before giving up on a difficulty.
+ *
+ * The budget is set by the hardest band. Measured in-band rates for a single
+ * dig are roughly Easy 98%, Medium 98%, Hard 42%, Expert 23%, so Expert needs
+ * about 4 attempts on average; 40 puts the odds of outright failure near 4 in
+ * 100,000. Generation runs once a day for the daily and once per bank seed, so
+ * spending a few attempts to land the band is free in practice.
+ */
+export const MAX_ATTEMPTS = 40;
 
 export interface GeneratedPuzzle {
   /** The puzzle as presented, 0 for the cells the player fills. */
@@ -26,6 +34,8 @@ export interface GeneratedPuzzle {
   readonly givenCount: number;
   /** The hardest technique rank the solve requires. */
   readonly ceiling: number;
+  /** Summed weight of the solve, in naked singles. This is what sets the band. */
+  readonly score: number;
   /** The seed passed to `generatePuzzle`; regenerating with it repeats this puzzle. */
   readonly seed: number;
 }
@@ -52,32 +62,16 @@ function fill(grid: MutableGrid, cell: CellIndex, rng: Rng): boolean {
 }
 
 /**
- * Generate a puzzle of the requested difficulty.
+ * One dig: build a solution, then clear cells until the band's given count is
+ * reached. **No score filtering** — the caller decides whether the result is in
+ * band. `scripts/calibrate.ts` depends on that, since the whole point of
+ * calibration is to measure how raw digs are distributed.
  *
- * **Uniqueness is guaranteed by construction.** Digging starts from a complete
- * solution, and a cell is only cleared if the grid still has exactly one
- * solution afterwards — so there is no point at which a second solution can
- * appear. The finished puzzle is checked once more before it is returned.
+ * Prefer `generatePuzzle` unless you are calibrating.
  *
- * **No puzzle ever requires a guess**, for the same reason: a removal is only
- * accepted if the human solver can still finish the grid, within the band's
- * technique ceiling.
+ * Returns null when digging stalls well above the target given count.
  */
-export function generatePuzzle(difficulty: Difficulty, seed: number): GeneratedPuzzle {
-  const seeds = createRng(seed);
-
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
-    const rng = createRng(attempt === 0 ? seed : seeds.int(0x7fffffff));
-    const candidate = attemptPuzzle(difficulty, rng, seed);
-    if (candidate !== null) return candidate;
-  }
-
-  throw new Error(
-    `Could not generate a ${difficulty} puzzle from seed ${seed} in ${MAX_ATTEMPTS} attempts`,
-  );
-}
-
-function attemptPuzzle(difficulty: Difficulty, rng: Rng, seed: number): GeneratedPuzzle | null {
+export function digToTarget(difficulty: Difficulty, rng: Rng): GeneratedPuzzle | null {
   const solution = generateSolution(rng);
   const givens = cloneGrid(solution);
 
@@ -112,15 +106,52 @@ function attemptPuzzle(difficulty: Difficulty, rng: Rng, seed: number): Generate
   }
 
   if (count > target + GIVEN_TOLERANCE) return null;
-  if (rate(givens) !== difficulty) return null;
   if (!hasUniqueSolution(givens)) return null;
+
+  const report = analyse(givens);
+  if (!report.solved) return null;
 
   return {
     givens,
     solution,
     difficulty,
     givenCount: filledCount(givens),
-    ceiling: analyse(givens).ceiling,
-    seed,
+    ceiling: report.ceiling,
+    score: report.score,
+    seed: 0,
   };
+}
+
+/**
+ * Generate a puzzle of the requested difficulty.
+ *
+ * **Uniqueness is guaranteed by construction.** Digging starts from a complete
+ * solution, and a cell is only cleared if the grid still has exactly one
+ * solution afterwards — so there is no point at which a second solution can
+ * appear. The finished puzzle is checked once more before it is returned.
+ *
+ * **No puzzle ever requires a guess**, for the same reason: a removal is only
+ * accepted if the human solver can still finish the grid, within the band's
+ * technique ceiling.
+ *
+ * **The band is what it says.** Given count is held to the design target and
+ * the dig is re-rolled until the puzzle's score lands in the band, so an Expert
+ * puzzle demands Expert-level work rather than merely showing fewer digits.
+ */
+export function generatePuzzle(difficulty: Difficulty, seed: number): GeneratedPuzzle {
+  const seeds = createRng(seed);
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    const rng = createRng(attempt === 0 ? seed : seeds.int(0x7fffffff));
+    const candidate = digToTarget(difficulty, rng);
+    if (candidate === null) continue;
+    if (bandForScore(candidate.score) !== difficulty) continue;
+
+    return { ...candidate, seed };
+  }
+
+  throw new Error(
+    `Could not generate a ${difficulty} puzzle from seed ${seed} in ${MAX_ATTEMPTS} attempts ` +
+      `(score floor ${SCORE_FLOORS[difficulty]})`,
+  );
 }
