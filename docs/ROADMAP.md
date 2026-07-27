@@ -59,8 +59,11 @@ than questions are here.
       `autoAdvance` is an engine rule, not React state (NONET-24)
 - [x] Settings screen (NONET-24)
 - [x] Record page — streaks, completion strip, times by band (NONET-25)
-- [ ] Archive page, percentiles
-- [ ] Archive and replay play modes — `solves.kind` can hold them, nothing writes them
+- [x] Archive page — month calendar, filters, edition list (NONET-26)
+- [ ] Percentiles surfaced beyond the result screen
+- [x] Archive play mode — an old edition records `kind: 'archive'` and never
+      extends a run (NONET-26)
+- [ ] Replay play mode — `solves.kind` can hold `'replay'`, nothing writes it
 - [ ] Offline banner, edge/empty/error states per DESIGN-BRIEF.md
 - [x] Streaks/stats surfaced (NONET-23, NONET-25)
 - [ ] E2E suite (Playwright) + a11y pass

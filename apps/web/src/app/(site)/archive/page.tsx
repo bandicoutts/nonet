@@ -1,8 +1,15 @@
 import type { Metadata } from 'next';
-import { PageStub } from '@/components/chrome/PageStub';
+import { ArchiveScreen } from '@/components/ArchiveScreen';
 
 export const metadata: Metadata = { title: 'Archive' };
 
+/**
+ * Archive: every edition since No. 1.
+ *
+ * Each one is derived from its date (NONET-16), so the page needs no database
+ * and works with Supabase down — the same property that lets the daily be
+ * played offline.
+ */
 export default function Page() {
-  return <PageStub kicker="Archive" note="A navigable month grid carrying difficulty per cell, plus the filter rail at 1100 and above. Archive solves record stats but never extend a streak." />;
+  return <ArchiveScreen />;
 }
