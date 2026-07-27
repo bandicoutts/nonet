@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E1113;font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#2C41C4;text-decoration:none}
+a:hover{color:#16181B;text-decoration:underline}
+input{font:inherit;color:inherit}
+@keyframes nonetPop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes tokenPop{0%,8%{transform:scale(.7);opacity:0}18%,100%{transform:scale(1);opacity:1}}
+@keyframes tokenReveal{0%,8%{opacity:0;transform:translateY(7px)}20%,100%{opacity:1;transform:none}}
+@keyframes tokenToast{0%,6%{opacity:0}14%,84%{opacity:1}94%,100%{opacity:0}}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important}}
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+  <div style="position:sticky;top:0;z-index:50;background:#0E1113;color:#C9CFD2;border-bottom:1px solid #262C2F;padding:10px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px">
+    <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.24em;color:#6E767A">NONET · STATE SWITCHER</span>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">
+      <sc-for list="{{ devScreens }}" as="s" hint-placeholder-count="12">
+        <span style="{{ s.sty }}" onClick="{{ s.on }}">{{ s.label }}</span>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;padding-left:16px;border-left:1px solid #2E3437">
+      <sc-for list="{{ devStates }}" as="s" hint-placeholder-count="5">
+        <span style="{{ s.sty }}" onClick="{{ s.on }}">{{ s.label }}</span>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">
+      <sc-for list="{{ devToggles }}" as="s" hint-placeholder-count="6">
+        <span style="{{ s.sty }}" onClick="{{ s.on }}">{{ s.label }}</span>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding-left:16px;border-left:1px solid #2E3437">
+      <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;color:#6E767A;margin-right:4px">REFERENCE</span>
+      <sc-for list="{{ devDocs }}" as="s" hint-placeholder-count="4">
+        <span style="{{ s.sty }}" onClick="{{ s.on }}">{{ s.label }}</span>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:safe center;overflow-x:auto;padding:{{ L.deskPad }}">
+    <div style="position:relative;flex:none;width:{{ L.frameW }};min-height:{{ L.minH }};background:var(--bg,#F1F2F3);color:var(--fg,#16181B);display:flex;flex-direction:column;box-shadow:0 0 0 1px #22282B">
+
+      <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--fg);color:var(--bg);padding:10px 20px;display:flex;justify-content:center;gap:10px;font:500 11px/1.4 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase">
+          <span>Offline — your puzzle is saved here and will sync when you reconnect</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ siteHeaderWide }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:{{ L.headGap }};padding:{{ L.navPad }} {{ L.pad }} 0">
+          <div style="display:flex;align-items:baseline;gap:{{ L.lockGap }};min-width:0;cursor:pointer" onClick="{{ goHome }}">
+            <span style="font:700 {{ L.mark }} 'Archivo',sans-serif;letter-spacing:-.045em">NONET</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:{{ L.navGap }};flex:{{ L.navFlex }};order:{{ L.navOrder }}">
+            <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
+              <span style="{{ n.sty }}" onClick="{{ n.on }}">{{ n.label }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:{{ L.ctrlGap }}">
+            <span style="display:flex;align-items:center;justify-content:center;flex:none;white-space:nowrap;min-width:44px;min-height:34px;padding:0 {{ L.ctrlPad }};border:1px solid var(--line);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--fg2);cursor:pointer" style-hover="border-color:var(--fg);color:var(--fg)" onClick="{{ toggleTheme }}">{{ themeLabel }}</span>
+            <span style="{{ authChipSty }}" onClick="{{ goAuth }}">{{ authChipLabel }}</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ siteHeaderMobile }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:{{ L.navPad }} {{ L.pad }} 0">
+          <div style="display:flex;align-items:baseline;gap:{{ L.lockGap }};min-width:0;cursor:pointer" onClick="{{ goHome }}">
+            <span style="font:700 {{ L.mark }} 'Archivo',sans-serif;letter-spacing:-.045em">NONET</span>
+          </div>
+          <span tabIndex="0" ref="{{ triggerRef }}" style="display:flex;align-items:center;gap:11px;flex:none;min-height:44px;padding:0 2px;cursor:pointer" onClick="{{ onOpenMenu }}">
+            <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg2)">Menu</span>
+            <span style="display:flex;flex-direction:column;justify-content:center;gap:5px;width:22px;flex:none">
+              <i style="display:block;height:1px;background:var(--fg)"></i>
+              <i style="display:block;height:1px;background:var(--fg)"></i>
+              <i style="display:block;height:1px;background:var(--fg)"></i>
+            </span>
+          </span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ drawerRef }}" onKeyDown="{{ onDrawerKey }}" style="position:absolute;inset:0;z-index:60;background:var(--bg);color:var(--fg);display:flex;flex-direction:column;overflow-y:auto">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:{{ L.navPad }} {{ L.pad }} 0">
+            <div style="display:flex;align-items:baseline;gap:{{ L.lockGap }};min-width:0">
+              <span style="font:700 {{ L.mark }} 'Archivo',sans-serif;letter-spacing:-.045em">NONET</span>
+            </div>
+            <span tabIndex="0" style="display:flex;align-items:center;gap:11px;flex:none;min-height:44px;padding:0 2px;cursor:pointer" onClick="{{ onCloseMenu }}">
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg2)">Close</span>
+              <span style="position:relative;display:block;width:22px;height:16px;flex:none">
+                <i style="position:absolute;left:0;top:8px;display:block;width:22px;height:1px;background:var(--fg);transform:rotate(45deg)"></i>
+                <i style="position:absolute;left:0;top:8px;display:block;width:22px;height:1px;background:var(--fg);transform:rotate(-45deg)"></i>
+              </span>
+            </span>
+          </div>
+
+          <div style="margin-top:26px;border-top:1px solid var(--line)">
+            <sc-for list="{{ drawerPrimary }}" as="n" hint-placeholder-count="4">
+              <div tabIndex="0" style="display:flex;align-items:center;min-height:64px;padding:0 {{ L.pad }};border-bottom:1px solid var(--line2);cursor:pointer" onClick="{{ n.on }}">
+                <span style="{{ n.sty }}">{{ n.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:22px;border-top:1px solid var(--line)">
+            <sc-for list="{{ drawerSecondary }}" as="n" hint-placeholder-count="3">
+              <div tabIndex="0" style="display:flex;align-items:center;min-height:48px;padding:0 {{ L.pad }};border-bottom:1px solid var(--line2);cursor:pointer" onClick="{{ n.on }}">
+                <span style="{{ n.sty }}">{{ n.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:22px;padding:20px {{ L.pad }} 0;border-top:1px solid var(--line)">
+            <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Theme</div>
+            <div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+              <sc-for list="{{ themeOptions }}" as="o" hint-placeholder-count="3">
+                <span tabIndex="0" style="{{ o.drawerSty }}" onClick="{{ o.on }}">{{ o.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:26px;padding:20px {{ L.pad }} 0;border-top:1px solid var(--line)">
+            <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Account</div>
+            <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:14px">
+                <span tabIndex="0" style="display:flex;align-items:center;justify-content:center;min-height:52px;background:var(--fg);color:var(--bg);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" onClick="{{ onDrawerAuth }}">Sign in</span>
+                <p style="margin:12px 0 0;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3)">Progress is kept in this browser only.</p>
+              </div>
+            </sc-if>
+            <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+                <div>
+                  <div style="font:600 15px/1.4 'Archivo',sans-serif">Alex Lindqvist</div>
+                  <div style="margin-top:5px;font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg3)">alex@example.com</div>
+                </div>
+                <span tabIndex="0" style="display:inline-flex;align-items:center;flex:none;min-height:44px;padding:0 16px;border:1px solid var(--fg);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" onClick="{{ onDrawerSignOut }}">Sign out</span>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="margin-top:auto;padding:34px {{ L.pad }} 28px;font:400 11px/1.5 'Archivo',sans-serif;color:var(--fg3)">© 2026 Nonet</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showMinimalHeader }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:baseline;gap:{{ L.lockGap }};padding:{{ L.navPad }} {{ L.pad }} 0;cursor:pointer" onClick="{{ goHome }}">
+          <span style="font:700 {{ L.mark }} 'Archivo',sans-serif;letter-spacing:-.045em">NONET</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0;display:grid;grid-template-columns:{{ L.heroCols }};gap:{{ L.heroGap }};align-items:start">
+          <div>
+            <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">{{ todayKicker }}</div>
+            <div style="margin-top:{{ L.noTop }};font:600 {{ L.no }} 'Archivo',sans-serif;letter-spacing:-.05em;font-variant-numeric:tabular-nums;line-height:0.84">No.<br>1247</div>
+
+            <sc-if value="{{ heroUnplayed }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:36px;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;padding-top:20px;border-top:1px solid var(--line);max-width:560px">
+                <span style="font:600 {{ L.diff }} 'Archivo',sans-serif;letter-spacing:-.025em">Hard</span>
+                <span style="font:400 14px/1.5 'Archivo',sans-serif;color:var(--fg2)">30 givens · median 7:41 · one solution</span>
+              </div>
+              <div style="margin-top:34px;display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;gap:18px;background:var(--fg);color:var(--bg);padding:20px 30px;font:600 13px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:background .15s" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ startDaily }}">Enter the puzzle<span style="font-size:15px">→</span></span>
+                <span style="font:400 13px/1 'Archivo',sans-serif;color:var(--fg3)">Unopened</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ heroResume }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:36px;padding-top:20px;border-top:1px solid var(--line);max-width:560px;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap">
+                <span style="font:600 {{ L.diff }} 'Archivo',sans-serif;letter-spacing:-.025em">Hard</span>
+                <span style="font:400 14px/1.5 'Archivo',sans-serif;color:var(--fg2)">41 of 81 placed · 1 mistake</span>
+              </div>
+              <div style="margin-top:34px;display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;gap:18px;background:var(--fg);color:var(--bg);padding:20px 30px;font:600 13px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ startDaily }}">Resume · 07:12<span style="font-size:15px">→</span></span>
+                <span style="font:400 13px/1 'Archivo',sans-serif;color:var(--fg3)">Saved in this browser</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ heroSolved }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:36px;padding-top:20px;border-top:1px solid var(--line);max-width:600px">
+                <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)">Solved today</div>
+                <div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:36px 48px;align-items:flex-end">
+                  <div><div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Time</div><div style="margin-top:10px;font:600 {{ L.statNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.035em">07:12</div></div>
+                  <div><div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Streak</div><div style="margin-top:10px;font:600 {{ L.statNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.035em;color:var(--accent)">35</div></div>
+                  <div><div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Next puzzle</div><div style="margin-top:10px;font:600 {{ L.statNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.035em">14:22:06</div></div>
+                </div>
+              </div>
+              <div style="margin-top:34px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;padding:19px 28px;background:var(--fg);color:var(--bg);font:600 13px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ goPractice }}">Practice a hard one</span>
+                <span style="display:inline-flex;align-items:center;padding:19px 28px;border:1px solid var(--fg);font:600 13px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--hover)" onClick="{{ replayDaily }}">Replay, unscored</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ heroFailed }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:36px;padding-top:20px;border-top:1px solid var(--line);max-width:600px">
+                <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--error)">Three mistakes — puzzle locked</div>
+                <p style="margin:16px 0 0;max-width:470px;font:400 15px/1.6 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">You can start today's puzzle again from scratch. Finish before midnight and the run stays intact, though the solve will be marked a second attempt.</p>
+              </div>
+              <div style="margin-top:30px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <span style="display:inline-flex;align-items:center;padding:19px 28px;background:var(--fg);color:var(--bg);font:600 13px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ retryDaily }}">Start again</span>
+                <span style="font:400 13px/1.5 'Archivo',sans-serif;color:var(--fg3)">The run is held until midnight</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showStreakBand }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:{{ L.bandTop }};padding-top:22px;border-top:1px solid var(--line);max-width:560px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+                <div>
+                  <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3)">Consecutive days</div>
+                  <div style="margin-top:14px;display:flex;align-items:baseline;gap:14px">
+                    <span style="font:600 {{ L.streakNum }} 'Archivo',sans-serif;letter-spacing:-.04em;font-variant-numeric:tabular-nums">{{ streakNow }}</span>
+                    <span style="font:400 13px/1.4 'Archivo',sans-serif;color:var(--fg3)">{{ streakMeta }}</span>
+                  </div>
+                </div>
+                <div style="padding-bottom:4px">
+                  <div style="display:flex;gap:3px;align-items:flex-end">
+                    <sc-for list="{{ streakBars }}" as="b" hint-placeholder-count="18">
+                      <i style="{{ b }}"></i>
+                    </sc-for>
+                  </div>
+                  <div style="margin-top:10px;font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);text-align:right">{{ streakBarsCaption }}</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showFirstInvite }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:52px;padding-top:22px;border-top:1px solid var(--line);max-width:560px">
+                <p style="margin:0;font:400 15px/1.6 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Solve today's puzzle to start a run. One a day, no catching up.</p>
+              </div>
+            </sc-if>
+          </div>
+
+          <div>
+            <div style="max-width:{{ L.prevPlateW }};background:var(--surface);padding:{{ L.platePad }};border:1px solid var(--line2);box-sizing:border-box">
+              <div style="display:grid;grid-template-columns:repeat(9,{{ L.prevCell }}px);width:{{ L.prevW }}px;border:2px solid var(--rule);background:var(--surface);margin:0 auto">
+                <sc-for list="{{ previewCells }}" as="c" hint-placeholder-count="81">
+                  <div style="{{ c.s }}">{{ c.v }}<span style="{{ c.ns }}">{{ c.n }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="margin-top:20px">
+              <div style="font:600 13px/1.5 'Archivo',sans-serif">Nonet No. 1247 — Hard</div>
+              <div style="margin-top:7px;font:400 12px/1.7 'Archivo',sans-serif;color:var(--fg3)">30 givens, 51 open cells<br>Daily edition, 26 July 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:{{ L.sectionTop }} {{ L.pad }} 0">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line)">
+            <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--fg3)">Practice — unlimited</span>
+            <span style="font:400 12px/1 'Archivo',sans-serif;color:var(--fg3)">Pick a difficulty</span>
+          </div>
+          <sc-if value="{{ practiceResume }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px;background:var(--surface);border:1px solid var(--line2)">
+              <span style="font:400 13px/1.5 'Archivo',sans-serif;color:var(--fg2)">Unfinished practice puzzle — Medium, 22 of 81 placed</span>
+              <span style="display:inline-flex;align-items:center;gap:12px;font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);cursor:pointer" style-hover="color:var(--fg)" onClick="{{ startPractice }}">Resume · 03:41 →</span>
+            </div>
+          </sc-if>
+          <div style="margin-top:{{ L.practiceRowsTop }}">
+            <sc-for list="{{ practiceRows }}" as="d" hint-placeholder-count="4">
+              <div style="{{ d.rowSty }}" onClick="{{ d.on }}">
+                <span style="{{ d.nameSty }}">{{ d.name }}</span>
+                <span style="display:flex;align-items:center;gap:{{ L.navGap }}"><span style="{{ d.metaSty }}">{{ d.meta }}</span><span style="{{ d.arrowSty }}">→</span></span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ boardRail }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:0 {{ L.pad }};display:flex;flex-direction:column;flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 0;border-bottom:1px solid var(--line)">
+            <div style="display:flex;align-items:center;gap:18px">
+              <span style="{{ backSty }}" style-hover="color:var(--fg)" onClick="{{ onExit }}"><span style="font-size:14px;line-height:1">←</span>{{ backLabel }}</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3);white-space:nowrap">{{ boardKicker }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="{{ pauseSty }}" onClick="{{ onPause }}">Pause</span>
+            </div>
+          </div>
+
+          <sc-if value="{{ showResumed }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg2)">
+              <span>Resumed from your other device — 41 of 81 placed, timer at 07:12.</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;padding:6px" style-hover="color:var(--fg)" onClick="{{ dismissResumed }}">Dismiss</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showHowtoOffer }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg2)">
+              <span>First time here? <a href="#" onClick="{{ goHowto }}">Read how Nonet works</a> — it takes a minute.</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;padding:6px" style-hover="color:var(--fg)" onClick="{{ dismissHowto }}">Dismiss</span>
+            </div>
+          </sc-if>
+
+          <div style="flex:1;display:flex;align-items:stretch">
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 40px 16px 0">
+              <div style="width:{{ L.gridW }}px;display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+                <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap">{{ boardTitle }}</span>
+                <span style="font:400 12px/1 'Archivo',sans-serif;color:var(--fg3);white-space:nowrap">{{ selLabel }}</span>
+              </div>
+              <div style="position:relative;margin-top:18px">
+              <div style="display:grid;grid-template-columns:repeat(9,{{ L.cell }}px);width:{{ L.gridW }}px;border:2px solid var(--rule);background:var(--surface)">
+                <sc-for list="{{ boardCells }}" as="c" hint-placeholder-count="81">
+                  <div style="{{ c.s }}" onClick="{{ c.on }}">{{ c.v }}<span style="{{ c.ns }}">{{ c.n }}</span></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:-2px;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;border:2px solid var(--rule)">
+                  <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--fg3)">Paused at {{ timerText }}</span>
+                  <span style="display:inline-flex;align-items:center;padding:19px 30px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onPause }}">Resume</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ failed }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:-2px;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;border:2px solid var(--error)">
+                  <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--error)">Three mistakes — locked</span>
+                  <p style="margin:0;max-width:330px;text-align:center;font:400 14px/1.6 'Archivo',sans-serif;color:var(--fg2)">Start the same puzzle again from scratch. Solve it before midnight and your run continues.</p>
+                  <span style="display:inline-flex;align-items:center;padding:19px 30px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onRetry }}">Start again</span>
+                </div>
+              </sc-if>
+              </div>
+            </div>
+
+            <div style="flex:none;width:320px;box-sizing:border-box;border-left:1px solid var(--line);padding:16px 0 16px 36px;display:flex;flex-direction:column;gap:14px">
+              <sc-if value="{{ showTimer }}" hint-placeholder-val="{{ true }}">
+                <div style="font:600 44px/1 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.035em;white-space:nowrap">{{ timerText }}</div>
+              </sc-if>
+              <sc-if value="{{ showMistakes }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:11px">
+                  <span style="display:flex;gap:5px"><sc-for list="{{ mistakeDots }}" as="m" hint-placeholder-count="3"><i style="{{ m }}"></i></sc-for></span>
+                  <span style="font:500 11px/1 'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;color:var(--fg2)">{{ mistakeText }}</span>
+                  <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Mistakes</span>
+                </div>
+              </sc-if>
+
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:2px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <sc-for list="{{ inputSeg }}" as="o" hint-placeholder-count="2">
+                    <span style="{{ o.sty }}" onClick="{{ o.on }}">{{ o.label }}</span>
+                  </sc-for>
+                </div>
+                <span style="font:400 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--fg3)">{{ inputCaption }}</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                <sc-for list="{{ padKeys }}" as="k" hint-placeholder-count="9">
+                  <div style="{{ k.sty }}" onPointerDown="{{ k.down }}" onPointerUp="{{ k.up }}" onPointerLeave="{{ k.cancel }}" onPointerCancel="{{ k.cancel }}"><span style="{{ k.numSty }}">{{ k.d }}</span><span style="{{ k.cntSty }}">{{ k.count }}</span></div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="{{ notesSty }}" onClick="{{ onNotes }}">Notes</span>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <span style="{{ undoSty }}" onClick="{{ onUndo }}">Undo</span>
+                  <span style="{{ redoSty }}" onClick="{{ onRedo }}">Redo</span>
+                </div>
+                <span style="{{ eraseSty }}" onClick="{{ onErase }}">Erase</span>
+                <span style="{{ hintSty }}" onClick="{{ onHint }}">{{ hintLabel }}</span>
+              </div>
+
+              <div style="padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ keyLegend }}" as="k" hint-placeholder-count="6">
+                  <span style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:400 11px/1 'IBM Plex Mono',monospace"><span style="color:var(--fg2);white-space:nowrap">{{ k.k }}</span><span style="color:var(--fg3);white-space:nowrap">{{ k.v }}</span></span>
+                </sc-for>
+              </div>
+
+              <div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--line2);font:400 11px/1.5 'Archivo',sans-serif;color:var(--fg3)">
+                <div>{{ placedText }} · autosaved</div>
+                <div style="margin-top:4px">Given bold · yours in blue · notes small</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ boardBand }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px {{ L.pad }};border-bottom:1px solid var(--line)">
+            <div style="display:flex;align-items:center;gap:16px">
+              <span style="{{ backSty }}" style-hover="color:var(--fg)" onClick="{{ onExit }}"><span style="font-size:14px;line-height:1">←</span>{{ backLabel }}</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3);white-space:nowrap">{{ boardKicker }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:18px">
+              <sc-if value="{{ showMistakes }}" hint-placeholder-val="{{ true }}">
+                <span style="display:flex;align-items:center;gap:9px">
+                  <span style="display:flex;gap:5px"><sc-for list="{{ mistakeDots }}" as="m" hint-placeholder-count="3"><i style="{{ m }}"></i></sc-for></span>
+                  <span style="font:500 11px/1 'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;color:var(--fg2)">{{ mistakeText }}</span>
+                </span>
+              </sc-if>
+              <sc-if value="{{ showTimer }}" hint-placeholder-val="{{ true }}">
+                <span style="font:600 30px/1 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.03em;white-space:nowrap">{{ timerText }}</span>
+              </sc-if>
+              <span style="{{ pauseSty }}" onClick="{{ onPause }}">Pause</span>
+            </div>
+          </div>
+
+          <div style="padding:0 {{ L.pad }}">
+          <sc-if value="{{ showResumed }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg2)">
+              <span>Resumed from your other device — 41 of 81 placed, timer at 07:12.</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;padding:6px" style-hover="color:var(--fg)" onClick="{{ dismissResumed }}">Dismiss</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showHowtoOffer }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg2)">
+              <span>First time here? <a href="#" onClick="{{ goHowto }}">Read how Nonet works</a> — it takes a minute.</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;padding:6px" style-hover="color:var(--fg)" onClick="{{ dismissHowto }}">Dismiss</span>
+            </div>
+          </sc-if>
+          </div>
+
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px {{ L.pad }}">
+            <div style="width:{{ L.gridW }}px;display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+              <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap">{{ boardTitle }}</span>
+              <span style="font:400 12px/1 'Archivo',sans-serif;color:var(--fg3);white-space:nowrap">{{ selLabel }}</span>
+            </div>
+            <div style="position:relative;margin-top:18px">
+            <div style="display:grid;grid-template-columns:repeat(9,{{ L.cell }}px);width:{{ L.gridW }}px;border:2px solid var(--rule);background:var(--surface)">
+                <sc-for list="{{ boardCells }}" as="c" hint-placeholder-count="81">
+                  <div style="{{ c.s }}" onClick="{{ c.on }}">{{ c.v }}<span style="{{ c.ns }}">{{ c.n }}</span></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:-2px;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;border:2px solid var(--rule)">
+                  <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--fg3)">Paused at {{ timerText }}</span>
+                  <span style="display:inline-flex;align-items:center;padding:19px 30px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onPause }}">Resume</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ failed }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:-2px;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;border:2px solid var(--error)">
+                  <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--error)">Three mistakes — locked</span>
+                  <p style="margin:0;max-width:330px;text-align:center;font:400 14px/1.6 'Archivo',sans-serif;color:var(--fg2)">Start the same puzzle again from scratch. Solve it before midnight and your run continues.</p>
+                  <span style="display:inline-flex;align-items:center;padding:19px 30px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onRetry }}">Start again</span>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--line);padding:16px {{ L.pad }} 24px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:10px">
+              <span style="font:400 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--fg3)">{{ inputCaption }}</span>
+              <div style="display:flex;gap:5px">
+                <sc-for list="{{ inputSeg }}" as="o" hint-placeholder-count="2">
+                  <span style="{{ o.sty }}" onClick="{{ o.on }}">{{ o.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+              <span style="{{ notesSty }}" onClick="{{ onNotes }}">Notes</span>
+              <span style="{{ undoSty }}" onClick="{{ onUndo }}">Undo</span>
+              <span style="{{ redoSty }}" onClick="{{ onRedo }}">Redo</span>
+              <span style="{{ eraseSty }}" onClick="{{ onErase }}">Erase</span>
+              <span style="{{ hintSty }}" onClick="{{ onHint }}">{{ hintLabel }}</span>
+              <span style="{{ pauseBtnSty }}" onClick="{{ onPause }}">Pause</span>
+            </div>
+            <div style="margin-top:8px;display:grid;grid-template-columns:repeat(9,1fr);gap:8px">
+              <sc-for list="{{ padKeys }}" as="k" hint-placeholder-count="9">
+                <div style="{{ k.sty }}" onPointerDown="{{ k.down }}" onPointerUp="{{ k.up }}" onPointerLeave="{{ k.cancel }}" onPointerCancel="{{ k.cancel }}"><span style="{{ k.numSty }}">{{ k.d }}</span><span style="{{ k.cntSty }}">{{ k.count }}</span></div>
+              </sc-for>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg3)">
+              <span>{{ placedText }} · autosaved</span>
+              <span>Given bold · yours in blue · notes small · figure under each key is what remains</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ boardMobile }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)">
+            <span style="{{ backSty }}" style-hover="color:var(--fg)" onClick="{{ onExit }}"><span style="font-size:13px;line-height:1">←</span>{{ backLabel }}</span>
+            <sc-if value="{{ showTimer }}" hint-placeholder-val="{{ true }}">
+              <span style="font:600 22px/1 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.03em">{{ timerText }}</span>
+            </sc-if>
+            <sc-if value="{{ showMistakes }}" hint-placeholder-val="{{ true }}">
+              <span style="display:flex;align-items:center;gap:6px"><span style="display:flex;gap:4px"><sc-for list="{{ mistakeDots }}" as="m" hint-placeholder-count="3"><i style="{{ m }}"></i></sc-for></span><span style="font:500 11px/1 'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;color:var(--fg2)">{{ mistakeText }}</span></span>
+            </sc-if>
+          </div>
+          <sc-if value="{{ showResumed }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 18px 0;padding:10px 14px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.45 'Archivo',sans-serif;color:var(--fg2)">
+              <span>Resumed from your other device — 41 of 81 placed.</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;padding:6px" onClick="{{ dismissResumed }}">Dismiss</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showHowtoOffer }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 18px 0;padding:10px 14px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.45 'Archivo',sans-serif;color:var(--fg2)">
+              <span>First time here? <a href="#" onClick="{{ goHowto }}">Read how Nonet works</a>.</span>
+              <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;padding:6px" onClick="{{ dismissHowto }}">Dismiss</span>
+            </div>
+          </sc-if>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;padding:12px 18px 10px">
+            <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase">{{ boardTitle }}</span>
+            <span style="font:400 11px/1 'Archivo',sans-serif;color:var(--fg3)">{{ selLabel }}</span>
+          </div>
+          <div style="position:relative;padding:0 18px">
+            <div style="display:grid;grid-template-columns:repeat(9,{{ L.cell }}px);width:{{ L.gridW }}px;border:2px solid var(--rule);background:var(--surface);margin:0 auto">
+              <sc-for list="{{ boardCells }}" as="c" hint-placeholder-count="81">
+                <div style="{{ c.s }}" onClick="{{ c.on }}">{{ c.v }}<span style="{{ c.ns }}">{{ c.n }}</span></div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:18px;right:18px;top:0;bottom:0;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border:2px solid var(--rule)">
+                <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3)">Paused at {{ timerText }}</span>
+                <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 28px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" onClick="{{ onPause }}">Resume</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ failed }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:18px;right:18px;top:0;bottom:0;background:var(--veil);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;border:2px solid var(--error);padding:0 18px;box-sizing:border-box">
+                <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--error);text-align:center">Three mistakes — locked</span>
+                <p style="margin:0;text-align:center;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg2)">Start again from scratch. Solve before midnight and your run continues.</p>
+                <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 26px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" onClick="{{ onRetry }}">Start again</span>
+              </div>
+            </sc-if>
+          </div>
+          <div style="padding:12px 18px 2px;font:400 11px/1.6 'Archivo',sans-serif;color:var(--fg3)">{{ placedText }} · autosaved</div>
+          <div style="margin-top:auto;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px 18px">
+            <div style="display:flex;justify-content:flex-end;gap:5px;padding-bottom:8px">
+              <sc-for list="{{ inputSeg }}" as="o" hint-placeholder-count="2">
+                <span style="{{ o.sty }}" onClick="{{ o.on }}">{{ o.label }}</span>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+              <span style="{{ notesSty }}" onClick="{{ onNotes }}">Notes</span>
+              <span style="{{ undoSty }}" onClick="{{ onUndo }}">Undo</span>
+              <span style="{{ redoSty }}" onClick="{{ onRedo }}">Redo</span>
+              <span style="{{ hintSty }}" onClick="{{ onHint }}">{{ hintLabel }}</span>
+              <span style="{{ pauseBtnSty }}" onClick="{{ onPause }}">Pause</span>
+            </div>
+            <div style="margin-top:6px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+              <sc-for list="{{ padKeys }}" as="k" hint-placeholder-count="9">
+                <div style="{{ k.sty }}" onPointerDown="{{ k.down }}" onPointerUp="{{ k.up }}" onPointerLeave="{{ k.cancel }}" onPointerCancel="{{ k.cancel }}"><span style="{{ k.numSty }}">{{ k.d }}</span><span style="{{ k.cntSty }}">{{ k.count }}</span></div>
+              </sc-for>
+              <div style="display:flex;align-items:center;justify-content:center;min-height:58px;border:1px solid var(--line2);color:var(--fg2);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase;cursor:pointer" onClick="{{ onErase }}">Erase</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSolved }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px 20px;flex-wrap:wrap;padding:20px {{ L.pad }};border-bottom:1px solid var(--line)">
+          <div style="display:flex;align-items:center;gap:{{ L.lockGap }};min-width:0">
+            <span style="{{ backSty }}" style-hover="color:var(--fg)" onClick="{{ onExit }}"><span style="font-size:14px;line-height:1">←</span>{{ backLabel }}</span>
+            <span style="font:500 {{ L.kick }} 'IBM Plex Mono',monospace;letter-spacing:{{ L.kickTrack }};text-transform:uppercase;color:var(--fg3);white-space:nowrap">No. 1247 · 26 July 2026</span>
+          </div>
+        </div>
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0;display:grid;grid-template-columns:{{ L.heroCols }};gap:{{ L.heroGap }};align-items:start">
+          <div>
+            <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">Complete</div>
+            <div style="margin-top:26px;font:600 {{ L.solvedNum }} 'Archivo',sans-serif;letter-spacing:-.05em;line-height:0.86;white-space:nowrap">Solved in<br><span style="font-variant-numeric:tabular-nums">{{ solvedTime }}</span></div>
+            <sc-if value="{{ showSolvedNote }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:24px 0 0;max-width:520px;font:400 14px/1.6 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">{{ solvedNote }}</p>
+            </sc-if>
+            <div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--line);max-width:560px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+              <div>
+                <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Run extended</div>
+                <div style="margin-top:12px;display:flex;align-items:baseline;gap:12px">
+                  <span style="font:600 {{ L.statNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:var(--deco)">{{ streakFrom }}</span>
+                  <span style="font-size:20px;color:var(--deco)">→</span>
+                  <span style="font:600 {{ L.statNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:var(--accent)">{{ streakTo }}</span>
+                </div>
+              </div>
+              <span style="font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3);text-align:right">Longest run {{ bestRun }}<br>Come back tomorrow — next puzzle in 14:22:06</span>
+            </div>
+          </div>
+          <div>
+            <div style="max-width:{{ L.plateW }};background:var(--surface);padding:{{ L.platePad }};border:1px solid var(--line2);box-sizing:border-box">
+              <div style="display:grid;grid-template-columns:repeat(9,{{ L.solvedCell }}px);width:{{ L.solvedW }}px;border:2px solid var(--rule);background:var(--surface);margin:0 auto">
+                <sc-for list="{{ solvedCells }}" as="c" hint-placeholder-count="81">
+                  <div style="{{ c.s }}">{{ c.v }}<span style="{{ c.ns }}">{{ c.n }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="margin-top:20px;font:400 12px/1.7 'Archivo',sans-serif;color:var(--fg3)">Nonet No. 1247 — Hard<br>Solved 26 July 2026 · 51 cells entered</div>
+          </div>
+        </div>
+
+        <div style="margin-top:{{ L.sectionTop }};padding:0 {{ L.pad }}">
+          <div style="display:grid;grid-template-columns:{{ statCols }};border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+            <sc-for list="{{ solvedStats }}" as="r" hint-placeholder-count="4">
+              <div style="{{ r.sty }}">
+                <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">{{ r.k }}</div>
+                <div style="margin-top:14px;font:600 {{ L.statNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.035em">{{ r.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:{{ L.shareTop }} {{ L.pad }} 46px;display:grid;grid-template-columns:{{ L.shareCols }};gap:{{ L.shareGap }};align-items:end">
+          <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <span style="display:inline-flex;align-items:center;gap:16px;background:var(--fg);color:var(--bg);padding:19px 28px;font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onShare }}">Share result<span style="font-size:14px">↗</span></span>
+              <span style="display:inline-flex;align-items:center;padding:19px 28px;border:1px solid var(--fg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer" style-hover="background:var(--hover)" onClick="{{ goPractice }}">Practice another</span>
+            </div>
+            <span style="font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg3)">This is exactly what gets copied — no grid, no spoilers.</span>
+          </div>
+          <pre style="margin:0;padding:16px 18px;background:var(--surface);border:1px solid var(--line2);font:400 12px/1.7 'IBM Plex Mono',monospace;color:var(--fg2);white-space:pre-wrap">{{ shareText }}</pre>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isArchive }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0">
+          <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">Archive</div>
+          <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02;max-width:700px;text-wrap:pretty">Every edition since No. 1.</h1>
+          <p style="margin:18px 0 0;max-width:560px;font:400 15px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">All free, all playable. Archive solves are recorded, but only today's puzzle can extend a run.</p>
+
+          <div style="{{ bandSty }}">
+            <sc-for list="{{ filterGroups }}" as="g" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;min-width:0">
+                <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3);white-space:nowrap">{{ g.label }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  <sc-for list="{{ g.chips }}" as="c" hint-placeholder-count="4">
+                    <span style="{{ c.sty }}" onClick="{{ c.on }}">{{ c.l }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display:flex;align-items:center;gap:14px;margin-left:auto">
+              <span style="font:400 11px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--fg3);font-variant-numeric:tabular-nums;white-space:nowrap">{{ filterCount }}</span>
+              <span style="{{ clearSty }}" onClick="{{ onClearFilters }}">Clear all</span>
+            </div>
+          </div>
+
+          <div style="margin-top:{{ L.archTop }};display:grid;grid-template-columns:{{ L.archCols }};gap:{{ L.heroGap }};align-items:start">
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:2px solid var(--rule)">
+                <span style="{{ prevMonthSty }}" onClick="{{ onPrevMonth }}">‹</span>
+                <span style="flex:1;text-align:center;font:600 {{ L.monthNum }} 'Archivo',sans-serif;letter-spacing:-.035em;white-space:nowrap">{{ archiveMonthLabel }}</span>
+                <span style="{{ nextMonthSty }}" onClick="{{ onNextMonth }}">›</span>
+              </div>
+              <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3);white-space:nowrap">Jump to</span>
+                <select value="{{ jumpValue }}" onChange="{{ onJump }}" style="{{ jumpSelSty }}">
+                  <sc-for list="{{ jumpOptions }}" as="o" hint-placeholder-count="12">
+                    <option value="{{ o.v }}">{{ o.l }}</option>
+                  </sc-for>
+                </select>
+              </div>
+
+              <div style="margin-top:22px;display:grid;grid-template-columns:{{ L.calCols }};gap:{{ L.calGap }};font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;color:var(--fg3);text-align:center">
+                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              </div>
+              <div style="margin-top:10px;display:grid;grid-template-columns:{{ L.calCols }};gap:{{ L.calGap }}">
+                <sc-for list="{{ archiveCells }}" as="c" hint-placeholder-count="35">
+                  <div style="{{ c.sty }}" style-hover="{{ c.hov }}" onClick="{{ c.on }}">
+                    <span style="{{ c.topSty }}"><span style="{{ c.dSty }}">{{ c.d }}</span><span style="{{ c.lSty }}">{{ c.letter }}</span></span>
+                    <span style="{{ c.noSty }}">{{ c.no }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="{{ miniNoteSty }}">Month at a glance — pick an edition from the list below</div>
+
+              <div style="margin-top:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px">
+                <div style="display:flex;flex-wrap:wrap;gap:12px 16px;font:400 11px/1 'Archivo',sans-serif;color:var(--fg3)">
+                  <sc-for list="{{ legendItems }}" as="g" hint-placeholder-count="4">
+                    <span style="display:flex;align-items:center;gap:7px"><i style="{{ g.sw }}"></i>{{ g.l }}</span>
+                  </sc-for>
+                </div>
+                <span style="font:400 11px/1.5 'Archivo',sans-serif;color:var(--fg3);font-variant-numeric:tabular-nums">{{ archiveCount }} editions · No. 1 was 26 February 2023</span>
+              </div>
+              <div style="{{ diffKeySty }}">E easy · M medium · H hard · EX expert</div>
+            </div>
+
+            <div style="{{ railSty }}">
+              <sc-for list="{{ filterGroups }}" as="g" hint-placeholder-count="2">
+                <div style="min-width:0">
+                  <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">{{ g.label }}</div>
+                  <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+                    <sc-for list="{{ g.chips }}" as="c" hint-placeholder-count="4">
+                      <span style="{{ c.sty }}" onClick="{{ c.on }}">{{ c.l }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="padding-top:18px;border-top:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <span style="font:400 11px/1.4 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--fg2);font-variant-numeric:tabular-nums">{{ filterCount }}</span>
+                <span style="{{ clearSty }}" onClick="{{ onClearFilters }}">Clear all</span>
+              </div>
+              <p style="margin:0;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3);text-wrap:pretty">Days that do not match stay in place, dimmed, so the month keeps its shape.</p>
+            </div>
+          </div>
+
+          <div style="margin-top:{{ L.sectionTop }};display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+            <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--fg3)">{{ listHeading }}</span>
+            <span style="font:400 12px/1 'Archivo',sans-serif;color:var(--fg3);font-variant-numeric:tabular-nums">{{ filterCount }}</span>
+          </div>
+
+          <div style="{{ compactSty }}">
+            <sc-for list="{{ filterGroups }}" as="g" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;min-width:0">
+                <span style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);white-space:nowrap">{{ g.label }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:5px">
+                  <sc-for list="{{ g.chips }}" as="c" hint-placeholder-count="4">
+                    <span style="{{ c.sty }}" onClick="{{ c.on }}">{{ c.l }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <span style="font:400 11px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--fg3);font-variant-numeric:tabular-nums">{{ filterCount }}</span>
+              <span style="{{ clearSty }}" onClick="{{ onClearFilters }}">Clear all</span>
+            </div>
+          </div>
+
+          <div style="margin-top:{{ L.listTop }}">
+            <sc-for list="{{ archiveRows }}" as="r" hint-placeholder-count="8">
+              <div style="{{ r.rowSty }}" style-hover="background:var(--hover)" onClick="{{ r.on }}">
+                <span style="{{ r.dateSty }}">{{ r.date }}</span>
+                <span style="{{ r.noSty }}">No. {{ r.no }}</span>
+                <span style="{{ r.metaSty }}">{{ r.meta }}</span>
+                <span style="{{ r.diffSty }}">{{ r.diff }}</span>
+                <span style="{{ r.stSty }}">{{ r.st }}</span>
+                <span style="{{ r.timeSty }}">{{ r.time }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ showHidden }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:16px 4px;font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg3)">{{ hiddenText }}</div>
+            </sc-if>
+            <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:26px 4px;font:400 14px/1.6 'Archivo',sans-serif;color:var(--fg2)">Nothing in this month matches the filter. Try another month, or clear it.</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isRecord }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+            <div>
+              <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">Record</div>
+              <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02">{{ recordTitle }}</h1>
+            </div>
+            <sc-if value="{{ recordHasData }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:6px">
+                <sc-for list="{{ windowTabs }}" as="w" hint-placeholder-count="2"><span style="{{ w.sty }}" onClick="{{ w.on }}">{{ w.label }}</span></sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ recordLocal }}" hint-placeholder-val="{{ true }}">
+            <p style="margin:22px 0 0;max-width:600px;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">These figures are stored in this browser only. <a href="#" onClick="{{ goAuth }}">Sign in</a> if you would like them kept.</p>
+          </sc-if>
+
+          <sc-if value="{{ recordEmpty }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:26px 0 0;max-width:520px;font:400 15px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Nothing recorded yet. Solve today's puzzle and this page starts filling in.</p>
+            <div style="margin-top:30px"><span style="display:inline-flex;align-items:center;min-height:48px;padding:0 28px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ goHome }}">Go to today's puzzle</span></div>
+          </sc-if>
+
+          <sc-if value="{{ recordHasData }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:40px;display:grid;grid-template-columns:{{ L.recordCols }};gap:20px {{ L.recGap }};border-top:1px solid var(--line);padding-top:26px">
+              <sc-for list="{{ recordStats }}" as="r" hint-placeholder-count="4">
+                <div style="min-width:0">
+                  <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:{{ L.recLabelTrack }};text-transform:uppercase;color:var(--fg3);white-space:nowrap">{{ r.k }}</div>
+                  <div style="margin-top:12px;font:600 {{ L.streakNum }} 'Archivo',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.04em;white-space:nowrap">{{ r.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:{{ L.stripTop }};max-width:{{ L.stripMaxW }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line)">
+                <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap">Completion — {{ recordYearLabel }}</span>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Year</span>
+                  <div style="display:flex;gap:2px">
+                    <sc-for list="{{ yearChips }}" as="y" hint-placeholder-count="4">
+                      <span style="{{ y.sty }}" onClick="{{ y.on }}">{{ y.l }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="{{ stripScrollSty }}">
+                <div style="display:inline-block">
+                  <div style="{{ stripMonthRowSty }}">
+                    <sc-for list="{{ stripMonths }}" as="mo" hint-placeholder-count="12">
+                      <span style="{{ mo.sty }}">{{ mo.l }}</span>
+                    </sc-for>
+                  </div>
+                  <div style="{{ stripGridSty }}">
+                    <sc-for list="{{ stripCells }}" as="c" hint-placeholder-count="371">
+                      <i style="{{ c.sty }}"></i>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+              <div style="{{ stripHintSty }}">Scroll the strip for the full year →</div>
+
+              <div style="margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px">
+                <div style="display:flex;flex-wrap:wrap;gap:12px 16px;font:400 11px/1 'Archivo',sans-serif;color:var(--fg3)">
+                  <sc-for list="{{ legendItems }}" as="g" hint-placeholder-count="4">
+                    <span style="display:flex;align-items:center;gap:7px"><i style="{{ g.sw }}"></i>{{ g.l }}</span>
+                  </sc-for>
+                </div>
+                <span style="font:400 11px/1 'Archivo',sans-serif;color:var(--fg3);font-variant-numeric:tabular-nums;white-space:nowrap">{{ stripSummary }}</span>
+              </div>
+            </div>
+
+            <div style="margin-top:{{ L.stripTop }};display:grid;grid-template-columns:{{ L.recTableCols }};gap:{{ L.heroGap }};align-items:start">
+              <div style="min-width:0">
+                <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;padding-bottom:12px;border-bottom:1px solid var(--line)">Dailies by difficulty</div>
+                <div style="display:grid;grid-template-columns:1fr 84px 84px 64px;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line2);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)"><span></span><span>Best</span><span>Median</span><span style="text-align:right">Solved</span></div>
+                <sc-for list="{{ perDiff }}" as="r" hint-placeholder-count="4">
+                  <div style="{{ r.sty }}"><span style="font-weight:600">{{ r.k }}</span><span>{{ r.best }}</span><span>{{ r.median }}</span><span style="text-align:right;color:var(--fg3)">{{ r.n }}</span></div>
+                </sc-for>
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);display:flex;justify-content:space-between;gap:16px;font:400 12px/1 'Archivo',sans-serif;color:var(--fg3)"><span>Hints used</span><span style="color:var(--fg2);font-variant-numeric:tabular-nums">0.4 per puzzle</span></div>
+              </div>
+              <div style="min-width:0">
+                <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;padding-bottom:12px;border-bottom:1px solid var(--line)">Practice</div>
+                <div style="display:grid;grid-template-columns:1fr 84px 84px;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line2);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--fg3)"><span></span><span>Played</span><span>Median</span></div>
+                <sc-for list="{{ practiceStats }}" as="r" hint-placeholder-count="4">
+                  <div style="{{ r.sty }}"><span style="font-weight:600">{{ r.k }}</span><span>{{ r.n }}</span><span>{{ r.median }}</span></div>
+                </sc-for>
+                <div style="margin-top:14px;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3)">Practice never affects the streak or the daily percentile.</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0;display:grid;grid-template-columns:{{ L.settingsCols }};gap:{{ L.heroGap }};align-items:start">
+          <div>
+            <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">Settings</div>
+            <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02;text-wrap:pretty">How you play.</h1>
+            <p style="margin:20px 0 0;max-width:420px;font:400 15px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Every change applies to the next cell you touch. Nothing here is hidden behind a second screen.</p>
+            <div style="margin-top:34px;padding-top:20px;border-top:1px solid var(--line);max-width:420px;font:400 13px/1.7 'Archivo',sans-serif;color:var(--fg3);text-wrap:pretty">Settings are kept in this browser. Sign in and they follow you, along with the streak.</div>
+          </div>
+          <div>
+            <div style="border-top:1px solid var(--line)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:20px 4px;border-bottom:1px solid var(--line2);min-height:44px">
+                <div style="padding-right:20px">
+                  <div style="font:600 15px/1.4 'Archivo',sans-serif">Theme</div>
+                  <div style="margin-top:6px;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3);max-width:420px;text-wrap:pretty">Light, dark, or whatever the system is doing.</div>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <sc-for list="{{ themeOptions }}" as="o" hint-placeholder-count="3">
+                    <span style="{{ o.sty }}" onClick="{{ o.on }}">{{ o.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <sc-for list="{{ settingsRows }}" as="r" hint-placeholder-count="4">
+                <div style="{{ r.rowSty }}">
+                  <div style="padding-right:20px">
+                    <div style="font:600 15px/1.4 'Archivo',sans-serif">{{ r.label }}</div>
+                    <div style="margin-top:6px;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3);max-width:420px;text-wrap:pretty">{{ r.desc }}</div>
+                  </div>
+                  <div style="display:flex;gap:6px;flex:none">
+                    <sc-for list="{{ r.segs }}" as="c" hint-placeholder-count="1">
+                      <span style="{{ c.sty }}" onClick="{{ c.on }}">{{ c.label }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:48px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3);padding-bottom:14px;border-bottom:1px solid var(--line)">Account</div>
+            <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:22px 4px;border-bottom:1px solid var(--line2)">
+                <div style="font:600 15px/1.4 'Archivo',sans-serif">alex@example.com</div>
+                <div style="margin-top:6px;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3)">Streak and stats sync across your devices.</div>
+                <div style="margin-top:22px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Display name</div>
+                <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+                  <input type="text" defaultValue="Alex Lindqvist" style="flex:1;min-width:220px;box-sizing:border-box;min-height:48px;padding:0 14px;background:var(--surface);border:1px solid var(--line);color:var(--fg);font:400 15px/1 'Archivo',sans-serif;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 2px var(--cell-sel)">
+                  <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 20px;background:var(--fg);color:var(--bg);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)">Save</span>
+                </div>
+                <div style="margin-top:10px;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3)">Shown on shared results. Two to twenty-four characters.</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 4px;border-bottom:1px solid var(--line2)">
+                <div>
+                  <div style="font:600 15px/1.4 'Archivo',sans-serif">Sign out</div>
+                  <div style="margin-top:6px;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3)">Today's puzzle stays in this browser.</div>
+                </div>
+                <span style="display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid var(--fg);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--hover)" onClick="{{ onAccount }}">Sign out</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 4px;border-bottom:1px solid var(--line2)">
+                <div>
+                  <div style="font:600 15px/1.4 'Archivo',sans-serif">Playing as a guest</div>
+                  <div style="margin-top:6px;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3)">Progress is kept in this browser only.</div>
+                </div>
+                <span style="display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid var(--fg);font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--hover)" onClick="{{ onAccount }}">Sign in</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isHowto }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0;max-width:880px">
+          <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">How to play</div>
+          <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02;max-width:660px;text-wrap:pretty">Fill every row, column and box with 1 to 9.</h1>
+          <p style="margin:20px 0 0;max-width:620px;font:400 16px/1.7 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">No digit repeats in a row, a column, or a heavy-ruled 3×3 box. Every Nonet puzzle has exactly one solution and can be solved by reasoning alone — you never need to guess.</p>
+          <div style="margin-top:48px;display:grid;grid-template-columns:{{ L.howtoCols }};gap:40px 56px">
+            <div style="padding-top:20px;border-top:2px solid var(--rule)">
+              <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Reading the grid</div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2)">
+                <span style="display:flex;align-items:baseline;gap:14px"><i style="font:600 20px/1 'Archivo',sans-serif;color:var(--fg);font-style:normal;width:20px">5</i> A given. Bold, black, fixed.</span>
+                <span style="display:flex;align-items:baseline;gap:14px"><i style="font:400 20px/1 'Archivo',sans-serif;color:var(--accent);font-style:normal;width:20px">5</i> Yours. Lighter weight, in blue.</span>
+                <span style="display:flex;align-items:baseline;gap:14px"><i style="font:400 11px/1 'Archivo',sans-serif;color:var(--fg3);font-style:normal;width:20px">123</i> A pencil mark. Small and grey.</span>
+                <span style="display:flex;align-items:baseline;gap:14px"><i style="font:400 20px/1 'Archivo',sans-serif;color:var(--error);text-decoration:underline;text-underline-offset:.18em;font-style:normal;width:20px">6</i> Wrong, when checking is on.</span>
+              </div>
+            </div>
+            <div style="padding-top:20px;border-top:2px solid var(--rule)">
+              <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Playing</div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2)">
+                <span>Two ways in. <span style="color:var(--fg)">Cell → digit</span>: pick a cell, then its digit. <span style="color:var(--fg)">Digit → cells</span>: pick a digit once, then tap every cell that takes it. Switch on the board or in Settings.</span>
+                <span>Hold a pad key to write that digit as a pencil mark. The Notes toggle stays for a run of them; placing a digit clears it from the notes it rules out.</span>
+                <span>A digit with all nine placed is spent — its key is struck through and stops responding.</span>
+                <span>With a digit loaded, repeated wrong taps of that same digit cost one mistake, not three. The key turns red until you change digit or clear the error.</span>
+                <span>Three mistakes lock the puzzle. Three hints per puzzle, each marking the solve assisted.</span>
+              </div>
+            </div>
+            <div style="padding-top:20px;border-top:2px solid var(--rule)">
+              <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Keyboard</div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font:400 13px/1 'IBM Plex Mono',monospace;color:var(--fg2)">
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>1–9</span><span style="color:var(--fg3)">Place in the selected cell</span></span>
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>⇧1–9</span><span style="color:var(--fg3)">Note, staying in placement</span></span>
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>Space</span><span style="color:var(--fg3)">Notes mode</span></span>
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>Del</span><span style="color:var(--fg3)">Erase</span></span>
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>⌘Z / ⌘⇧Z</span><span style="color:var(--fg3)">Undo, redo</span></span>
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>H</span><span style="color:var(--fg3)">Hint</span></span>
+                <span style="display:flex;justify-content:space-between;gap:20px"><span>P</span><span style="color:var(--fg3)">Pause</span></span>
+              </div>
+            </div>
+            <div style="padding-top:20px;border-top:2px solid var(--rule)">
+              <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">The daily</div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2)">
+                <span>One puzzle a day, the same for everyone, published at 00:05 UTC.</span>
+                <span>Difficulty follows the week: easy on Monday, expert on Saturday.</span>
+                <span>Solve it on the day to extend your run. Practice and archive puzzles do not count.</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:48px"><span style="display:inline-flex;align-items:center;min-height:48px;padding:0 28px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ startDaily }}">Start today's puzzle</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0;max-width:720px">
+          <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">About</div>
+          <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02;text-wrap:pretty">A nonet is a set of nine.</h1>
+          <p style="margin:22px 0 0;font:400 16px/1.75 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Nine rows, nine columns, nine boxes. One puzzle a day, set by hand and checked by machine, published at 00:05 UTC and gone by midnight — plus as much practice as you want, whenever you want it.</p>
+          <p style="margin:20px 0 0;font:400 16px/1.75 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">No advertising, no notifications, no confetti. The grid is the interface; everything else stays out of the way.</p>
+          <div style="margin-top:48px;border-top:1px solid var(--line)">
+            <div style="display:flex;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line2);font:400 13px/1.5 'Archivo',sans-serif"><span style="color:var(--fg3)">Typeface</span><span>Archivo, IBM Plex Mono</span></div>
+            <div style="display:flex;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line2);font:400 13px/1.5 'Archivo',sans-serif"><span style="color:var(--fg3)">Puzzles</span><span>Generated and verified for a single solution</span></div>
+            <div style="display:flex;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line2);font:400 13px/1.5 'Archivo',sans-serif"><span style="color:var(--fg3)">First edition</span><span style="font-variant-numeric:tabular-nums">No. 1 · 26 February 2023</span></div>
+            <div style="display:flex;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line2);font:400 13px/1.5 'Archivo',sans-serif"><span style="color:var(--fg3)">Contact</span><span><a href="#">hello@nonet.app</a></span></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px {{ L.pad }};text-align:center">
+          <sc-if value="{{ authForm }}" hint-placeholder-val="{{ true }}">
+            <div style="width:100%;max-width:380px;text-align:left">
+              <h1 style="margin:0;font:600 34px/1.1 'Archivo',sans-serif;letter-spacing:-.035em">Sign in</h1>
+              <p style="margin:14px 0 0;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">We send a link, you click it. No password to forget. Your streak and stats then follow you between devices.</p>
+              <div style="margin-top:30px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Email</div>
+              <input type="email" placeholder="you@example.com" style="margin-top:10px;width:100%;box-sizing:border-box;min-height:52px;padding:0 16px;background:var(--surface);border:1px solid var(--line);color:var(--fg);font:400 15px/1 'Archivo',sans-serif;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 2px var(--cell-sel)">
+              <div style="margin-top:14px;display:flex;align-items:center;justify-content:center;min-height:52px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onSend }}">Send the link</div>
+              <p style="margin:18px 0 0;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3)">You can keep playing as a guest — progress is saved in this browser either way.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{ authSent }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;max-width:380px;text-align:left">
+              <h1 style="margin:0;font:600 34px/1.1 'Archivo',sans-serif;letter-spacing:-.035em">Check your email</h1>
+              <p style="margin:14px 0 0;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">A sign-in link is on its way to <span style="color:var(--fg)">you@example.com</span>. It expires in fifteen minutes.</p>
+              <div style="margin-top:28px;display:flex;align-items:center;justify-content:center;min-height:52px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onSignIn }}">I clicked the link</div>
+              <div style="margin-top:16px;display:flex;gap:20px;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3)"><span style="cursor:pointer" style-hover="color:var(--fg)" onClick="{{ onSend }}">Send again</span><span style="cursor:pointer" style-hover="color:var(--fg)" onClick="{{ goHome }}">Keep playing as a guest</span></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ authMerged }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;max-width:440px;text-align:left">
+              <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)">Signed in</div>
+              <h1 style="margin:18px 0 0;font:600 34px/1.1 'Archivo',sans-serif;letter-spacing:-.035em">Your history came across.</h1>
+              <p style="margin:14px 0 0;font:400 14px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Nothing was lost. Completed solves from this browser and from the account are now one record; where both held the same day, the account's solve stands.</p>
+              <div style="margin-top:26px;border-top:1px solid var(--line)">
+                <sc-for list="{{ mergeRows }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:15px 0;border-bottom:1px solid var(--line2)">
+                    <span style="font:500 10px/1.4 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);white-space:nowrap">{{ r.k }}</span>
+                    <span style="font:400 13px/1.5 'Archivo',sans-serif;color:var(--fg);text-align:right;font-variant-numeric:tabular-nums">{{ r.v }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <p style="margin:18px 0 0;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3);text-wrap:pretty">{{ mergeNote }}</p>
+              <div style="margin-top:26px;display:flex;align-items:center;justify-content:center;min-height:52px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onMergeContinue }}">Continue</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:100px {{ L.pad }};text-align:center">
+          <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--error)">Puzzle unavailable</span>
+          <p style="margin:0;max-width:420px;font:400 16px/1.7 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Today's edition did not load. Nothing you did — try again in a moment.</p>
+          <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 28px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onRetryLoad }}">Try again</span>
+          <span style="font:400 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--fg3)">ERR · EDITION 1247 · 00:05 UTC</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isNotFound }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:100px {{ L.pad }};text-align:center">
+          <span style="font:600 {{ L.no }} 'Archivo',sans-serif;letter-spacing:-.05em;font-variant-numeric:tabular-nums;line-height:1">404</span>
+          <p style="margin:0;max-width:420px;font:400 16px/1.7 'Archivo',sans-serif;color:var(--fg2)">There is no puzzle at this address.</p>
+          <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 28px;background:var(--fg);color:var(--bg);font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ goHome }}">Today's puzzle</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTokens }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0">
+          <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">Tokens</div>
+          <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02;max-width:720px;text-wrap:pretty">Every value, named once.</h1>
+          <p style="margin:18px 0 0;max-width:600px;font:400 15px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">This sheet is the authority. Where an inline value in the product disagrees with a token here, the token wins.</p>
+
+      <div style="margin-top:{{ L.sectionTop }};padding-bottom:14px;border-bottom:2px solid var(--rule);display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase">Colour</span>
+          <span style="font:400 12px/1.4 'Archivo',sans-serif;color:var(--fg3);text-align:right">Light and dark, side by side</span>
+        </div>
+          <div style="{{ tokHeadSty }}">
+            <span>Token</span><span>Light</span><span>Dark</span><span>{{ tokRoleHead }}</span>
+          </div>
+          <sc-for list="{{ colourTokens }}" as="c" hint-placeholder-count="18">
+            <div style="{{ c.rowSty }}">
+              <span style="font:400 12px/1 'IBM Plex Mono',monospace">{{ c.name }}</span>
+              <span style="display:flex;align-items:center;gap:10px"><i style="{{ c.lightSw }}"></i><span style="font:400 11px/1 'IBM Plex Mono',monospace;color:var(--fg2)">{{ c.light }}</span></span>
+              <span style="display:flex;align-items:center;gap:10px"><i style="{{ c.darkSw }}"></i><span style="font:400 11px/1 'IBM Plex Mono',monospace;color:var(--fg2)">{{ c.dark }}</span></span>
+              <span style="font:400 13px/1.5 'Archivo',sans-serif;color:var(--fg2)">{{ c.note }}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top:34px;max-width:520px">
+            <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3);padding-bottom:12px;border-bottom:1px solid var(--line)">Contrast — text on ground</div>
+            <sc-for list="{{ contrastRows }}" as="r" hint-placeholder-count="4">
+              <div style="{{ r.sty }}"><span>{{ r.k }}</span><span style="color:var(--fg3)">{{ r.theme }}</span><span>{{ r.v }}</span><span style="color:var(--accent);text-align:right">{{ r.pass }}</span></div>
+            </sc-for>
+            <div style="margin-top:12px;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3)">Both roles clear AA at every size they are used, in both themes.</div>
+          </div>
+
+      <div style="margin-top:{{ L.sectionTop }};padding-bottom:14px;border-bottom:2px solid var(--rule);display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase">Type</span>
+          <span style="font:400 12px/1.4 'Archivo',sans-serif;color:var(--fg3);text-align:right">Archivo and IBM Plex Mono</span>
+        </div>
+          <sc-for list="{{ typeTokens }}" as="t" hint-placeholder-count="13">
+            <div style="{{ t.rowSty }}">
+              <div>
+                <div style="font:400 12px/1 'IBM Plex Mono',monospace">{{ t.name }}</div>
+                <div style="margin-top:9px;font:400 11px/1.6 'IBM Plex Mono',monospace;color:var(--fg3)">{{ t.spec }}</div>
+                <div style="margin-top:4px;font:400 11px/1.6 'IBM Plex Mono',monospace;color:var(--deco)">{{ t.note }}</div>
+              </div>
+              <div style="min-width:0;overflow:hidden"><span style="{{ t.sty }}">{{ t.sample }}</span></div>
+            </div>
+          </sc-for>
+
+      <div style="margin-top:{{ L.sectionTop }};padding-bottom:14px;border-bottom:2px solid var(--rule);display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase">Space</span>
+          <span style="font:400 12px/1.4 'Archivo',sans-serif;color:var(--fg3);text-align:right">One scale, plus layout constants</span>
+        </div>
+          <div style="margin-top:20px;max-width:640px">
+            <sc-for list="{{ spaceTokens }}" as="p" hint-placeholder-count="12">
+              <div style="{{ p.sty }}">
+                <span style="width:110px;flex:none;font:400 12px/1 'IBM Plex Mono',monospace">{{ p.name }}</span>
+                <span style="width:48px;flex:none;text-align:right;font:400 12px/1 'IBM Plex Mono',monospace;color:var(--fg3);font-variant-numeric:tabular-nums">{{ p.px }}</span>
+                <i style="{{ p.bar }}"></i>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:38px;max-width:820px">
+            <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3);padding-bottom:12px;border-bottom:1px solid var(--line)">Layout constants</div>
+            <sc-for list="{{ layoutConstants }}" as="r" hint-placeholder-count="9">
+              <div style="{{ r.sty }}">
+                <span style="font:400 12px/1 'IBM Plex Mono',monospace">{{ r.k }}</span>
+                <span style="font:400 12px/1 'IBM Plex Mono',monospace;color:var(--fg);font-variant-numeric:tabular-nums">{{ r.v }}</span>
+                <span style="font:400 13px/1.5 'Archivo',sans-serif;color:var(--fg3)">{{ r.note }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+      <div style="margin-top:{{ L.sectionTop }};padding-bottom:14px;border-bottom:2px solid var(--rule);display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase">Motion</span>
+          <span style="font:400 12px/1.4 'Archivo',sans-serif;color:var(--fg3);text-align:right">Four durations, nothing else</span>
+        </div>
+          <sc-for list="{{ motionTokens }}" as="r" hint-placeholder-count="4">
+            <div style="{{ r.sty }}">
+              <div>
+                <div style="font:400 12px/1 'IBM Plex Mono',monospace">{{ r.name }}</div>
+                <div style="margin-top:9px;font:400 11px/1.6 'IBM Plex Mono',monospace;color:var(--fg3)">{{ r.val }}</div>
+              </div>
+              <div>
+                <div style="font:400 14px/1.6 'Archivo',sans-serif;color:var(--fg2);max-width:460px;text-wrap:pretty">{{ r.use }}</div>
+                <div style="margin-top:8px;font:400 13px/1.6 'Archivo',sans-serif;color:var(--fg3);max-width:460px;text-wrap:pretty">Reduced motion — {{ r.reduced }}</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:flex-end"><span style="{{ r.demoSty }}" style-hover="{{ r.demoHover }}">{{ r.demoText }}</span></div>
+            </div>
+          </sc-for>
+          <div style="margin-top:26px;max-width:600px;font:400 13px/1.7 'Archivo',sans-serif;color:var(--fg3);text-wrap:pretty">Under <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--fg2)">prefers-reduced-motion: reduce</span> every duration in the product collapses to 1ms. No transform survives; only colour and opacity change, and they change at once.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isFocus }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:{{ L.heroTop }} {{ L.pad }} 0">
+          <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)">Focus states</div>
+          <h1 style="margin:26px 0 0;font:600 {{ L.h2 }} 'Archivo',sans-serif;letter-spacing:-.04em;line-height:1.02;max-width:760px;text-wrap:pretty">The ring is ink. Selection is cobalt.</h1>
+          <p style="margin:18px 0 0;max-width:620px;font:400 15px/1.65 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Focus and selection coexist on the grid, so they never share a colour. Focus is a 2px ink ring with a 2px ground-coloured gap — drawn outside the element everywhere except grid cells, where cells meet edge to edge and the ring is drawn inside instead.</p>
+          <div style="margin-top:22px;display:flex;flex-wrap:wrap;gap:10px 26px;font:400 12px/1.6 'IBM Plex Mono',monospace;color:var(--fg3)">
+            <span>outline: 2px solid var(--fg)</span><span>outline-offset: 2px</span><span>cells: inset 0 0 0 2px ground, inset 0 0 0 4px var(--fg)</span>
+          </div>
+
+          <div style="margin-top:{{ L.sectionTop }};display:grid;grid-template-columns:{{ L.focusCols }};gap:{{ L.heroGap }};align-items:start">
+            <div style="display:grid;grid-template-columns:{{ L.panelCols }};gap:{{ L.focusGap }}">
+              <sc-for list="{{ focusPanels }}" as="p" hint-placeholder-count="2">
+                <div style="{{ p.sty }}">
+                  <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3);padding-bottom:14px;border-bottom:1px solid var(--line)">{{ p.label }}</div>
+
+                  <div style="margin-top:22px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Grid cell</div>
+                  <div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap">
+                    <div>
+                      <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--surface);color:var(--fg);font:600 30px/1 'Archivo',sans-serif;box-shadow:inset 0 0 0 1px var(--line),inset 0 0 0 2px var(--surface),inset 0 0 0 4px var(--fg)">5</div>
+                      <div style="margin-top:8px;width:64px;font:400 10px/1.4 'IBM Plex Mono',monospace;color:var(--fg3)">focus</div>
+                    </div>
+                    <div>
+                      <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--cell-sel);color:var(--accent);font:400 30px/1 'Archivo',sans-serif;box-shadow:inset 0 0 0 2px var(--accent),inset 0 0 0 4px var(--cell-sel),inset 0 0 0 6px var(--fg)">5</div>
+                      <div style="margin-top:8px;width:64px;font:400 10px/1.4 'IBM Plex Mono',monospace;color:var(--fg3)">focus + selected</div>
+                    </div>
+                    <div>
+                      <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--cell-sel);color:var(--accent);font:400 30px/1 'Archivo',sans-serif;box-shadow:inset 0 0 0 2px var(--accent)">5</div>
+                      <div style="margin-top:8px;width:64px;font:400 10px/1.4 'IBM Plex Mono',monospace;color:var(--fg3)">selected</div>
+                    </div>
+                  </div>
+
+                  <div style="margin-top:26px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Pad key · toolbar chip</div>
+                  <div style="margin-top:14px;display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap">
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:78px;min-height:60px;background:var(--surface);border:1px solid var(--line2);outline:2px solid var(--fg);outline-offset:2px;color:var(--fg)"><span style="font:600 26px/1 'Archivo',sans-serif">4</span><span style="font:400 10px/1 'IBM Plex Mono',monospace;color:var(--fg3)">6</span></div>
+                    <span style="display:flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border:1px solid var(--line);outline:2px solid var(--fg);outline-offset:2px;color:var(--fg2);font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.13em;text-transform:uppercase">Notes</span>
+                    <span style="display:flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);outline:2px solid var(--fg);outline-offset:2px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.13em;text-transform:uppercase">Notes</span>
+                  </div>
+
+                  <div style="margin-top:26px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--fg3)">Nav link · settings control · primary button</div>
+                  <div style="margin-top:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+                    <span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--fg);padding-bottom:4px;box-shadow:inset 0 -2px 0 var(--accent);outline:2px solid var(--fg);outline-offset:3px">Archive</span>
+                    <span style="display:inline-flex;align-items:center;min-height:36px;padding:0 14px;background:var(--accent);color:var(--accent-ink);outline:2px solid var(--fg);outline-offset:2px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase">Checking</span>
+                  </div>
+                  <div style="margin-top:16px">
+                    <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 24px;background:var(--fg);color:var(--bg);outline:2px solid var(--fg);outline-offset:3px;font:600 12px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase">Enter the puzzle</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div>
+              <div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;padding-bottom:14px;border-bottom:2px solid var(--rule)">Tab order — board</div>
+              <sc-for list="{{ tabOrder }}" as="r" hint-placeholder-count="10">
+                <div style="display:grid;grid-template-columns:34px 1fr;gap:14px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line2)">
+                  <span style="font:400 11px/1.4 'IBM Plex Mono',monospace;color:var(--deco);font-variant-numeric:tabular-nums">{{ r.n }}</span>
+                  <span>
+                    <span style="font:500 12px/1.4 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase">{{ r.k }}</span>
+                    <span style="display:block;margin-top:5px;font:400 12px/1.6 'Archivo',sans-serif;color:var(--fg3);text-wrap:pretty">{{ r.v }}</span>
+                  </span>
+                </div>
+              </sc-for>
+              <div style="margin-top:18px;font:400 13px/1.7 'Archivo',sans-serif;color:var(--fg3);text-wrap:pretty">Shift-Tab reverses it. The dev switcher above the frame sits outside the tab order entirely.</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div data-slot="screens" style="display:none"></div>
+
+      <sc-if value="{{ showFooter }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:auto;padding:{{ L.sectionTop }} {{ L.pad }} 40px">
+          <div style="padding-top:20px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 12px/1.5 'Archivo',sans-serif;color:var(--fg3)">
+            <span>© 2026 Nonet</span>
+            <span style="display:flex;flex-wrap:wrap;gap:12px 24px">
+              <span style="cursor:pointer;min-height:24px" style-hover="color:var(--fg)" onClick="{{ goSettings }}">Settings</span>
+              <span style="cursor:pointer;min-height:24px" style-hover="color:var(--fg)" onClick="{{ goAbout }}">About</span>
+              <span style="cursor:pointer;min-height:24px" style-hover="color:var(--fg)" onClick="{{ goHowto }}">How to play</span>
+            </span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
+          <div style="position:absolute;inset:0;background:var(--veil);opacity:.93"></div>
+          <div style="position:relative;width:100%;max-width:440px;box-sizing:border-box;background:var(--bg);border:1px solid var(--rule);padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.14)">
+            <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3)">Practice in progress</div>
+            <p style="margin:18px 0 0;font:400 15px/1.6 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">Medium · 22 of 81 placed · 03:41. Starting {{ confirmDiff }} discards it — practice puzzles are not kept.</p>
+            <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap">
+              <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 22px;background:var(--fg);color:var(--bg);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onDiscard }}">Discard and start</span>
+              <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border:1px solid var(--fg);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer" style-hover="background:var(--hover)" onClick="{{ onKeepPlaying }}">Keep playing</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ hintConfirmOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:36;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box">
+          <div style="position:absolute;inset:0;background:var(--veil);opacity:.93"></div>
+          <div style="position:relative;width:100%;max-width:440px;box-sizing:border-box;background:var(--bg);border:1px solid var(--rule);padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.14)">
+            <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--fg3)">Use a hint</div>
+            <p style="margin:18px 0 0;font:400 15px/1.6 'Archivo',sans-serif;color:var(--fg2);text-wrap:pretty">A hint fills the selected cell with its answer. It marks this solve assisted and gives up today's percentile. Your run is not affected, and two further hints stay available.</p>
+            <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap">
+              <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 22px;background:var(--fg);color:var(--bg);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer" style-hover="background:var(--accent);color:var(--accent-ink)" onClick="{{ onHintConfirm }}">Use a hint</span>
+              <span style="display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border:1px solid var(--fg);font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer" style-hover="background:var(--hover)" onClick="{{ onHintCancel }}">Not yet</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ copied }}" hint-placeholder-val="{{ false }}">
+        <div style="position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:14px 22px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;z-index:40">Copied</div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:1100},&quot;startTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Demo&quot;},&quot;startViewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1440&quot;,&quot;834&quot;,&quot;390&quot;],&quot;default&quot;:&quot;1440&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;},&quot;startRoute&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;board&quot;,&quot;solved&quot;,&quot;archive&quot;,&quot;record&quot;,&quot;auth&quot;,&quot;settings&quot;,&quot;howto&quot;,&quot;about&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;}}">
+class Component extends DCLogic {
+  // ─── Mock data layer — the single place to swap for the real API ───
+  DB = {
+    puzzle:{no:1247,dateLong:'Sunday 26 July 2026',dateShort:'26 July 2026',diff:'Hard',givens:30,median:'7:41',solvedToday:'4,912',
+      grid:'53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79',
+      solution:'534678912672195348198342567859761423426853791713924856961537284287419635345286179'},
+    seedIndices:[2,7,10,11,18,28,37,40,46,54,72],
+    seedNotes:{3:[6,8,9],5:[1,2,8],15:[3,4],21:[3,4],30:[1,7],56:[1,3,5],73:[4,5],77:[1,6]},
+    diffs:[{k:'Easy',g:38,m:'3:20'},{k:'Medium',g:34,m:'5:05'},{k:'Hard',g:30,m:'7:41'},{k:'Expert',g:24,m:'14:12'}],
+    stats:{streak:34,best:61,solved:212,mistakeFree:'68%',hintRate:'0.4',percentile:'22%',
+      perDiff:[{k:'Easy',best:'2:04',median:'3:11',n:52},{k:'Medium',best:'3:38',median:'4:52',n:64},{k:'Hard',best:'5:12',median:'7:03',n:78},{k:'Expert',best:'9:48',median:'13:26',n:18}],
+      practice:[{k:'Easy',n:140,median:'2:58'},{k:'Medium',n:96,median:'4:40'},{k:'Hard',n:61,median:'6:52'},{k:'Expert',n:12,median:'12:31'}]}
+  };
+
+  LIGHT='--bg:#F1F2F3;--surface:#FBFBFC;--fg:#16181B;--fg2:#4B5157;--fg3:#6C7278;--line:#CFD3D6;--line2:#DEE1E3;--accent:#2C41C4;--accent-ink:#FBFBFC;--cell-hl:#E8EAEC;--cell-same:#E4E8F8;--cell-sel:#D7DDF9;--error:#A9231A;--error-soft:#F4DDDA;--hover:#E7E9EB;--rule:#16181B;--deco:#C3C7CB;--veil:#EDEEEF';
+  DARK='--bg:#131518;--surface:#1A1D20;--fg:#EDEFF1;--fg2:#B4BABF;--fg3:#8B9298;--line:#2A2F34;--line2:#23282C;--accent:#93A6FF;--accent-ink:#131518;--cell-hl:#22262A;--cell-same:#242B3D;--cell-sel:#2C365C;--error:#FF8A75;--error-soft:#3A211C;--hover:#22262A;--rule:#8B939A;--deco:#3D444A;--veil:#15181B';
+
+  state = {
+    route:'home', theme:'light', vw:1440,
+    signedIn:false, firstVisit:false, homeState:'unplayed', themePref:'system',
+    mode:'daily', diff:'Hard', boardScenario:'playing',
+    inputMode:'cell', loaded:null, autoAdvance:false, holdDigit:null, holdArmed:false,
+    hintConfirm:false, errDigit:null, mergeCase:'local',
+    entries:null, notes:null, sel:40, notesMode:false,
+    mistakes:1, wrong:{}, hints:3, secs:432, paused:false,
+    checking:true, hlMatch:true, hlUnit:true, showTimer:true,
+    finished:false, failed:false, assisted:false, attempt:1,
+    undo:[], redo:[], solvedVariant:'standard',
+    recordState:'local', authStage:'form', recordWindow:'all',
+    offline:false, copied:false, resumedNotice:false, howtoOffer:false, stress:false,
+    archiveY:2026, archiveM:6, confirmDiff:null, jumpOpen:false, menuOpen:false,
+    recordYear:2026, fDiff:[], fStatus:[],
+    practiceResume:true, archiveMonth:'July 2026'
+  };
+
+  componentDidMount(){
+    this.setState({entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes),
+      inputMode:this.readPref('nonet.inputMode','cell'), autoAdvance:this.readPref('nonet.autoAdvance',false),
+      theme:this.props.startTheme||'light', vw:+(this.props.startViewport||1440), route:this.props.startRoute||'home'});
+    this._t = setInterval(()=>{
+      const s=this.state;
+      if(s.route==='board' && !s.paused && !s.finished && !s.failed) this.setState({secs:s.secs+1});
+    },1000);
+    this._k = (e)=>this.onKey(e);
+    window.addEventListener('keydown', this._k);
+  }
+  componentWillUnmount(){ clearInterval(this._t); clearTimeout(this._hold); window.removeEventListener('keydown', this._k); }
+  readPref(k,d){ try{ const v=window.localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
+  writePref(k,v){ try{ window.localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  seed(){ const o={}; this.DB.seedIndices.forEach(i=>o[i]=+this.DB.puzzle.solution[i]); return o; }
+  cloneNotes(n){ const o={}; Object.keys(n||{}).forEach(k=>o[k]=n[k].slice()); return o; }
+  isGiven(i){ return this.DB.puzzle.grid[i] !== '.'; }
+  fmt(s){ if(s>=5999) return '99:59+'; const m=Math.floor(s/60), x=s%60; return (m<10?'0':'')+m+':'+(x<10?'0':'')+x; }
+
+  onKey(e){
+    if(this.state.menuOpen){ if(e.key==='Escape'){ e.preventDefault(); this.setState({menuOpen:false}); } return; }
+    if(this.state.route!=='board') return;
+    const k=e.key;
+    if(e.shiftKey && /^Digit[1-9]$/.test(e.code||'')){ e.preventDefault(); this.place(+e.code.slice(5), {note:true}); return; }
+    if(/^[1-9]$/.test(k)){ e.preventDefault(); this.place(+k); return; }
+    if(k==='Backspace'||k==='Delete'){ e.preventDefault(); this.erase(); return; }
+    if(k===' '){ e.preventDefault(); this.setState(s=>({notesMode:!s.notesMode})); return; }
+    if(k==='p'||k==='P'){ this.setState(s=>({paused:!s.paused})); return; }
+    if(k==='h'||k==='H'){ this.requestHint(); return; }
+    if((e.metaKey||e.ctrlKey) && (k==='z'||k==='Z')){ e.preventDefault(); e.shiftKey?this.redo():this.undo(); return; }
+    const d={ArrowUp:-9,ArrowDown:9,ArrowLeft:-1,ArrowRight:1}[k];
+    if(d!==undefined){ e.preventDefault(); const n=this.state.sel+d; if(n>=0&&n<81 && !(Math.abs(d)===1 && Math.floor(n/9)!==Math.floor(this.state.sel/9))) this.setState({sel:n}); }
+  }
+
+  snapshot(){ const s=this.state; return {entries:{...s.entries}, notes:this.cloneNotes(s.notes), wrong:{...s.wrong}}; }
+  pushUndo(){ this.setState(s=>({undo:[...s.undo.slice(-60), this.snapshot()], redo:[]})); }
+  undo(){ const s=this.state; if(!s.undo.length) return; const p=s.undo[s.undo.length-1];
+    this.setState({undo:s.undo.slice(0,-1), redo:[...s.redo, this.snapshot()], entries:p.entries, notes:p.notes, wrong:p.wrong}); }
+  redo(){ const s=this.state; if(!s.redo.length) return; const p=s.redo[s.redo.length-1];
+    this.setState({redo:s.redo.slice(0,-1), undo:[...s.undo, this.snapshot()], entries:p.entries, notes:p.notes, wrong:p.wrong}); }
+
+  select(i){ this.setState({sel:i}); }
+
+  place(d, opts){ this.write(this.state.sel, d, opts||{}); }
+  write(i, d, o){
+    const s=this.state;
+    const asNote = !!o.note || s.notesMode;
+    if(s.finished||s.failed||s.paused) return;
+    if(i<0||i>80||this.isGiven(i)) return;
+    if(!asNote && !s.stress && this.remaining(d)===0) return;
+    this.pushUndo();
+    if(asNote){
+      const notes=this.cloneNotes(s.notes); const cur=notes[i]||[];
+      notes[i] = cur.indexOf(d)>=0 ? cur.filter(x=>x!==d) : cur.concat([d]).sort();
+      const entries={...s.entries}; delete entries[i];
+      const wrong={...s.wrong}; delete wrong[i];
+      this.setState({notes, entries, wrong, sel:i}); return;
+    }
+    const entries={...s.entries}; entries[i]=d;
+    const notes=this.cloneNotes(s.notes); delete notes[i];
+    const r=Math.floor(i/9), c=i%9;
+    for(let j=0;j<81;j++){
+      const jr=Math.floor(j/9), jc=j%9;
+      const peer = jr===r||jc===c||(Math.floor(jr/3)===Math.floor(r/3)&&Math.floor(jc/3)===Math.floor(c/3));
+      if(peer && notes[j]) notes[j]=notes[j].filter(x=>x!==d);
+    }
+    const wrong={...s.wrong};
+    let mistakes=s.mistakes, failed=false, errDigit=s.errDigit;
+    const correct = +this.DB.puzzle.solution[i]===d;
+    const loadedRun = s.inputMode==='digit' && s.loaded===d;
+    if(s.checking){
+      if(correct){ delete wrong[i]; errDigit=null; }
+      else {
+        wrong[i]=1;
+        const repeat = loadedRun && s.errDigit===d;
+        if(!repeat){ mistakes=s.mistakes+1; if(mistakes>=3) failed=true; }
+        errDigit = loadedRun ? d : null;
+      }
+    }
+    let finished=false;
+    if(correct){
+      finished=true;
+      for(let j=0;j<81;j++){ const v=this.isGiven(j)?+this.DB.puzzle.grid[j]:entries[j]; if(v!==+this.DB.puzzle.solution[j]){ finished=false; break; } }
+    }
+    let sel=i;
+    if(s.autoAdvance && s.inputMode==='cell' && !failed) sel=this.nextEmpty(i, entries);
+    this.setState({entries,notes,wrong,mistakes,failed,sel,errDigit});
+    if(finished) this.setState({finished:true, route:'solved'});
+  }
+
+  erase(){ this.eraseAt(this.state.sel); }
+  eraseAt(i){
+    const s=this.state; if(s.finished||s.failed||s.paused) return;
+    if(i<0||i>80||this.isGiven(i)) return;
+    this.pushUndo();
+    const entries={...s.entries}, notes=this.cloneNotes(s.notes), wrong={...s.wrong};
+    if(entries[i]!==undefined){ delete entries[i]; delete wrong[i]; }
+    else delete notes[i];
+    this.setState({entries,notes,wrong,sel:i,errDigit:null});
+  }
+
+  nextEmpty(from, entries){
+    for(let j=from+1;j<81;j++){ if(!this.isGiven(j) && entries[j]===undefined) return j; }
+    for(let j=0;j<=from;j++){ if(!this.isGiven(j) && entries[j]===undefined) return j; }
+    return from;
+  }
+  onCell(i){
+    const s=this.state;
+    if(s.inputMode==='digit' && s.loaded!==null && !s.paused && !s.failed && !s.finished){
+      if(this.isGiven(i)) return;
+      if(s.loaded==='erase'){ this.eraseAt(i); return; }
+      const cur=(s.entries||{})[i];
+      const settled = cur!==undefined && cur===+this.DB.puzzle.solution[i];
+      if(settled && !s.notesMode) return;
+      this.write(i, s.loaded, {});
+      return;
+    }
+    this.select(i);
+  }
+  setInputMode(mode){ this.writePref('nonet.inputMode', mode); this.setState({inputMode:mode, loaded:null, holdDigit:null, holdArmed:false, errDigit:null}); }
+  toggleAutoAdvance(){ const v=!this.state.autoAdvance; this.writePref('nonet.autoAdvance', v); this.setState({autoAdvance:v}); }
+  padTap(d){
+    const s=this.state;
+    if(s.inputMode==='digit'){ this.setState(x=>({loaded: x.loaded===d ? null : d, errDigit: x.errDigit===d ? null : x.errDigit})); return; }
+    this.place(d);
+  }
+  padDown(d){
+    clearTimeout(this._hold);
+    this.setState({holdDigit:d, holdArmed:false});
+    this._hold=setTimeout(()=>{ if(this.state.holdDigit===d) this.setState({holdArmed:true}); }, 340);
+  }
+  padUp(d){
+    clearTimeout(this._hold);
+    const s=this.state;
+    if(s.holdDigit!==d) return;
+    const armed=s.holdArmed;
+    this.setState({holdDigit:null, holdArmed:false});
+    if(!armed){ this.padTap(d); return; }
+    if(s.inputMode==='digit') this.setState({loaded:d, notesMode:true});
+    else this.place(d, {note:true});
+  }
+  padCancel(){ clearTimeout(this._hold); if(this.state.holdDigit!==null) this.setState({holdDigit:null, holdArmed:false}); }
+
+  requestHint(){
+    const s=this.state;
+    if(s.hints<=0||s.finished||s.failed||s.paused) return;
+    if(s.hints===3){ this.setState({hintConfirm:true}); return; }
+    this.hint();
+  }
+  mergeRows(){
+    const acct=this.state.mergeCase==='account';
+    return [
+      {k:'Solves merged', v:'212 from this browser'},
+      {k:'On the account now', v: acct ? '543 dailies' : '212 dailies'},
+      {k:'Run after merge', v: acct ? '41 days' : '18 days'},
+      {k:'Puzzle in progress', v: acct ? 'No. 1247, kept from your phone — 09:04' : 'No. 1247, kept from this browser — 07:12'}
+    ];
+  }
+  pickPractice(k){
+    if(this.state.route!=='home'){ this.go('home'); }
+    if(this.state.practiceResume) this.setState({confirmDiff:k});
+    else this.startPracticeAt(k);
+  }
+  hint(){
+    const s=this.state; if(s.hints<=0||s.finished||s.failed||s.paused) return;
+    let i=s.sel;
+    if(i<0||this.isGiven(i)||s.entries[i]!==undefined){ i=-1; for(let j=0;j<81;j++){ if(!this.isGiven(j)&&s.entries[j]===undefined){ i=j; break; } } }
+    if(i<0) return;
+    this.pushUndo();
+    const entries={...s.entries}; entries[i]=+this.DB.puzzle.solution[i];
+    const wrong={...s.wrong}; delete wrong[i];
+    this.setState({entries,wrong,hints:s.hints-1,assisted:true,sel:i,hintCell:i});
+  }
+
+  // ─── board rendering ───
+  cells(size, opts){
+    const o = opts||{}; const s=this.state;
+    const solved = o.solved, preview = o.preview;
+    const entries = preview ? {} : (s.entries||{});
+    const notes = (preview||solved) ? {} : (s.notes||{});
+    const sel = (preview||solved) ? -1 : s.sel;
+    const loadedD = (!preview && !solved && s.inputMode==='digit' && typeof s.loaded==='number') ? s.loaded : null;
+    const sr=Math.floor(sel/9), sc=sel%9;
+    const selVal = sel>=0 ? (this.isGiven(sel)?+this.DB.puzzle.grid[sel]:entries[sel]) : null;
+    const out=[];
+    const nf = Math.max(9, Math.round(size*0.185));
+    const nlh = Math.floor(size/3.6);
+    for(let i=0;i<81;i++){
+      const r=Math.floor(i/9), c=i%9;
+      const given=this.isGiven(i);
+      let v = given ? +this.DB.puzzle.grid[i] : (solved ? +this.DB.puzzle.solution[i] : entries[i]);
+      const isWrong = !!(s.wrong[i] && !preview && !solved && s.checking);
+      const n = (!v && notes[i] && notes[i].length) ? this.noteText(notes[i]) : '';
+      const isSel = i===sel;
+      const inBox = sel>=0 && Math.floor(r/3)===Math.floor(sr/3) && Math.floor(c/3)===Math.floor(sc/3);
+      const unit = s.hlUnit && sel>=0 && !isSel && (r===sr||c===sc||inBox);
+      const same = loadedD ? (v===loadedD) : (s.hlMatch && !isSel && v && selVal && v===selVal);
+      let bg='var(--surface)';
+      if(unit) bg='var(--cell-hl)';
+      if(same) bg='var(--cell-same)';
+      if(isSel) bg='var(--cell-sel)';
+      if(isWrong) bg='var(--error-soft)';
+      const col = isWrong ? 'var(--error)' : (given ? 'var(--fg)' : 'var(--accent)');
+      const sh=[];
+      if(c!==8) sh.push('inset -'+(c%3===2?2:1)+'px 0 0 '+(c%3===2?'var(--rule)':'var(--line)'));
+      if(r!==8) sh.push('inset 0 -'+(r%3===2?2:1)+'px 0 '+(r%3===2?'var(--rule)':'var(--line)'));
+      if(isSel) sh.push('inset 0 0 0 2px var(--accent)');
+      out.push({
+        s:'position:relative;overflow:hidden;box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:'+size+'px;height:'+size+'px;background:'+bg+';color:'+col+';font-family:Archivo,sans-serif;font-size:'+Math.round(size*0.47)+'px;font-weight:'+(given?600:400)+';font-variant-numeric:tabular-nums;cursor:'+(preview||solved?'default':'pointer')+';box-shadow:'+sh.join(',')+(isWrong?';text-decoration:underline;text-underline-offset:0.18em;text-decoration-thickness:2px':''),
+        v: v||'', n:n,
+        ns: n ? 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;white-space:pre;text-align:center;letter-spacing:.06em;color:var(--fg3);font:400 '+nf+'px/'+nlh+'px Archivo,sans-serif' : 'display:none',
+        on: (preview||solved) ? null : (()=>this.onCell(i))
+      });
+    }
+    return out;
+  }
+  noteText(ds){ const rows=[]; for(let y=0;y<3;y++){ const s=[]; for(let x=0;x<3;x++){ const d=y*3+x+1; s.push(ds.indexOf(d)>=0?String(d):' '); } rows.push(s.join(' ')); } return rows.join('\n'); }
+
+  // ─── dev switcher ───
+  chip(label,on,active,tone){
+    const bg = active ? (tone==='alt'?'#93A6FF':'#E9ECED') : 'transparent';
+    const fg = active ? '#0E1113' : '#98A0A4';
+    return {label, on, sty:'display:inline-flex;flex:none;white-space:nowrap;align-items:center;padding:6px 9px;border:1px solid '+(active?'transparent':'#2E3437')+';background:'+bg+';color:'+fg+';font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;user-select:none'};
+  }
+
+  go(route){ this.setState({route, copied:false, confirmDiff:null, menuOpen:false}); window.scrollTo(0,0); }
+  componentDidUpdate(pp, ps){
+    if(!ps) return;
+    if(!ps.menuOpen && this.state.menuOpen && this._drawer){
+      const f=this._drawer.querySelectorAll('[tabindex="0"]');
+      if(f.length) f[0].focus();
+    }
+    if(ps.menuOpen && !this.state.menuOpen && this._trigger) this._trigger.focus();
+  }
+  drawerKey(e){
+    if(e.key==='Escape'){ e.preventDefault(); this.setState({menuOpen:false}); return; }
+    if(e.key!=='Tab' || !this._drawer) return;
+    const f=[...this._drawer.querySelectorAll('[tabindex="0"]')];
+    if(!f.length) return;
+    const i=f.indexOf(document.activeElement);
+    if(e.shiftKey && i<=0){ e.preventDefault(); f[f.length-1].focus(); }
+    else if(!e.shiftKey && i===f.length-1){ e.preventDefault(); f[0].focus(); }
+  }
+
+  renderVals(){
+    const s=this.state, D=this.DB;
+    const vw=s.vw, m=vw<=430, t=vw>430&&vw<1100, d=!m&&!t;
+    const light = s.theme==='light';
+    const tokens = light ? this.LIGHT : this.DARK;
+
+    const L = {
+      deskPad: m||t ? '26px 0 60px' : '26px 0 60px',
+      frameW: m?'390px':t?'834px':'1440px',
+      minH: s.route==='board' ? (m?'720px':t?'1040px':'900px') : (m?'780px':t?'1000px':'1080px'),
+      pad: m?'20px':t?'40px':'88px',
+      navPad: m?'20px':'34px',
+      lockGap: m?'8px':'14px',
+      kick: '10px/1',
+      kickTrack: m?'.12em':t?'.12em':'.18em',
+      ctrlGap: m?'6px':t?'8px':'10px',
+      headGap: m?'10px':t?'14px 22px':'14px 20px',
+      ctrlPad: m?'6px':t?'10px':'12px',
+      navGap: m?'14px':t?'14px':'26px',
+      navTrack: t?'.08em':'.14em',
+      navSize: t?'10px':'11px',
+      mark: m?'16px':'22px',
+      heroTop: m?'40px':t?'54px':'68px',
+      heroCols: (m||t)?'1fr':'1fr 500px',
+      heroGap: m?'34px':t?'44px':'72px',
+      no: m?'64px':t?'92px':'124px',
+      noTop: m?'20px':'28px',
+      diff: m?'24px':t?'26px':'28px',
+      statNum: m?'30px':'38px',
+      streakNum: m?'34px':'54px',
+      bandTop: m?'40px':'44px',
+      sectionTop: m?'46px':'62px',
+      platePad: m?'16px':t?'32px':'46px',
+      prevCell: m?36:t?44:40,
+      prevW: (m?36:t?44:40)*9,
+      cell: m?39:t?76:80,
+      gridW: (m?39:t?76:80)*9,
+      key: m?'56px':'74px',
+      solvedNum: m?'54px':t?'82px':'116px',
+      h2: m?'32px':t?'44px':'56px',
+      navFlex: 'none',
+      navOrder: 0,
+      archiveCols: (m||t)?'1fr':'340px 1fr',
+      archiveHead: m?'1fr auto':'110px 1fr 110px 110px 90px',
+      recordCols: m?'1fr 1fr':'repeat(4,1fr)',
+      howtoCols: m?'1fr':'1fr 1fr',
+      tokCols: m?'1fr 1fr':'170px 160px 160px 1fr',
+      typeCols: m?'1fr':'220px 1fr',
+      focusGap: m?'20px':'22px',
+      panelCols: m?'1fr':'1fr 1fr',
+      monthChipCols: m?'repeat(6,minmax(0,1fr))':'repeat(12,minmax(0,1fr))',
+      jumpTop: m?'10px':'0px',
+      recCalW: m?'280px':'300px',
+      recGap: m?'20px':t?'20px':'40px',
+      recLabelTrack: (m||t)?'.12em':'.18em',
+      plateW: m?'100%':t?'470px':'none',
+      prevPlateW: m?'100%':t?'470px':'none',
+      settingsCols: (m||t)?'1fr':'1fr 720px',
+      calW: m?'100%':t?'720px':'900px',
+      archCols: d?'minmax(0,900px) minmax(250px,1fr)':'1fr',
+      calCols: m?'repeat(7,30px)':'repeat(7,1fr)',
+      archTop: m?'34px':t?'30px':'44px',
+      practiceRowsTop: m?'12px':'16px',
+      listTop: m?'6px':'18px',
+      listCols: m?'1fr auto':'1fr 96px 104px 104px 84px',
+      stripTop: m?'44px':'52px',
+      stripMaxW: '100%',
+      stripCell: m?9:t?11:19,
+      stripGap: m?2:t?3:4,
+      shareCols: (m||t)?'1fr':'minmax(0,max-content) minmax(0,420px)',
+      shareGap: m?'24px':'28px',
+      shareTop: m?'34px':'46px',
+      recTableCols: d?'1fr 1fr':'1fr',
+      calGap: m?'6px':'8px',
+      monthNum: m?'26px':t?'32px':'38px',
+      recentCols: m?'1fr 1fr':t?'repeat(2,1fr)':'repeat(5,1fr)',
+      focusCols: m?'1fr':t?'1fr':'1fr 340px',
+      solvedCell: m?30:t?42:40,
+      solvedW: (m?30:t?42:40)*9
+    };
+
+    const hintsLeft = s.stress ? 0 : s.hints;
+    const nav=[['home','Today'],['archive','Archive'],['record','Record']];
+    const navItems = nav.map(([k,label])=>({label, on:()=>this.go(k),
+      sty:'font:500 '+L.navSize+'/1 \'IBM Plex Mono\',monospace;letter-spacing:'+L.navTrack+';text-transform:uppercase;padding-bottom:4px;cursor:pointer;white-space:nowrap;color:'+((s.route===k||(k==='home'&&s.route==='board'))?'var(--fg);box-shadow:inset 0 -2px 0 var(--accent)':'var(--fg3)')}));
+
+    const screens=[['home','Home'],['board','Board'],['solved','Solved'],['archive','Archive'],['record','Record'],['auth','Auth'],['settings','Settings'],['howto','How to play'],['about','About']];
+    const devScreens = screens.map(([k,l])=>this.chip(l, ()=>this.go(k), s.route===k));
+    const devDocs = [['tokens','Tokens'],['focus','Focus'],['error','Load error'],['notfound','404']]
+      .map(([k,l])=>this.chip(l, ()=>this.go(k), s.route===k));
+
+    let devStates=[];
+    if(s.route==='home'){
+      devStates=[['unplayed','Ready'],['inprogress','In progress'],['solved','Solved'],['failed','Failed'],['first','First visit']]
+        .map(([k,l])=>this.chip(l, ()=>this.setState({homeState:k, firstVisit:k==='first', confirmDiff:null}), s.homeState===k,'alt'));
+      devStates.push(this.chip('Practice resume', ()=>this.setState({practiceResume:!s.practiceResume, confirmDiff:null}), s.practiceResume,'alt'));
+      devStates.push(this.chip('Practice abandon', ()=>this.setState({practiceResume:true, confirmDiff:'Hard'}), !!s.confirmDiff,'alt'));
+    } else if(s.route==='board'){
+      devStates=[['playing','Playing'],['notes','Notes on'],['digitfirst','Digit first'],['longpress','Note long-press'],['padspent','Pad spent'],['error','Error cell'],['digiterror','Digit-first error'],['hintconfirm','Hint confirm'],['paused','Paused'],['locked','Failed'],['practice','Practice'],['nohints','No hints left'],['resumed','Resumed notice'],['firstrun','First-run offer']]
+        .map(([k,l])=>this.chip(l, ()=>this.setBoardScenario(k), s.boardScenario===k,'alt'));
+    } else if(s.route==='solved'){
+      devStates=[['standard','Standard'],['assisted','Assisted'],['second','Second attempt'],['unchecked','Unchecked']]
+        .map(([k,l])=>this.chip(l, ()=>this.setState({solvedVariant:k, copied:false}), s.solvedVariant===k && !s.copied,'alt'));
+      devStates.push(this.chip('Copied', ()=>this.setState({copied:true}), s.copied,'alt'));
+    } else if(s.route==='record'){
+      devStates=[['full','Signed in'],['local','Guest'],['empty','No history']]
+        .map(([k,l])=>this.chip(l, ()=>this.setState({recordState:k, signedIn:k==='full'}), s.recordState===k,'alt'));
+    } else if(s.route==='settings'){
+      devStates=[['guest','Guest'],['full','Signed in']]
+        .map(([k,l])=>this.chip(l, ()=>this.setState({signedIn:k==='full'}), s.signedIn===(k==='full'),'alt'));
+    } else if(s.route==='auth'){
+      devStates=[['form','Sign in'],['sent','Check email']].map(([k,l])=>this.chip(l, ()=>this.setState({authStage:k}), s.authStage===k,'alt'));
+      devStates.push(this.chip('Merged · run held here', ()=>this.setState({authStage:'merged', mergeCase:'local'}), s.authStage==='merged' && s.mergeCase==='local','alt'));
+      devStates.push(this.chip('Merged · account ahead', ()=>this.setState({authStage:'merged', mergeCase:'account'}), s.authStage==='merged' && s.mergeCase==='account','alt'));
+    }
+
+    const devToggles=[
+      this.chip('1440', ()=>this.setState({vw:1440}), vw===1440),
+      this.chip('834', ()=>this.setState({vw:834}), vw===834),
+      this.chip('390', ()=>this.setState({vw:390}), vw===390),
+      this.chip(light?'Light':'Dark', ()=>this.setState({theme:light?'dark':'light'}), true),
+      this.chip('Long values', ()=>this.setState({stress:!s.stress}), s.stress),
+      this.chip('Menu open', ()=>this.setState({menuOpen:!s.menuOpen, vw:390}), s.menuOpen),
+      this.chip('Offline', ()=>this.setState({offline:!s.offline}), s.offline),
+      this.chip(s.signedIn?'Signed in':'Guest', ()=>this.setState({signedIn:!s.signedIn}), s.signedIn)
+    ];
+
+    const run = this.runDays;
+    const streakNow = s.stress ? 365 : (s.homeState==='solved' ? run+1 : run);
+    const streakBars=[];
+    const barN = run;
+    for(let i=0;i<barN;i++){
+      const last=i===barN-1;
+      streakBars.push('width:5px;height:'+(last&&s.homeState==='solved'?'26px':'16px')+';background:'+(last&&s.homeState==='solved'?'var(--accent)':'var(--deco)')+';display:block');
+    }
+
+    const practiceRows = D.diffs.map(x=>({
+      name:x.k, meta:x.g+' givens · '+x.m,
+      on:()=>this.pickPractice(x.k),
+      rowSty:'display:flex;align-items:center;justify-content:space-between;gap:16px;padding:'+(m?'16px 4px':'20px 4px')+';border-bottom:1px solid var(--line2);cursor:pointer;min-height:44px',
+      nameSty:'font:600 '+(m?'26px':t?'32px':'40px')+'/1 \'Archivo\',sans-serif;letter-spacing:-.035em',
+      metaSty:'font:400 13px/1 \'Archivo\',sans-serif;color:var(--fg3);white-space:nowrap',
+      arrowSty:'font-size:'+(m?'16px':'20px')+';color:var(--deco)'
+    }));
+
+    const AL=this.archiveList(), YS=this.yearStrip();
+    return {
+      rootStyle: tokens+';min-height:100vh;background:#0E1113;padding-bottom:1px',
+      L, isM:m, isT:t, isD:d,
+      themeLabel: light?'Dark':'Light',
+      showChrome: ['home','archive','record','settings','howto','about','tokens','focus'].indexOf(s.route)>=0,
+      siteHeaderWide: ['home','archive','record','settings','howto','about','tokens','focus'].indexOf(s.route)>=0 && !m,
+      siteHeaderMobile: ['home','archive','record','settings','howto','about','tokens','focus'].indexOf(s.route)>=0 && m,
+      menuOpen: s.menuOpen && m,
+      triggerRef:(el)=>{ this._trigger=el; },
+      drawerRef:(el)=>{ this._drawer=el; },
+      onOpenMenu:()=>this.setState({menuOpen:true}),
+      onCloseMenu:()=>this.setState({menuOpen:false}),
+      onDrawerKey:(e)=>this.drawerKey(e),
+      onDrawerAuth:()=>{ this.setState({menuOpen:false}); this.go('auth'); },
+      onDrawerSignOut:()=>this.setState({signedIn:false, menuOpen:false}),
+      drawerPrimary: [['home','Today'],['archive','Archive'],['record','Record']].map(o=>({
+        label:o[1], on:()=>{ this.setState({menuOpen:false}); this.go(o[0]); },
+        sty:'font:600 30px/1 \'Archivo\',sans-serif;letter-spacing:-.035em;padding-bottom:5px;'+((s.route===o[0]||(o[0]==='home'&&s.route==='board'))?'box-shadow:inset 0 -2px 0 var(--accent)':'')})),
+      drawerSecondary: [['settings','Settings'],['howto','How to play'],['about','About']].map(o=>({
+        label:o[1], on:()=>{ this.setState({menuOpen:false}); this.go(o[0]); },
+        sty:'font:500 15px/1.3 \'Archivo\',sans-serif;color:'+(s.route===o[0]?'var(--fg)':'var(--fg2)')})),
+      showMinimalHeader: ['auth','error','notfound'].indexOf(s.route)>=0,
+      showFooter: ['home','archive','record','settings','howto','about','tokens','focus','auth','error','notfound'].indexOf(s.route)>=0,
+      headerKicker: {settings:'Settings', howto:'How to play', about:'About', tokens:'Tokens', focus:'Focus states', auth:'Sign in', error:'Puzzle unavailable', notfound:'Not found'}[s.route] || 'Daily sudoku',
+      isHome: s.route==='home',
+      offline: s.offline, copied: s.copied,
+      navItems, devScreens, devDocs, devStates, devToggles,
+      todayKicker: s.homeState==='solved' ? 'Solved · Sunday 26 July 2026' : 'Sunday 26 July 2026',
+      heroUnplayed: s.homeState==='unplayed'||s.homeState==='first',
+      heroResume: s.homeState==='inprogress',
+      heroSolved: s.homeState==='solved',
+      heroFailed: s.homeState==='failed',
+      showStreakBand: s.homeState!=='first',
+      showFirstInvite: s.homeState==='first',
+      streakNow, streakBars, streakBarsCaption: 'Last '+barN+' days',
+      streakMeta: 'best '+(s.stress?365:this.BEST_RUN)+' · '+(s.stress?'1,204':this.solvedTotal())+' solved',
+      bestRun: String(this.BEST_RUN),
+      practiceRows, practiceResume: s.practiceResume && s.homeState!=='first',
+      previewCells: this.cells(L.prevCell,{preview:true}),
+      goHome:()=>this.go('home'), goAuth:()=>this.go(s.signedIn?'settings':'auth'), goAbout:()=>this.go('about'),
+      goHowto:()=>this.go('howto'), goPractice:()=>this.pickPractice('Hard'),
+      toggleTheme:()=>this.setTheme(light?'dark':'light'),
+      authChipLabel: s.signedIn?'AL':'Sign in',
+      authChipSty: s.signedIn
+        ? 'display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:var(--fg);color:var(--bg);font:500 11px/1 \'IBM Plex Mono\',monospace;letter-spacing:.06em;cursor:pointer'
+        : 'display:flex;align-items:center;justify-content:center;flex:none;white-space:nowrap;min-height:34px;padding:0 '+(m?'6px':t?'12px':'14px')+';background:var(--fg);color:var(--bg);font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:'+(m?'.08em':'.16em')+';text-transform:uppercase;cursor:pointer',
+      startDaily:()=>{ this.setState({mode:'daily',boardScenario:'playing',route:'board'}); window.scrollTo(0,0); },
+      retryDaily:()=>{ this.resetBoard('daily'); },
+      replayDaily:()=>{ this.resetBoard('replay'); },
+      startPractice:()=>{ this.setState({mode:'practice',route:'board'}); window.scrollTo(0,0); },
+
+      isBoard: s.route==='board',
+      boardRail: s.route==='board' && d,
+      boardBand: s.route==='board' && t,
+      boardMobile: s.route==='board' && m,
+      boardCells: this.cells(L.cell,{}),
+      padKeys: this.padKeys(),
+      backLabel: s.mode==='practice' ? 'Practice' : (s.mode==='archive' ? 'Archive' : 'Today'),
+      backSty: 'display:inline-flex;align-items:center;gap:'+(m?'8px':'10px')+';flex:none;min-height:44px;padding:0 8px 0 0;font:500 '+(m?'10px':'11px')+'/1 \'IBM Plex Mono\',monospace;letter-spacing:'+(m?'.14em':'.18em')+';text-transform:uppercase;color:var(--fg2);cursor:pointer;white-space:nowrap',
+      inputSeg: [['cell','Cell → digit'],['digit','Digit → cells']].map(o=>({label:o[1], on:()=>this.setInputMode(o[0]),
+        sty:this.chipSty(s.inputMode===o[0])})),
+      inputCaption: s.inputMode==='digit'
+        ? 'Pick a digit, then tap every cell that takes it'
+        : 'Pick a cell, then pick its digit',
+      timerText: s.stress ? '99:59+' : this.fmt(s.secs),
+      keyLegend: [{k:'1–9',v:'Place'},{k:'⇧1–9',v:'Note'},{k:'Space',v:'Notes mode'},{k:'⌘Z / ⌘⇧Z',v:'Undo, redo'},{k:'Del',v:'Erase'},{k:'H',v:'Hint'},{k:'P',v:'Pause'}],
+      showTimer: s.showTimer,
+      mistakeDots: this.mistakeDots(),
+      showMistakes: s.checking,
+      mistakeText: s.mistakes+'/3',
+      notesMode: s.notesMode, paused: s.paused, failed: s.failed,
+      hintsLeft: hintsLeft, hintLabel: (m?'Hint ':'Hint · ')+hintsLeft,
+      canHint: hintsLeft>0,
+      boardTitle: s.mode==='practice' ? 'Practice — '+s.diff : (s.mode==='replay' ? 'Replay No. 1247 — Hard' : 'No. 1247 — '+(s.stress?'Expert':D.puzzle.diff)),
+      boardKicker: s.mode==='practice' ? 'Practice · unscored' : (s.mode==='replay' ? 'Replay · unscored' : 'Daily edition · 26 July 2026'),
+      selLabel: (s.inputMode==='digit' && s.loaded!==null)
+        ? (s.loaded==='erase' ? 'Erase loaded — tap cells to clear' : 'Digit '+s.loaded+' loaded — tap cells to '+(s.notesMode?'note':'place'))
+        : (s.sel>=0 ? 'Cell '+'ABCDEFGHI'[s.sel%9]+(Math.floor(s.sel/9)+1)+' selected' : 'No cell selected'),
+      placedText: this.placed()+' of 81 placed',
+      showResumed: s.resumedNotice,
+      showHowtoOffer: s.howtoOffer,
+      dismissResumed:()=>this.setState({resumedNotice:false}),
+      dismissHowto:()=>this.setState({howtoOffer:false}),
+      notesSty: this.toolSty(s.notesMode),
+      undoSty: this.toolSty(false), redoSty: this.toolSty(false),
+      eraseSty: this.toolSty(s.inputMode==='digit' && s.loaded==='erase'),
+      hintSty: this.toolSty(false, hintsLeft<=0), pauseSty: this.toolSty(s.paused, false, true),
+      pauseBtnSty: this.toolSty(s.paused),
+      onNotes:()=>this.setState(x=>({notesMode:!x.notesMode})),
+      onUndo:()=>this.undo(), onRedo:()=>this.redo(),
+      onErase:()=>{ if(this.state.inputMode==='digit') this.setState(x=>({loaded: x.loaded==='erase' ? null : 'erase'})); else this.erase(); },
+      onHint:()=>this.requestHint(), onPause:()=>this.setState(x=>({paused:!x.paused})),
+      hintConfirmOpen: s.hintConfirm && s.route==='board',
+      onHintConfirm:()=>{ this.setState({hintConfirm:false}); this.hint(); },
+      onHintCancel:()=>this.setState({hintConfirm:false}),
+      onExit:()=>this.go(s.mode==='practice' ? 'practice' : (s.mode==='archive' ? 'archive' : 'home')),
+      onRetry:()=>this.resetBoard('daily'),
+
+      isSolved: s.route==='solved',
+      solvedCells: this.cells(m?30:t?34:32,{solved:true}),
+      solvedTime: s.stress ? '99:59+' : '07:12',
+      solvedStats: this.solvedStats(),
+      statCols: 'repeat('+this.statCols()+',minmax(0,1fr))',
+      solvedNote: {standard:'', assisted:'Assisted — one or more hints used. No percentile for assisted solves.', second:'Second attempt — the run holds, but this solve is not ranked.', unchecked:'Unchecked — you played with checking off, so mistakes were not tracked.'}[s.solvedVariant],
+      showSolvedNote: s.solvedVariant!=='standard',
+      shareText:'NONET No. 1247 · Hard\n'+(s.stress?'99:59+':'07:12')+' · 1 mistake · top 22%\nnonet.app',
+      onShare:()=>{ this.setState({copied:true}); clearTimeout(this._c); this._c=setTimeout(()=>this.setState({copied:false}),1800); },
+      streakFrom: s.stress?364:run, streakTo: s.stress?365:run+1,
+
+      isArchive: s.route==='archive',
+      isRecord: s.route==='record',
+      isAuth: s.route==='auth',
+      isSettings: s.route==='settings',
+      isHowto: s.route==='howto',
+      isAbout: s.route==='about',
+      isTokens: s.route==='tokens',
+      tokHeadSty: m ? 'display:none' : 'display:grid;grid-template-columns:170px 160px 160px 1fr;gap:20px;padding:14px 0;border-bottom:1px solid var(--line);font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3)',
+      tokRoleHead: m?'':'Role',
+      isFocus: s.route==='focus',
+      colourTokens: this.colourTokens(),
+      contrastRows: this.contrastRows(),
+      typeTokens: this.typeTokens(),
+      spaceTokens: this.spaceTokens(),
+      layoutConstants: this.layoutConstants(),
+      motionTokens: this.motionTokens(),
+      focusPanels: [
+        {label:'Light', sty:this.LIGHT+';background:var(--bg);color:var(--fg);padding:'+(m?'20px':'30px')+';border:1px solid #DEE1E3;box-sizing:border-box'},
+        {label:'Dark', sty:this.DARK+';background:var(--bg);color:var(--fg);padding:'+(m?'20px':'30px')+';border:1px solid #23282C;box-sizing:border-box'}
+      ],
+      tabOrder: [
+        {n:'01', k:'NONET', v:'Leaves the puzzle, progress kept'},
+        {n:'02', k:'PAUSE', v:'Stops the clock and veils the grid'},
+        {n:'03', k:'CLOSE', v:'Back to today'},
+        {n:'04', k:'Grid', v:'One stop. Arrows move, 1–9 place, DEL erases, ESC leaves the grid'},
+        {n:'05', k:'Number pad', v:'One stop. Arrows move between keys, ENTER places'},
+        {n:'06', k:'NOTES', v:'SPACE also toggles it from anywhere'},
+        {n:'07', k:'UNDO', v:''},
+        {n:'08', k:'REDO', v:''},
+        {n:'09', k:'ERASE', v:''},
+        {n:'10', k:'HINT', v:'Skipped when no hints remain'}
+      ],
+      isError: s.route==='error',
+      isNotFound: s.route==='notfound',
+      archiveCells: m ? this.archiveMini() : this.archiveCells(),
+      archiveRows: AL.rows,
+      showHidden: AL.hidden>0,
+      hiddenText: AL.hidden+' more in this month do not match the filter',
+      listEmpty: AL.rows.length===0,
+      listHeading: m ? (AL.total+' editions') : (this.MONTHS[s.archiveM]+' '+s.archiveY+' — '+AL.total+' editions'),
+      legendItems: this.legendItems(),
+      filterGroups: this.filterGroups(),
+      filterActive: s.fDiff.length>0 || s.fStatus.length>0,
+      filterCount: AL.matched+' of '+AL.total+' in '+this.MONTHS[s.archiveM],
+      onClearFilters:()=>this.setState({fDiff:[], fStatus:[]}),
+      clearSty:'font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--fg3);cursor:pointer;display:'+((s.fDiff.length||s.fStatus.length)?'inline-flex':'none')+';align-items:center;min-height:'+(m?'44px':'32px')+';padding:0 4px;text-decoration:underline;text-underline-offset:.25em',
+      railSty: d
+        ? 'min-width:0;border-top:2px solid var(--rule);padding-top:20px;display:flex;flex-direction:column;gap:24px'
+        : 'display:none',
+      bandSty: t
+        ? 'margin-top:38px;padding-top:18px;border-top:2px solid var(--rule);display:flex;flex-wrap:wrap;align-items:center;gap:14px 30px'
+        : 'display:none',
+      compactSty: m
+        ? 'margin-top:16px;display:flex;flex-direction:column;gap:10px'
+        : 'display:none',
+      miniNoteSty: m
+        ? 'margin-top:12px;font:400 11px/1.5 \'Archivo\',sans-serif;color:var(--fg3)'
+        : 'display:none',
+      diffKeySty: m
+        ? 'display:none'
+        : 'margin-top:10px;font:400 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.1em;color:var(--fg3)',
+      recordYearLabel: String(s.recordYear),
+      yearChips: [2023,2024,2025,2026].map(y=>({l:String(y), on:()=>this.setState({recordYear:y}),
+        sty:'display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 8px;font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.12em;cursor:pointer;font-variant-numeric:tabular-nums;'
+          +(s.recordYear===y ? 'color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)' : 'color:var(--fg3)')})),
+      stripCells: YS.cells,
+      stripMonths: YS.months,
+      stripGridSty: 'display:grid;grid-template-rows:repeat(7,'+L.stripCell+'px);grid-auto-flow:column;grid-auto-columns:'+L.stripCell+'px;gap:'+L.stripGap+'px',
+      stripMonthRowSty: 'position:relative;height:12px;width:'+(YS.cols*(L.stripCell+L.stripGap)-L.stripGap)+'px;margin-bottom:8px;font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3)',
+      stripScrollSty: m ? 'margin-top:18px;overflow-x:auto;overflow-y:hidden;padding-bottom:8px' : 'margin-top:18px',
+      stripHintSty: m ? 'margin-top:2px;font:400 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3)' : 'display:none',
+      stripSummary: YS.summary,
+      archiveMonthLabel: this.MONTHS[s.archiveM]+' '+s.archiveY,
+      archiveM: String(s.archiveM), archiveY: String(s.archiveY),
+      archiveCount: this.editionNo(this.TODAY).toLocaleString('en-US'),
+      jumpValue: s.archiveY+'-'+s.archiveM,
+      jumpOptions: this.jumpOptions(),
+      onJump:(e)=>{ const p=String(e.target.value).split('-'); this.jumpMonth(+p[1], +p[0]); },
+      jumpSelSty:'box-sizing:border-box;min-height:'+(m?'44px':'34px')+';padding:0 8px;background:transparent;border:1px solid var(--line);color:var(--fg2);font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.12em;text-transform:uppercase;cursor:pointer',
+      onPrevMonth:()=>this.stepMonth(-1), onNextMonth:()=>this.stepMonth(1),
+      prevMonthSty: this.monthNavSty(!(s.archiveY===2023 && s.archiveM===1)),
+      nextMonthSty: this.monthNavSty(!(s.archiveY===2026 && s.archiveM===6)),
+      confirmOpen: !!s.confirmDiff && s.route==='home', confirmDiff: s.confirmDiff,
+      onDiscard:()=>{ const k=s.confirmDiff; this.setState({confirmDiff:null}); this.startPracticeAt(k); },
+      onKeepPlaying:()=>this.setState({confirmDiff:null}),
+      recordFull: s.recordState==='full',
+      recordLocal: s.recordState==='local',
+      recordEmpty: s.recordState==='empty',
+      recordHasData: s.recordState!=='empty',
+      perDiff: D.stats.perDiff.map(x=>({...x, n:this.solvedByDiff()[x.k], sty:'display:grid;grid-template-columns:1fr 90px 90px 70px;gap:12px;align-items:baseline;padding:16px 4px;border-bottom:1px solid var(--line2);font:400 14px/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums'})),
+      practiceStats: D.stats.practice.map(x=>({...x, sty:'display:grid;grid-template-columns:1fr 90px 90px;gap:12px;align-items:baseline;padding:16px 4px;border-bottom:1px solid var(--line2);font:400 14px/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums'})),
+      windowTabs:[['all','All time'],['30','Last 30 days']].map(([k,l])=>({label:l, on:()=>this.setState({recordWindow:k}),
+        sty:'font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.16em;text-transform:uppercase;padding:10px 12px;min-height:40px;display:inline-flex;align-items:center;cursor:pointer;'+(s.recordWindow===k?'background:var(--fg);color:var(--bg)':'color:var(--fg3);border:1px solid var(--line)')})),
+      authSent: s.authStage==='sent',
+      authForm: s.authStage==='form',
+      authMerged: s.authStage==='merged',
+      mergeRows: this.mergeRows(),
+      mergeNote: s.mergeCase==='account'
+        ? 'The account already held a run of 41 days, longer than the 18 days kept in this browser, so the account run stands. Every local solve is still counted.'
+        : 'The run of 18 days held in this browser is longer than the 5 days on the account, so it stands.',
+      onMergeContinue:()=>{ this.setState({authStage:'form'}); this.go('home'); },
+      onSend:()=>this.setState({authStage:'sent'}),
+      onSignIn:()=>this.setState({signedIn:true, authStage:'merged'}),
+      settingsRows: this.settingsRows(),
+      isGuest: !s.signedIn, signedIn: s.signedIn,
+      themeOptions: [['light','Light'],['dark','Dark'],['system','System']].map(o=>({label:o[1], on:()=>this.setTheme(o[0]),
+        sty:this.chipSty(s.themePref===o[0], m?44:38),
+        drawerSty:'display:flex;align-items:center;justify-content:center;min-height:48px;font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;'+(s.themePref===o[0]?'background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent)':'background:transparent;color:var(--fg2);border:1px solid var(--line)')})),
+      goSettings:()=>this.go('settings'),
+      goRecord:()=>this.go('record'),
+      goArchive:()=>this.go('archive'),
+      onRetryLoad:()=>this.go('home'),
+      recordTitle: s.recordState==='empty' ? 'No record yet.' : this.words(s.stress?365:run)+' days, unbroken.',
+      recordStats: [
+        {k:'Current streak', v: s.stress?'365':String(run)},
+        {k:'Best streak', v: s.stress?'365':String(this.BEST_RUN)},
+        {k:'Dailies solved', v: s.stress?'1,204':String(this.solvedTotal())},
+        {k:'Mistake-free', v:'68%'}
+      ],
+      archiveDateHead: m?'':'Date', archiveDiffHead: m?'':'Difficulty', archiveStatusHead: m?'Status':'Status',
+      accountTitle: s.signedIn ? 'alex@example.com' : 'Playing as a guest',
+      accountDesc: s.signedIn ? 'Streak and stats sync across your devices.' : 'Progress is kept in this browser only.',
+      accountAction: s.signedIn ? 'Sign out' : 'Sign in',
+      onAccount: s.signedIn ? (()=>this.setState({signedIn:false})) : (()=>this.go('auth'))
+    };
+  }
+
+  colourTokens(){
+    const m=this.state.vw<=430;
+    const rows=[
+      ['--bg','#F1F2F3','#131518','Page ground and frame fill'],
+      ['--surface','#FBFBFC','#1A1D20','Cell fill, plates, inputs'],
+      ['--fg','#16181B','#EDEFF1','Primary text, givens, filled buttons'],
+      ['--fg2','#4B5157','#B4BABF','Body copy and secondary labels'],
+      ['--fg3','#6C7278','#8B9298','Mono kickers, metadata, captions'],
+      ['--line','#CFD3D6','#2A2F34','Hairline rules and thin cell divisions'],
+      ['--line2','#DEE1E3','#23282C','Softer rule for list rows, plates, pad keys and the hatch'],
+      ['--accent','#2C41C4','#93A6FF','Your entries, links, active control fill'],
+      ['--accent-ink','#FBFBFC','#131518','Text on an accent fill'],
+      ['--cell-hl','#E8EAEC','#22262A','Row, column and box shading'],
+      ['--cell-same','#E4E8F8','#242B3D','Cells holding the same digit; a pad key held to note'],
+      ['--cell-sel','#D7DDF9','#2C365C','The selected cell'],
+      ['--error','#A9231A','#FF8A75','Wrong entry, failed run, locked state'],
+      ['--error-soft','#F4DDDA','#3A211C','Fill behind a wrong entry, and behind a loaded digit that erred'],
+      ['--hover','#E7E9EB','#22262A','Hover wash on outline buttons'],
+      ['--rule','#16181B','#8B939A','2px box rules and the grid border'],
+      ['--deco','#C3C7CB','#3D444A','Streak bars, arrows, disabled month navigation'],
+      ['--veil','#EDEEEF','#15181B','Pause and lock veil over the grid']
+    ];
+    const sw=(hex)=>'width:24px;height:24px;flex:none;display:block;background:'+hex+';box-shadow:inset 0 0 0 1px rgba(128,128,128,.4)';
+    return rows.map(r=>({name:r[0], light:r[1], dark:r[2], note:r[3], lightSw:sw(r[1]), darkSw:sw(r[2]),
+      rowSty: m
+        ? 'display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:14px 0;border-bottom:1px solid var(--line2)'
+        : 'display:grid;grid-template-columns:170px 160px 160px 1fr;gap:20px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line2)'}));
+  }
+  contrastRows(){
+    return [
+      {k:'--accent on --bg', theme:'Light', v:'7.0 : 1', pass:'AA · AAA'},
+      {k:'--accent on --bg', theme:'Dark', v:'8.0 : 1', pass:'AA · AAA'},
+      {k:'--fg2 on --bg', theme:'Light', v:'7.2 : 1', pass:'AA · AAA'},
+      {k:'--fg2 on --bg', theme:'Dark', v:'9.3 : 1', pass:'AA · AAA'}
+    ].map(r=>({...r, sty:'display:grid;grid-template-columns:1fr 70px 90px 100px;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line2);font:400 12px/1 \'IBM Plex Mono\',monospace;font-variant-numeric:tabular-nums'}));
+  }
+  typeTokens(){
+    const m=this.state.vw<=430, t=this.state.vw>430&&this.state.vw<1100;
+    const cap = m?42:t?84:132;
+    const rows=[
+      ['display','Archivo',600,56,'1.02','-.04em','Fill every row, column and box.'],
+      ['hero-number','Archivo',600,124,'0.84','-.05em','1247'],
+      ['streak-number','Archivo',600,54,'1','-.04em','365'],
+      ['timer','Archivo',600,44,'1','-.035em','99:59+'],
+      ['stat-number','Archivo',600,38,'1','-.035em','07:12'],
+      ['cell-digit','Archivo',600,38,'1','0','5 3 4'],
+      ['wordmark','Archivo',700,22,'1','-.045em','NONET'],
+      ['cell-note','Archivo',400,15,'1.45','.06em','1 2 3'],
+      ['body','Archivo',400,15,'1.65','0','Three mistakes lock the puzzle.'],
+      ['body-small','Archivo',400,13,'1.6','0','Saved in this browser'],
+      ['control','IBM Plex Mono',500,11,'1','.13em','Hint · 3'],
+      ['kicker','IBM Plex Mono',500,11,'1','.22em','Daily edition'],
+      ['mono-label','IBM Plex Mono',500,10,'1','.18em','Mistakes'],
+      ['mono-data','IBM Plex Mono',400,12,'1.7','.02em','No. 1247 · 07:12']
+    ];
+    return rows.map(r=>{
+      const nm=r[0], fam=r[1], w=r[2], sz=r[3], lh=r[4], ls=r[5], sample=r[6];
+      const up = nm==='control'||nm==='kicker'||nm==='mono-label';
+      const shown = Math.min(sz, cap);
+      return {name:nm, sample,
+        spec: fam+' · '+w+' · '+sz+'/'+(lh==='0'?'1':lh)+' · '+(ls==='0'?'0':ls)+(up?' · uppercase':''),
+        note: shown<sz ? 'shown at '+shown+'px' : '',
+        sty:'font-family:'+(fam==='Archivo'?'Archivo,sans-serif':'\'IBM Plex Mono\',monospace')+';font-weight:'+w+';font-size:'+shown+'px;line-height:'+(lh==='0'?'1':lh)+';letter-spacing:'+(ls==='0'?'0':ls)+';font-variant-numeric:tabular-nums;'+(up?'text-transform:uppercase;':'')+'display:block',
+        rowSty:'display:grid;grid-template-columns:'+(m?'1fr':'220px 1fr')+';gap:'+(m?'12px':'28px')+';align-items:baseline;padding:20px 0;border-bottom:1px solid var(--line2)'};
+    });
+  }
+  spaceTokens(){
+    const vals=[['space-3xs',4],['space-2xs',6],['space-xs',8],['space-s',12],['space-sm',14],['space-m',18],['space-ml',20],['space-l',26],['space-xl',34],['space-2xl',44],['space-3xl',62],['space-4xl',88]];
+    return vals.map(v=>({name:v[0], px:v[1]+'px',
+      bar:'display:block;height:8px;width:'+v[1]+'px;background:var(--fg)',
+      sty:'display:flex;align-items:center;gap:20px;padding:9px 0;border-bottom:1px solid var(--line2)'}));
+  }
+  layoutConstants(){
+    const rows=[
+      ['frame-pad','20 / 40 / 88','390 · 834 · 1440'],
+      ['section-gap','46 / 62 / 62','Space above a new section rule'],
+      ['hero-gap','34 / 44 / 72','Column gap in two-column compositions'],
+      ['grid-cell','39 / 76 / 80','Square, so the grid is 351 / 684 / 720'],
+      ['grid-rule','1px / 2px','Hairline between cells, 2px on box and frame'],
+      ['rail-width','320','Desktop board rail, 1px hairline on its left'],
+      ['control-height','50 / 46 / 46','Toolbar chips and pad keys'],
+      ['tap-target-min','44','Never below this on any viewport'],
+      ['rule-inset','4','Horizontal padding on hairline list rows'],
+      ['chip-height','44 / 34','Filter, input and theme chips — 44 on touch'],
+      ['cal-cell','30 / 66 / 86','Archive day cell; 30 is the 390 month summary'],
+      ['strip-cell','9 / 11 / 19','Record year square; gap 2 / 3 / 4'],
+      ['dialog','440 / 28','Confirmation width and padding'],
+      ['elevation','0 24px 60px 14%','The only shadow in the product'],
+      ['hatch','45° · 1px on 5px','Spent pad key — the non-colour cue']
+    ];
+    const m=this.state.vw<=430;
+    return rows.map(r=>({k:r[0], v:r[1], note:r[2],
+      sty:'display:grid;grid-template-columns:'+(m?'1fr auto':'190px 150px 1fr')+';gap:'+(m?'6px 16px':'20px')+';align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line2)'}));
+  }
+  motionTokens(){
+    const m=this.state.vw<=430;
+    const rows=[
+      ['motion-hover','150ms · ease','Background and colour on outline buttons, links, rows','Instant. The colour still changes.',
+       'width:34px;height:34px;display:block;background:var(--line);transition:background 150ms ease','background:var(--accent)',''],
+      ['motion-place','180ms · cubic-bezier(.2,.8,.3,1)','A digit or a hint landing in a cell — scale .7 to 1, opacity 0 to 1','No scale, no fade. The digit is simply there.',
+       'width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--cell-sel);color:var(--accent);font:400 20px/1 Archivo,sans-serif;animation:tokenPop 2.4s infinite','','5'],
+      ['motion-reveal','420ms · cubic-bezier(.2,.8,.3,1)','The solved grid settling on the result screen — 7px rise, fade in','No rise, no fade.',
+       'width:34px;height:34px;display:block;background:var(--fg);animation:tokenReveal 3s infinite','',''],
+      ['motion-toast','1800ms dwell · 150ms in and out','The Copied confirmation','Dwell is unchanged; it appears and leaves without a fade.',
+       'display:inline-flex;align-items:center;padding:9px 12px;background:var(--fg);color:var(--bg);font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.18em;text-transform:uppercase;animation:tokenToast 3.6s infinite','','Copied']
+    ];
+    return rows.map(r=>({name:r[0], val:r[1], use:r[2], reduced:r[3], demoSty:r[4], demoHover:r[5], demoText:r[6],
+      sty:'display:grid;grid-template-columns:'+(m?'1fr':'190px 1fr 60px')+';gap:'+(m?'12px':'24px')+';align-items:start;padding:22px 0;border-bottom:1px solid var(--line2)'}));
+  }
+  placed(){ let n=0; for(let i=0;i<81;i++){ if(this.isGiven(i)||(this.state.entries&&this.state.entries[i]!==undefined)) n++; } return n; }
+  remaining(d){ let n=0; for(let i=0;i<81;i++){ const v=this.isGiven(i)?+this.DB.puzzle.grid[i]:(this.state.entries||{})[i]; if(v===d) n++; } return Math.max(0,9-n); }
+  chipSty(active, h){
+    const hh = h || (this.state.vw<=430 ? 44 : 34);
+    return 'display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:'+hh+'px;padding:0 12px;font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;cursor:pointer;'
+      +(active ? 'background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent)' : 'background:transparent;border:1px solid var(--line);color:var(--fg3)');
+  }
+  toolSty(active, disabled, inline){
+    const m=this.state.vw<=430;
+    return 'display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;box-sizing:border-box;'+(inline?'':'width:100%;')
+      +'min-height:'+(m?'50px':'46px')+';padding:0 '+(m?'4px':'14px')+';font:500 '+(m?'10px':'11px')+'/1 \'IBM Plex Mono\',monospace;letter-spacing:'+(m?'.04em':'.13em')+';text-transform:uppercase;cursor:'+(disabled?'default':'pointer')+';'
+      +(active?'background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);':'background:transparent;color:'+(disabled?'var(--fg3)':'var(--fg2)')+';border:1px '+(disabled?'dashed':'solid')+' var(--line);'+(disabled?'opacity:.62;':''));
+  }
+  mistakeDots(){
+    const out=[]; for(let i=0;i<3;i++) out.push('width:9px;height:9px;display:block;'+(i<this.state.mistakes?'background:var(--error)':'border:1px solid var(--deco)'));
+    return out;
+  }
+  padKeys(){
+    const s=this.state, m=s.vw<=430, t=s.vw>430&&s.vw<1100;
+    const h=m?58:t?66:60, fs=m?24:t?26:26, gp=m?3:t?6:4;
+    const digitFirst = s.inputMode==='digit';
+    const out=[];
+    for(let d=1;d<=9;d++){
+      const left=this.remaining(d), spent=left===0 && !s.stress;
+      const loaded = digitFirst && s.loaded===d && !spent;
+      const errored = loaded && s.errDigit===d;
+      const held = s.holdDigit===d && !spent;
+      const armed = held && s.holdArmed;
+      let bg='var(--surface)', bd='1px solid var(--line2)', col='var(--fg)';
+      let cnt = s.stress?String(112+d):String(left), cntCol='var(--fg3)', cntExtra='';
+      let numSty='font:600 '+fs+'px/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums';
+      if(spent){
+        bg='repeating-linear-gradient(45deg,var(--line2) 0 1px,transparent 1px 5px)';
+        col='var(--fg3)'; cntCol='var(--fg3)';
+        cntExtra=';text-decoration:line-through;text-decoration-thickness:1px';
+        numSty='font:400 '+fs+'px/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums;text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:var(--fg3)';
+      } else if(errored){
+        bg='var(--error-soft)'; bd='1px solid var(--error)'; col='var(--error)'; cntCol='var(--error)';
+        numSty='font:600 '+fs+'px/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums;text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:2px';
+      } else if(loaded){
+        bg='var(--accent)'; bd='1px solid var(--accent)'; col='var(--accent-ink)'; cntCol='var(--accent-ink)';
+      }
+      if(held){
+        cnt='NOTE';
+        bg = armed ? 'var(--cell-same)' : (loaded ? 'var(--accent)' : 'var(--surface)');
+        bd = armed ? '1px solid var(--accent)' : '1px dashed var(--accent)';
+        col = loaded && !armed ? 'var(--accent-ink)' : (armed ? 'var(--accent)' : 'var(--fg2)');
+        cntCol = loaded && !armed ? 'var(--accent-ink)' : (armed ? 'var(--accent)' : 'var(--fg3)');
+        cntExtra='';
+        numSty='font:400 '+Math.round(fs*0.74)+'px/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums';
+      }
+      out.push({d, count:cnt,
+        sty:'position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:'+gp+'px;min-height:'+h+'px;cursor:'+(spent?'default':'pointer')+';user-select:none;-webkit-user-select:none;touch-action:manipulation;background:'+bg+';border:'+bd+';color:'+col+';font-variant-numeric:tabular-nums;transition:background .12s,border-color .12s',
+        numSty, cntSty:'font:400 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.08em;color:'+cntCol+cntExtra,
+        down: spent?null:()=>this.padDown(d), up: spent?null:()=>this.padUp(d), cancel: spent?null:()=>this.padCancel()});
+    }
+    return out;
+  }
+  statCols(){
+    const s=this.state, m=s.vw<=430, t=s.vw>430&&s.vw<1100;
+    const n=this.solvedStats().length;
+    return m ? 1 : (t ? (n===4?2:n) : n);
+  }
+  solvedStats(){
+    const v=this.state.solvedVariant;
+    const rows=[{k:'Time',v:this.state.stress?'99:59+':'07:12'},{k:'Difficulty',v:this.state.stress?'Expert':'Hard'}];
+    if(v!=='unchecked') rows.push({k:'Mistakes',v:(v==='standard'?'1 of 3':'0 of 3')});
+    if(v==='standard') rows.push({k:'Percentile',v:'Top 22%'});
+    else rows.push({k:'Ranked',v:'No'});
+    const s=this.state, m=s.vw<=430, t=s.vw>430&&s.vw<1100;
+    const cols = m ? 1 : (t ? (rows.length===4?2:rows.length) : rows.length);
+    return rows.map((r,i)=>({...r, sty:'min-width:0;padding:24px '+(m?'0':'28px')+' 28px;'
+      +((i%cols)!==0 ? 'border-left:1px solid var(--line);' : (m?'':'padding-left:0;'))
+      +(i>=cols ? 'border-top:1px solid var(--line2);' : '')}));
+  }
+  setTheme(pref){
+    let theme = pref;
+    if(pref==='system'){
+      const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+      theme = (mq && mq.matches) ? 'dark' : 'light';
+    }
+    this.setState({themePref:pref, theme});
+  }
+  settingsRows(){
+    const s=this.state;
+    const chip=(label,on,active)=>({label,on, sty:this.chipSty(active, s.vw<=430?44:38)});
+    const rowSty='display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 4px;border-bottom:1px solid var(--line2);min-height:44px';
+    const rowStySeg = s.vw<=430 ? 'display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:20px 4px;border-bottom:1px solid var(--line2)' : rowSty;
+    const mk=(k,label,desc,name,val,on)=>({key:k,label,desc,rowSty,segs:[chip(name,on,val)]});
+    return [
+      {key:'input', label:'Input', desc:'Cell → digit: pick a cell, then its digit. Digit → cells: pick a digit once, then tap every cell that takes it.', rowSty:rowStySeg,
+        segs:[chip('Cell → digit',()=>this.setInputMode('cell'), s.inputMode==='cell'), chip('Digit → cells',()=>this.setInputMode('digit'), s.inputMode==='digit')]},
+      mk('advance','Auto-advance','After a digit is placed, move to the next empty cell in reading order. Cell first only.','Advance', s.autoAdvance, ()=>this.toggleAutoAdvance()),
+      mk('check','Checking','Flag a wrong digit the moment it is entered, and count it. Off means no flags, no mistake tally, and no percentile.','Checking', s.checking, ()=>this.setState({checking:!s.checking})),
+      mk('match','Highlight matching digits','Shade every cell holding the same digit as the selected cell.','Matching', s.hlMatch, ()=>this.setState({hlMatch:!s.hlMatch})),
+      mk('unit','Highlight row, column and box','Shade the three units the selected cell belongs to.','Units', s.hlUnit, ()=>this.setState({hlUnit:!s.hlUnit})),
+      mk('timer','Show timer','Hide it while you play; the time is still recorded and shown at the end.','Timer', s.showTimer, ()=>this.setState({showTimer:!s.showTimer}))
+    ];
+  }
+  MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  EPOCH=Date.UTC(2023,1,26);
+  TODAY=Date.UTC(2026,6,26);
+  STREAK_START=Date.UTC(2026,6,8);
+  BREAKS={'2026-6-2':'failed','2026-6-6':'missed','2026-6-7':'missed'};
+  get runDays(){ return Math.round((this.TODAY-this.STREAK_START)/86400000); }
+  words(n){
+    if(n===365) return 'Three hundred and sixty-five';
+    const o=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+    const t=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+    const w = n<20 ? o[n] : (t[Math.floor(n/10)] + (n%10 ? '-'+o[n%10] : ''));
+    return w.charAt(0).toUpperCase()+w.slice(1);
+  }
+  monthNavSty(enabled){
+    return 'display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border:1px solid '+(enabled?'var(--line)':'var(--line2)')+';color:'+(enabled?'var(--fg2)':'var(--deco)')+';font:400 20px/1 \'Archivo\',sans-serif;cursor:'+(enabled?'pointer':'default')+';user-select:none';
+  }
+  stepMonth(dir){
+    let y=this.state.archiveY, mo=this.state.archiveM+dir;
+    if(mo<0){ mo=11; y--; } if(mo>11){ mo=0; y++; }
+    this.jumpMonth(mo,y);
+  }
+  jumpMonth(mo,y){
+    let ts=Date.UTC(y,mo,1);
+    if(ts<Date.UTC(2023,1,1)){ y=2023; mo=1; }
+    if(ts>Date.UTC(2026,6,1)){ y=2026; mo=6; }
+    this.setState({archiveY:y, archiveM:mo});
+  }
+  SOLVED_TOTAL=212;
+  BEST_RUN=61;
+  BEST_END=Date.UTC(2025,9,31);
+  dayMap(){
+    if(this._map) return this._map;
+    const day=86400000, map={};
+    for(let ts=this.STREAK_START; ts<this.TODAY; ts+=day) map[ts]='solved';
+    for(let i=0;i<this.BEST_RUN;i++) map[this.BEST_END-i*day]='solved';
+    map[this.BEST_END+day]='missed';
+    map[this.BEST_END-this.BEST_RUN*day]='missed';
+    Object.keys(this.BREAKS).forEach(k=>{ const p=k.split('-'); map[Date.UTC(+p[0],+p[1],+p[2])]=this.BREAKS[k]; });
+    const count=(v)=>Object.keys(map).filter(k=>map[k]===v).length;
+    let solved=count('solved'), failed=count('failed');
+    for(let ts=this.EPOCH; ts<this.TODAY; ts+=day){
+      if(map[ts]) continue;
+      const h=(this.editionNo(ts)*7919)%97;
+      if(solved<this.SOLVED_TOTAL && h<11){ map[ts]='solved'; solved++; continue; }
+      if(failed<26 && h===40){ map[ts]='failed'; failed++; }
+    }
+    for(let ts=this.EPOCH; ts<this.TODAY && solved<this.SOLVED_TOTAL; ts+=day){ if(!map[ts]){ map[ts]='solved'; solved++; } }
+    this._map=map;
+    return map;
+  }
+  dayStatus(ts,no){
+    if(ts<this.EPOCH) return 'none';
+    if(ts>this.TODAY) return 'future';
+    if(ts===this.TODAY) return this.state.homeState==='solved' ? 'solved' : 'today';
+    return this.dayMap()[ts] || 'missed';
+  }
+  solvedTotal(){ return this.SOLVED_TOTAL + (this.state.homeState==='solved' ? 1 : 0); }
+  solvedByDiff(){
+    if(!this._byDiff){
+      const map=this.dayMap(), out={Easy:0,Medium:0,Hard:0,Expert:0};
+      Object.keys(map).forEach(k=>{ if(map[k]==='solved') out[this.diffFor(+k)]++; });
+      this._byDiff=out;
+    }
+    const o={...this._byDiff};
+    if(this.state.homeState==='solved') o[this.diffFor(this.TODAY)]++;
+    return o;
+  }
+  DIFF_BY_DOW=['Hard','Easy','Medium','Medium','Hard','Hard','Expert'];
+  LETTERS={Easy:'E',Medium:'M',Hard:'H',Expert:'EX'};
+  diffFor(ts){ return this.DIFF_BY_DOW[new Date(ts).getUTCDay()]; }
+  editionNo(ts){ return Math.round((ts-this.EPOCH)/86400000)+1; }
+  statusBucket(st){ return st==='solved' ? 'Solved' : (st==='failed' ? 'Failed' : 'Unplayed'); }
+  statusLabel(st){ return {solved:'Solved',failed:'Failed',missed:'Unplayed',today:'Today'}[st] || '—'; }
+  solveTime(no, diff){
+    if(this.state.stress) return '99:59+';
+    const base={Easy:150,Medium:280,Hard:400,Expert:760}[diff];
+    const sec=base+((no*7919)%170);
+    return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+  }
+  matchDay(st, diff){
+    const s=this.state;
+    if(s.fDiff.length && s.fDiff.indexOf(diff)<0) return false;
+    if(s.fStatus.length && s.fStatus.indexOf(this.statusBucket(st))<0) return false;
+    return true;
+  }
+  jumpOptions(){
+    const out=[];
+    for(let y=2023;y<=2026;y++){
+      for(let i=0;i<12;i++){
+        if(y===2023 && i<1) continue;
+        if(y===2026 && i>6) continue;
+        out.push({v:y+'-'+i, l:this.MONTHS[i]+' '+y});
+      }
+    }
+    return out;
+  }
+  dayFill(st){
+    return {
+      solved:{bg:'var(--fg)',bd:'1px solid var(--fg)',fg:'var(--bg)'},
+      failed:{bg:'var(--error)',bd:'1px solid var(--error)',fg:'var(--accent-ink)'},
+      missed:{bg:'transparent',bd:'1px solid var(--line)',fg:'var(--fg3)'},
+      today:{bg:'transparent',bd:'2px solid var(--accent)',fg:'var(--accent)'},
+      future:{bg:'transparent',bd:'1px dashed var(--line2)',fg:'var(--deco)'},
+      none:{bg:'transparent',bd:'1px dashed var(--line2)',fg:'var(--deco)'}
+    }[st];
+  }
+  legendItems(){
+    return [
+      {l:'Solved', sw:'width:11px;height:11px;flex:none;box-sizing:border-box;background:var(--fg);display:block'},
+      {l:'Failed', sw:'width:11px;height:11px;flex:none;box-sizing:border-box;background:var(--error);display:block'},
+      {l:'Unplayed', sw:'width:11px;height:11px;flex:none;box-sizing:border-box;border:1px solid var(--line);display:block'},
+      {l:'Today', sw:'width:11px;height:11px;flex:none;box-sizing:border-box;border:2px solid var(--accent);display:block'}
+    ];
+  }
+  filterGroups(){
+    const s=this.state, m=s.vw<=430;
+    const chip=(l,active,on)=>({l, on, sty:this.chipSty(active)});
+    const toggle=(key,v)=>{
+      const cur=this.state[key];
+      this.setState({[key]: cur.indexOf(v)>=0 ? cur.filter(x=>x!==v) : cur.concat([v])});
+    };
+    return [
+      {label:'Difficulty', chips:['Easy','Medium','Hard','Expert'].map(k=>chip(k, s.fDiff.indexOf(k)>=0, ()=>toggle('fDiff',k)))},
+      {label:'Status', chips:['Unplayed','Solved','Failed'].map(k=>chip(k, s.fStatus.indexOf(k)>=0, ()=>toggle('fStatus',k)))}
+    ];
+  }
+  archiveCells(){
+    const s=this.state, t=s.vw>430&&s.vw<1100;
+    const y=s.archiveY, mo=s.archiveM;
+    const startDow=(new Date(Date.UTC(y,mo,1)).getUTCDay()+6)%7;
+    const days=new Date(Date.UTC(y,mo+1,0)).getUTCDate();
+    const h=t?'66px':'86px';
+    const out=[];
+    for(let i=0;i<startDow;i++) out.push({d:'', no:'', letter:'', sty:'min-height:'+h, topSty:'display:none', dSty:'display:none', lSty:'display:none', noSty:'display:none', hov:'', on:null});
+    for(let d=1;d<=days;d++){
+      const ts=Date.UTC(y,mo,d), no=this.editionNo(ts);
+      const st=this.dayStatus(ts,no), diff=this.diffFor(ts);
+      const f=this.dayFill(st);
+      const live = st!=='future' && st!=='none';
+      const ok = !live || this.matchDay(st,diff);
+      const on = live && ok;
+      out.push({d:String(d), no: live ? String(no) : '', letter: live ? this.LETTERS[diff] : '',
+        sty:'position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;width:100%;min-height:'+h+';padding:9px;background:'+f.bg+';border:'+(ok?f.bd:'1px dashed var(--line2)')+';color:'+f.fg+';cursor:'+(on?'pointer':'default')+';opacity:'+(ok?'1':'.3')+';transition:box-shadow 150ms ease,opacity 150ms ease',
+        hov: on ? 'box-shadow:inset 0 0 0 2px var(--accent)' : '',
+        topSty:'display:flex;align-items:baseline;justify-content:space-between;gap:6px;width:100%',
+        dSty:'font:400 13px/1 \'IBM Plex Mono\',monospace;font-variant-numeric:tabular-nums',
+        lSty: live ? 'font:500 11px/1 \'IBM Plex Mono\',monospace;letter-spacing:.14em;opacity:.8' : 'display:none',
+        noSty:'font:400 10px/1 \'IBM Plex Mono\',monospace;font-variant-numeric:tabular-nums;opacity:.62',
+        on: on ? (()=>{ this.setState({mode:'archive', route:'board', diff, boardScenario:'playing'}); window.scrollTo(0,0); }) : null});
+    }
+    return out;
+  }
+  archiveMini(){
+    const s=this.state, y=s.archiveY, mo=s.archiveM;
+    const startDow=(new Date(Date.UTC(y,mo,1)).getUTCDay()+6)%7;
+    const days=new Date(Date.UTC(y,mo+1,0)).getUTCDate();
+    const out=[];
+    const blank={d:'', no:'', letter:'', sty:'min-height:26px', topSty:'display:none', dSty:'display:none', lSty:'display:none', noSty:'display:none', hov:'', on:null};
+    for(let i=0;i<startDow;i++) out.push({...blank});
+    for(let d=1;d<=days;d++){
+      const ts=Date.UTC(y,mo,d), no=this.editionNo(ts);
+      const st=this.dayStatus(ts,no), diff=this.diffFor(ts);
+      const f=this.dayFill(st);
+      const live = st!=='future' && st!=='none';
+      const ok = !live || this.matchDay(st,diff);
+      out.push({d:'', no:'', letter:'',
+        sty:'box-sizing:border-box;width:100%;aspect-ratio:1;min-height:26px;background:'+f.bg+';border:'+(ok?f.bd:'1px dashed var(--line2)')+';opacity:'+(ok?'1':'.3'),
+        topSty:'display:none', dSty:'display:none', lSty:'display:none', noSty:'display:none', hov:'', on:null});
+    }
+    return out;
+  }
+  archiveList(){
+    const s=this.state, m=s.vw<=430;
+    const y=s.archiveY, mo=s.archiveM;
+    const days=new Date(Date.UTC(y,mo+1,0)).getUTCDate();
+    const rows=[]; let hidden=0, total=0;
+    for(let d=days; d>=1; d--){
+      const ts=Date.UTC(y,mo,d);
+      if(ts<this.EPOCH || ts>this.TODAY) continue;
+      total++;
+      const no=this.editionNo(ts), st=this.dayStatus(ts,no), diff=this.diffFor(ts);
+      if(!this.matchDay(st,diff)){ hidden++; continue; }
+      const label=this.statusLabel(st);
+      const time = st==='solved' ? this.solveTime(no,diff) : '—';
+      const stCol = st==='solved' ? 'var(--fg2)' : (st==='failed' ? 'var(--error)' : 'var(--fg3)');
+      rows.push({
+        no: s.stress ? String(1000+no%9000) : String(no),
+        date: d+' '+this.MONTHS[mo].slice(0,3)+' '+y,
+        diff, st:label, time, meta: diff+' · '+label,
+        rowSty:'display:grid;grid-template-columns:'+(m?'1fr auto':'1fr 96px 104px 104px 84px')+';gap:'+(m?'6px 12px':'16px')+';align-items:center;padding:'+(m?'12px 4px':'14px 4px')+';border-bottom:1px solid var(--line2);min-height:'+(m?'56px':'46px')+';cursor:pointer;transition:background 120ms ease',
+        dateSty:'font:'+(m?'500 14px/1.3':'400 14px/1')+' \'Archivo\',sans-serif;min-width:0',
+        noSty:'font:400 '+(m?'11px':'12px')+'/1 \'IBM Plex Mono\',monospace;font-variant-numeric:tabular-nums;color:var(--fg3);text-align:right;white-space:nowrap',
+        metaSty: m ? 'font:400 12px/1.3 \'Archivo\',sans-serif;color:'+stCol : 'display:none',
+        diffSty: m ? 'display:none' : 'font:400 13px/1 \'Archivo\',sans-serif;color:var(--fg2);white-space:nowrap',
+        stSty: m ? 'display:none' : 'font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:'+stCol,
+        timeSty:'font:400 '+(m?'12px':'13px')+'/1 \'Archivo\',sans-serif;font-variant-numeric:tabular-nums;color:var(--fg3);text-align:right;white-space:nowrap',
+        on:()=>{ this.setState({mode:'archive', route:'board', diff, boardScenario:'playing'}); window.scrollTo(0,0); }
+      });
+    }
+    return {rows, hidden, total, matched:rows.length};
+  }
+  yearStrip(){
+    const s=this.state, m=s.vw<=430, t=s.vw>430&&s.vw<1100;
+    const c=m?9:t?9:10, g=m?2:t?2:3;
+    const y=s.recordYear;
+    const jan=Date.UTC(y,0,1);
+    const lead=(new Date(jan).getUTCDay()+6)%7;
+    const days=Math.round((Date.UTC(y+1,0,1)-jan)/86400000);
+    const cols=Math.ceil((lead+days)/7);
+    const cells=[];
+    const box='box-sizing:border-box;display:block;width:'+c+'px;height:'+c+'px;';
+    for(let i=0;i<lead;i++) cells.push({sty:box});
+    let solved=0, failed=0, missed=0;
+    for(let d=0;d<days;d++){
+      const ts=jan+d*86400000, no=this.editionNo(ts);
+      const st=this.dayStatus(ts,no), f=this.dayFill(st);
+      if(st==='solved') solved++; else if(st==='failed') failed++; else if(st==='missed') missed++;
+      cells.push({sty:box+'background:'+f.bg+';border:'+f.bd});
+    }
+    const trail=cols*7-(lead+days);
+    for(let i=0;i<trail;i++) cells.push({sty:box});
+    const months=this.MONTHS.map((l,i)=>{
+      const off=Math.round((Date.UTC(y,i,1)-jan)/86400000);
+      const start=Math.min(Math.floor((lead+off)/7), cols-1);
+      return {l:l.slice(0,3), sty:'position:absolute;top:0;left:'+(start*(c+g))+'px;white-space:nowrap'};
+    });
+    const summary = solved+' solved · '+failed+' failed · '+missed+' unplayed';
+    return {cells, months, cols, summary};
+  }
+    startPracticeAt(k){ this.setState({mode:'practice', diff:k, route:'board', boardScenario:'practice'}); window.scrollTo(0,0); }
+  resetBoard(mode){
+    this.setState({mode, route:'board', entries:{}, notes:{}, wrong:{}, mistakes:0, hints:3, secs:0,
+      finished:false, failed:false, assisted:false, paused:false, sel:40, undo:[], redo:[], boardScenario:'playing',
+      attempt: mode==='daily'?2:1});
+    window.scrollTo(0,0);
+  }
+  setBoardScenario(k){
+    const base={boardScenario:k, paused:false, failed:false, notesMode:false, mode:'daily', resumedNotice:false, howtoOffer:false, hints:3, loaded:null, holdDigit:null, holdArmed:false, hintConfirm:false, errDigit:null};
+    if(k==='playing') this.setState({...base, entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1});
+    if(k==='notes') this.setState({...base, notesMode:true, sel:31});
+    if(k==='error'){ const e=this.seed(); e[38]=9; this.setState({...base, entries:e, wrong:{38:1}, mistakes:2, sel:38}); }
+    if(k==='paused') this.setState({...base, paused:true});
+    if(k==='locked'){ const e=this.seed(); e[38]=9; this.setState({...base, entries:e, wrong:{38:1}, mistakes:3, failed:true}); }
+    if(k==='practice') this.setState({...base, mode:'practice', diff:'Medium'});
+    if(k==='nohints') this.setState({...base, entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1, hints:0});
+    if(k==='resumed') this.setState({...base, entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1, resumedNotice:true});
+    if(k==='firstrun') this.setState({...base, entries:{}, notes:{}, wrong:{}, mistakes:0, sel:40, howtoOffer:true});
+    if(k==='digitfirst') this.setState({...base, inputMode:'digit', loaded:7, sel:-1, entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1});
+    if(k==='longpress') this.setState({...base, inputMode:'cell', entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1, sel:31, holdDigit:7, holdArmed:true});
+    if(k==='hintconfirm') this.setState({...base, entries:this.seed(), notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1, hintConfirm:true});
+    if(k==='digiterror'){
+      const e=this.seed(); e[38]=7;
+      this.setState({...base, inputMode:'digit', loaded:7, errDigit:7, entries:e, wrong:{38:1}, mistakes:2, sel:38, notes:this.cloneNotes(this.DB.seedNotes)});
+    }
+    if(k==='padspent'){
+      const e=this.seed(), sol=this.DB.puzzle.solution;
+      for(let i=0;i<81;i++){ if(!this.isGiven(i) && (sol[i]==='5'||sol[i]==='2')) e[i]=+sol[i]; }
+      this.setState({...base, entries:e, notes:this.cloneNotes(this.DB.seedNotes), wrong:{}, mistakes:1, sel:40});
+    }
+  }
+}
+</script>
+</body>
+</html>

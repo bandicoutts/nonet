@@ -7,6 +7,7 @@ Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UT
 - `packages/engine` — pure TS sudoku generator + solver + difficulty rater (no deps, no DOM)
 - `packages/design` — design tokens; single source of truth for styling. Claude Design prototype is the pixel reference.
 - `supabase/` — migrations, edge functions, seed
+- `design/` — the Claude Design prototype (pixel + behaviour reference, not code to port). **Start at `design/README.md`.**
 - `docs/` — context docs (read on demand, see below)
 
 ## Read docs only when relevant
