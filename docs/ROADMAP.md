@@ -23,7 +23,7 @@ Phases & milestones. Check off as completed.
 ## Phase 2 — Design system + board UI
 - [x] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow) — with the `--fg3` / `--fg3-text` split applied and AA enforced by test
 - [x] Resolve the AA failure on `--fg3` before it is baked in — split into `--fg3` (disabled/spent, WCAG-exempt) and `--fg3-text` (light `#5A5F65` / dark `#A0A6AA`); DECISIONS.md NONET-5
-- [ ] Fix the six sub-44px touch targets (`design/export/layout.md`) — the remaining AA blocker before launch
+- [ ] Touch targets per DECISIONS.md NONET-9 — fix the banner dismiss (the only WCAG AA breach, at ~22px against a 24px minimum), lift the 40px and 28px controls to 44; 39px grid cells at 390 are an accepted exception
 - [x] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
 - [x] Number pad (remaining counts, spent state)
 - [ ] Board toolbar + pause veil

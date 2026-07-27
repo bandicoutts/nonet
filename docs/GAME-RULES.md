@@ -5,7 +5,7 @@ Product rules locked 2026-07-26 (see DECISIONS.md #1). The design brief (DESIGN-
 ## The daily
 - One 9×9 puzzle/day, same grid for everyone, unique solution, published 00:05 UTC.
 - Difficulty rhythm: Mon Easy · Tue–Wed Medium · Thu–Fri Hard · Sat Expert · Sun Hard.
-- Streak = consecutive **local calendar days** with the daily solved. No freezes, no grace periods; practice and archive never count.
+- Streak = consecutive **local calendar days** with the daily solved. No freezes, no grace periods; practice and archive never count. "Local" means the **device's timezone at the moment of the solve**, recorded per solve — so a player who flies west can bank two dailies in one apparent day and one who flies east can skip one, but a streak never breaks because of a flight (DECISIONS.md NONET-9).
 - Finished dailies can be replayed (unscored, labeled "replay"). Archive is free and fully playable; archive solves record stats but never extend streaks.
 
 ## Mistakes & checking
@@ -38,7 +38,7 @@ While a digit remains loaded, **repeated wrong placements of that same digit cou
 - Selection highlights row/column/box; cells with digits highlight all matching digits (both are settings, default on). Givens selectable for highlighting, inert to editing.
 - Pad keys show per-digit remaining counts and become **non-interactive at zero**, with a non-colour cue as well as reduced contrast.
 - **Auto-advance** (setting, default off): after placing, selection moves to the next empty cell in reading order. Cell-first only.
-- Undo unlimited (covers notes/erases), with redo. Undo never uncounts a mistake and never restores a hint.
+- Undo unlimited (covers notes/erases), with redo. Undo never uncounts a mistake and never restores a hint. The stack is **not** autosaved, so it empties on reload — unlimited means unlimited within a sitting (DECISIONS.md NONET-9).
 
 ## Leaving a puzzle
 The board is an immersive mode, not a page — no site nav during play. The exit is a left-aligned back control labelled for its origin: `← TODAY` for the daily and for practice, `← ARCHIVE` for an archive edition. Never "close" — the puzzle is autosaved and nothing is discarded.

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { BREAKPOINTS, VIEWPORTS } from '../src/viewports.js';
 import { TYPE_ROLES, resolveType } from '../src/type.js';
-import { SPACE } from '../src/space.js';
+import { SPACE, TAP_TARGET_AA_MIN, TAP_TARGET_MIN } from '../src/space.js';
 import { MOTION } from '../src/motion.js';
 import { BORDERS } from '../src/border.js';
 import { SHADOWS } from '../src/shadow.js';
@@ -87,6 +87,16 @@ describe('type roles', () => {
       expect(TYPE_ROLES[role].family, role).toBe('mono');
       expect(TYPE_ROLES[role].case, role).toBe('uppercase');
     }
+  });
+});
+
+describe('touch targets', () => {
+  test('the standard is 44, and the AA floor is 24 (DECISIONS.md NONET-9)', () => {
+    // 44 is WCAG AAA and Apple HIG. AA asks only for 24, which is what the
+    // board's 39px grid cells at 390 are measured against.
+    expect(TAP_TARGET_MIN).toBe(44);
+    expect(TAP_TARGET_AA_MIN).toBe(24);
+    expect(TAP_TARGET_MIN).toBeGreaterThan(TAP_TARGET_AA_MIN);
   });
 });
 

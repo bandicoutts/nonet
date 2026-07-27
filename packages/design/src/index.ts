@@ -34,7 +34,7 @@ export type { Responsive, Viewport } from './viewports.js';
 export { FAMILIES, TYPE_ROLES, WEIGHTS, resolveType } from './type.js';
 export type { FamilyName, ResolvedType, TypeRole, TypeRoleName } from './type.js';
 
-export { SPACE, TAP_TARGET_MIN, nearestSpace } from './space.js';
+export { SPACE, TAP_TARGET_AA_MIN, TAP_TARGET_MIN, nearestSpace } from './space.js';
 export type { SpaceToken } from './space.js';
 
 export { MOTION, MOTION_DEFECTS } from './motion.js';

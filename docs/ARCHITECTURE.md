@@ -21,9 +21,9 @@ Top-level nav is **Today · Archive · Record** — three items. Practice is a s
 - Settings, About and How to play are reached from the footer at every viewport and from the mobile drawer. Every route must be reachable from within the product, not only by URL.
 
 ## Key flows
-- **Daily:** scheduled edge function mints one shared puzzle/day, published 00:05 UTC. Difficulty by weekly rhythm (Mon Easy · Tue–Wed Medium · Thu–Fri Hard · Sat Expert · Sun Hard).
+- **Daily:** scheduled edge function mints one shared puzzle/day, published 00:05 UTC. Difficulty by weekly rhythm (Mon Easy · Tue–Wed Medium · Thu–Fri Hard · Sat Expert · Sun Hard). **The seed is derived from the date** (`seed = hash(ISO date)`), so every daily is reproducible from its date alone and the archive can be rebuilt if the table is lost. The puzzle number in the share text is days since epoch, not a stored counter (DECISIONS.md NONET-9).
 - **Guest-first:** full play + streaks in localStorage. Sign-in (magic link) syncs; server wins for completed solves, most-recent autosave wins for in-progress. **This rule must be enforced in code and covered by a test — a design mock cannot enforce it.** The merge is surfaced once as a post-sign-in summary; it reports, it does not ask.
-- **Autosave:** continuous (grid, notes, timer, mistakes); resume exactly on reopen.
+- **Autosave:** continuous (grid, notes, timer, mistakes, hints spent); resume exactly on reopen. **The undo stack is not persisted** — history is full grid+notes snapshots per action, and writing it on every keystroke would grow the payload without bound. Unlimited undo means unlimited within a sitting (DECISIONS.md NONET-9).
 - **Percentile:** first-attempt, unassisted, checked daily solves only; computed server-side against that day's solves.
 - **Practice:** pre-built bank per difficulty; one in-flight practice puzzle at a time; results tracked separately, never touch streaks.
 

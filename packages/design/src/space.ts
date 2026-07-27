@@ -41,5 +41,19 @@ export function nearestSpace(px: number): SpaceToken {
   return best;
 }
 
-/** Minimum touch target, in pixels. */
+/**
+ * Minimum touch target, in pixels — the standard every control is held to.
+ *
+ * Note which bar this is. WCAG 2.2 AA (SC 2.5.8) requires only 24×24; 44 is
+ * SC 2.5.5 at AAA, and Apple's HIG. Nonet holds 44 because it is the better
+ * target, not because AA demands it.
+ *
+ * **One documented exception:** board grid cells are 39px at the 390 viewport.
+ * Nine 44px cells plus margins do not fit 390px without running the board
+ * full-bleed, which would pull it out of the content column every other screen
+ * sits in. 39 clears AA comfortably. See DECISIONS.md NONET-9.
+ */
 export const TAP_TARGET_MIN = 44;
+
+/** WCAG 2.2 SC 2.5.8 Target Size (Minimum), Level AA. The floor, not the goal. */
+export const TAP_TARGET_AA_MIN = 24;
