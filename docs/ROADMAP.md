@@ -21,7 +21,8 @@ Phases & milestones. Check off as completed.
 - [ ] Fuzz tests asserting invariants
 
 ## Phase 2 — Design system + board UI
-- [ ] Tokens in `packages/design`, transcribed from the prototype's Tokens screen (colour, type, space, motion)
+- [ ] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow)
+- [ ] Resolve the AA failure on `--fg3` before it is baked in (4.34:1 on `--bg` in light; carries every kicker and caption) — see `design/README.md`
 - [ ] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
 - [ ] Number pad (remaining counts, spent state) + toolbar + pause veil
 - [ ] Light/dark themes

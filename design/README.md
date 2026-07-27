@@ -4,11 +4,17 @@ The Claude Design full-surface prototype, exported verbatim. This is the **pixel
 
 ```
 design/
+  export/tokens.json        every token: colour (both themes + measured contrast),
+                            type, space, motion, border, shadow — start here
+  export/layout.md          measurements per breakpoint, and touch-target audit
+  export/components.md      every component and state, as token references
+  export/copy.md            the copy deck — every string, keyed by screen and state
+  INVENTORY.md              every route and state, and how to reach it
   prototype/Nonet.dc.html   the prototype (single file: markup + logic + mock data)
   prototype/support.js      the runtime it needs
-  tokens.css                colour tokens, extracted (both themes)
-  INVENTORY.md              every route and state, and how to reach it
 ```
+
+**Build from `export/`, not from the prototype.** The four export files are specs written against the prototype and are enough to rebuild the product. The prototype itself is for looking at, and for grepping when a spec is ambiguous — it is 184KB and should not be read front to back.
 
 ## Running it
 
@@ -52,6 +58,30 @@ Labels are in sentence case in the DOM (`'Digit first'`), even though CSS render
 - **The CSS.** Styles are inlined per element, hundreds of times over. Build from `tokens.css` and the Tokens screen instead.
 - **The mock data.** It lives in the `DB` object near the top of the script block. Figures are illustrative.
 - **The state switcher.** A development affordance. It is not part of the product.
+
+## Known defects — fix during the build, do not reproduce
+
+The export files audited the prototype against its own token sheet and found real problems. Each is recorded in place; these are the ones that matter most.
+
+**Accessibility**
+- `--fg3` on `--bg` measures **4.34:1 in light — below AA**, and it carries every mono kicker, caption and metadata string. It fails harder on shaded cells (3.61:1 on `--cell-sel`). WCAG AA is a stated hard requirement, so this needs resolving before launch, not after. See `export/tokens.json` → `color.contrast._belowAA`.
+- Six interactive elements are **under 44px at 390** despite the token sheet claiming the minimum is never breached: grid cell 39, record window tab 40, settings sign-out 40, record year chip 28, footer link 24, banner dismiss ~22. See `export/layout.md`.
+- Focus rings exist only as specimens on the Focus screen. No live control sets `tabIndex` except the drawer, so the documented tab order is aspirational.
+
+**Theming**
+- Links are styled by a raw `a { color: #2C41C4 }` pair in `<helmet>` using light-theme hexes, so **links do not re-colour in dark mode**. Use `--accent` / `--fg`.
+- `--cell-hl` and `--hover` are the same value in dark, so unit shading and row hover are indistinguishable there.
+- The dialog shadow is a raw `rgba(0,0,0,.14)` and does not re-tone in dark.
+
+**Behaviour**
+- `motion-place` is published and the `nonetPop` keyframe exists, but nothing references it — **placed digits and hints do not animate**. `state.hintCell` is written and never read.
+- The Copied toast dwell is a `setTimeout`; the fade is not implemented.
+- The share text does not pluralise: a 2-mistake solve reads "2 mistake".
+- `headerKicker` is computed for every route and never rendered.
+
+**Token hygiene**
+- The heat-strip cell boxes and grid tracks disagree at 1440 and 834. Build to the Tokens screen values.
+- Chips, buttons, settings rows and drawer rows use literal type values rather than the published roles. `opacity` literals (`.3`, `.62`, `.8`, `.93`) and a 120ms transition are off-token.
 
 ## Before you build
 
