@@ -30,7 +30,7 @@ function withMistakes(tracker: MistakeTracker, mistakes: number, containedDigit:
  * Loading always ends containment — the rule holds only while one digit stays
  * loaded, so returning to a digit costs a fresh life.
  */
-export function loadDigit(tracker: MistakeTracker, _digit: Digit | null): MistakeTracker {
+export function loadDigit(tracker: MistakeTracker, _loaded: Digit | 'erase' | null): MistakeTracker {
   return { ...tracker, containedDigit: null };
 }
 

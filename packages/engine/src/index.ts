@@ -102,4 +102,10 @@ export { MAX_HINTS, chooseHint, hintNeedsConfirmation } from './rules/hints.js';
 export type { Hint } from './rules/hints.js';
 
 export { apply, createSession } from './rules/session.js';
-export type { Action, SessionOptions, SessionState, SessionStatus } from './rules/session.js';
+export type {
+  Action,
+  Loaded,
+  SessionOptions,
+  SessionState,
+  SessionStatus,
+} from './rules/session.js';

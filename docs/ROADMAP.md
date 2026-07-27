@@ -24,10 +24,13 @@ Phases & milestones. Check off as completed.
 - [x] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow) — with the `--fg3` / `--fg3-text` split applied and AA enforced by test
 - [x] Resolve the AA failure on `--fg3` before it is baked in — split into `--fg3` (disabled/spent, WCAG-exempt) and `--fg3-text` (light `#5A5F65` / dark `#A0A6AA`); DECISIONS.md NONET-5
 - [ ] Fix the six sub-44px touch targets (`design/export/layout.md`) — the remaining AA blocker before launch
-- [ ] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
-- [ ] Number pad (remaining counts, spent state) + toolbar + pause veil
-- [ ] Light/dark themes
-- [ ] Focus states per the prototype's Focus screen + real ARIA grid semantics (the reference has none)
+- [x] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
+- [x] Number pad (remaining counts, spent state)
+- [ ] Board toolbar + pause veil
+- [x] Light/dark themes (tokens + `data-theme`, explicit choice beats system preference)
+- [x] Real ARIA grid semantics (the reference has none)
+- [ ] Focus states matched to the prototype's Focus screen
+- [ ] Board layout at all three viewports — rail at 1100+, bottom control band below
 
 ## Phase 3 — App shell + Supabase
 - [ ] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home

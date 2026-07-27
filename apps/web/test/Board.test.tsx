@@ -193,6 +193,23 @@ describe('entering digits', () => {
     expect(cell.getAttribute('aria-label')).toMatch(/incorrect/i);
   });
 
+  test('a given is never flagged, even when an entry clashes with it', async () => {
+    const user = userEvent.setup();
+    renderBoard(apply(session(), { type: 'selectCell', cell: 2 }));
+
+    // Row 1 already holds a given 5 at column 1. Putting a second 5 in the row
+    // is the player's mistake; the given is innocent and must not turn red.
+    screen.getByRole('gridcell', { name: /row 1, column 3/i }).focus();
+    await user.keyboard('5');
+
+    expect(
+      screen.getByRole('gridcell', { name: /row 1, column 3/i }).getAttribute('aria-invalid'),
+    ).toBe('true');
+    expect(
+      screen.getByRole('gridcell', { name: /row 1, column 1/i }).getAttribute('aria-invalid'),
+    ).not.toBe('true');
+  });
+
   test('backspace erases', async () => {
     const user = userEvent.setup();
     let state = apply(session(), { type: 'selectCell', cell: 2 });
@@ -289,6 +306,72 @@ describe('modes and history', () => {
     await user.keyboard('p');
 
     expect(onPause).toHaveBeenCalledOnce();
+  });
+});
+
+describe('digit-first', () => {
+  function digitFirst(loaded: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 'erase') {
+    return apply(session({ mode: 'digitFirst' }), { type: 'loadDigit', digit: loaded });
+  }
+
+  test('tapping a cell places the loaded digit', async () => {
+    const user = userEvent.setup();
+    const board = renderBoard(digitFirst(4));
+
+    await user.click(screen.getByRole('gridcell', { name: /row 1, column 3/i }));
+    expect(board.current().grid[2]).toBe(4);
+  });
+
+  test('tapping with ERASE loaded clears the cell', async () => {
+    const user = userEvent.setup();
+    let state = apply(session({ mode: 'digitFirst' }), { type: 'placeDigit', cell: 2, digit: 4 });
+    state = apply(state, { type: 'loadDigit', digit: 'erase' });
+    const board = renderBoard(state);
+
+    await user.click(screen.getByRole('gridcell', { name: /row 1, column 3/i }));
+    expect(board.current().grid[2]).toBe(0);
+  });
+
+  test('with nothing loaded a tap only selects', async () => {
+    const user = userEvent.setup();
+    const board = renderBoard(session({ mode: 'digitFirst' }));
+
+    await user.click(screen.getByRole('gridcell', { name: /row 1, column 3/i }));
+    expect(board.current().selected).toBe(2);
+    expect(board.current().grid[2]).toBe(0);
+  });
+
+  test('givens stay inert', async () => {
+    const user = userEvent.setup();
+    const board = renderBoard(digitFirst(4));
+
+    await user.click(screen.getByRole('gridcell', { name: /row 1, column 1/i }));
+    expect(board.current().grid[0]).toBe(5);
+  });
+
+  test('repeated wrong taps of one loaded digit cost a single life', async () => {
+    const user = userEvent.setup();
+    // 9 belongs in none of row 0's empty cells.
+    const board = renderBoard(digitFirst(9));
+
+    for (const column of [3, 4, 6]) {
+      await user.click(screen.getByRole('gridcell', { name: new RegExp(`row 1, column ${column}`, 'i') }));
+    }
+
+    expect(board.current().mistakes).toBe(1);
+    expect(board.current().status).toBe('playing');
+  });
+
+  test('highlights existing instances of the loaded digit, never legal placements', async () => {
+    renderBoard(digitFirst(5));
+
+    // Cell 0 holds a 5 and is marked; empty cells that could take a 5 are not.
+    expect(
+      screen.getByRole('gridcell', { name: /row 1, column 1/i }).hasAttribute('data-matching'),
+    ).toBe(true);
+    expect(
+      screen.getByRole('gridcell', { name: /row 1, column 3/i }).hasAttribute('data-matching'),
+    ).toBe(false);
   });
 });
 

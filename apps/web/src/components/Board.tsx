@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import {
+  DIGITS,
   UNIT_SIZE,
   boxOf,
   cellAt,
@@ -10,6 +11,7 @@ import {
   rowOf,
 } from '@nonet/engine';
 import type { Action, CellIndex, Digit, SessionState } from '@nonet/engine';
+import styles from './Board.module.css';
 
 export interface BoardProps {
   readonly session: SessionState;
@@ -108,6 +110,33 @@ export function Board({ session, onAction, onPause, label = 'Sudoku puzzle' }: B
     [focused, move, onAction, onPause],
   );
 
+  /**
+   * What a tap does depends on the mode. Cell-first selects and waits for a
+   * digit; digit-first applies whatever is loaded — a digit, or the eraser —
+   * and keeps it loaded so the next cell takes it too.
+   */
+  const activate = useCallback(
+    (cell: CellIndex) => {
+      onAction({ type: 'selectCell', cell });
+
+      if (session.mode !== 'digitFirst') return;
+
+      const loaded = session.loadedDigit;
+      if (loaded === null) return;
+      if (loaded === 'erase') {
+        onAction({ type: 'erase', cell });
+        return;
+      }
+
+      onAction(
+        session.notesMode
+          ? { type: 'toggleNote', cell, digit: loaded }
+          : { type: 'placeDigit', cell, digit: loaded },
+      );
+    },
+    [onAction, session.loadedDigit, session.mode, session.notesMode],
+  );
+
   // Keep DOM focus with the selection, but only while focus is already inside
   // the grid — otherwise selecting a cell would steal focus from elsewhere.
   useEffect(() => {
@@ -122,13 +151,14 @@ export function Board({ session, onAction, onPause, label = 'Sudoku puzzle' }: B
   return (
     <div
       ref={gridRef}
+      className={styles.grid}
       role="grid"
       aria-label={label}
       aria-disabled={locked ? true : undefined}
       onKeyDown={handleKeyDown}
     >
       {Array.from({ length: UNIT_SIZE }, (_, row) => (
-        <div role="row" key={row}>
+        <div className={styles.row} role="row" key={row}>
           {Array.from({ length: UNIT_SIZE }, (_, col) => (
             <Cell
               key={col}
@@ -136,6 +166,7 @@ export function Board({ session, onAction, onPause, label = 'Sudoku puzzle' }: B
               session={session}
               isFocused={cellAt(row, col) === focused}
               onSelect={() => onAction({ type: 'selectCell', cell: cellAt(row, col) })}
+              onActivate={() => activate(cellAt(row, col))}
             />
           ))}
         </div>
@@ -149,20 +180,28 @@ interface CellProps {
   readonly session: SessionState;
   readonly isFocused: boolean;
   readonly onSelect: () => void;
+  readonly onActivate: () => void;
 }
 
-function Cell({ cell, session, isFocused, onSelect }: CellProps) {
+function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
   const value = getCell(session.grid, cell);
   const given = getCell(session.givens, cell) !== 0;
   const notes = digitsOf(session.notes[cell] ?? 0);
 
   // Auto-check flags a wrong digit immediately. With checking off nothing is
   // flagged, so nothing is announced as incorrect either.
-  const wrong = session.checking && value !== 0 && session.solution[cell] !== value;
-  const conflicting = value !== 0 && conflictsAt(session.grid, cell).length > 0;
+  //
+  // Only the player's own entries can be wrong. A given that a bad entry
+  // happens to clash with is not a mistake and must not be dressed as one —
+  // otherwise placing a duplicate paints two cells red and the player has to
+  // work out which of them is theirs.
+  const wrong = session.checking && !given && value !== 0 && session.solution[cell] !== value;
+  const conflicting =
+    !given && value !== 0 && conflictsAt(session.grid, cell).length > 0;
 
   return (
     <div
+      className={styles.cell}
       role="gridcell"
       data-cell={cell}
       data-given={given ? '' : undefined}
@@ -175,13 +214,22 @@ function Cell({ cell, session, isFocused, onSelect }: CellProps) {
       aria-readonly={given ? true : undefined}
       aria-invalid={wrong || conflicting ? true : undefined}
       aria-selected={session.selected === cell ? true : undefined}
-      onClick={onSelect}
+      onClick={onActivate}
       onFocus={onSelect}
     >
       {value !== 0 ? (
-        <span data-role="digit">{value}</span>
+        <span className={styles.digit} data-role="digit">
+          {value}
+        </span>
       ) : notes.length > 0 ? (
-        <span data-role="notes">{notes.join(' ')}</span>
+        // A fixed 3x3 so every pencil mark keeps its position as others come
+        // and go. The cell's aria-label already reads them out, so this is
+        // presentation only.
+        <span className={styles.notes} data-role="notes" aria-hidden="true">
+          {DIGITS.map((digit) => (
+            <span key={digit}>{notes.includes(digit) ? digit : ''}</span>
+          ))}
+        </span>
       ) : null}
     </div>
   );

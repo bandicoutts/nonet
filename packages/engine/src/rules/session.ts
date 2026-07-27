@@ -13,6 +13,9 @@ import { clearNotesAt, clearPeerNotes, emptyNotes, notesAt, toggleNote } from '.
 
 export type SessionStatus = 'playing' | 'solved' | 'failed';
 
+/** What digit-first has on the cursor: a digit, the eraser, or nothing. */
+export type Loaded = Digit | 'erase' | null;
+
 /** The part of a session undo can move through. */
 interface Snapshot {
   readonly grid: Grid;
@@ -46,7 +49,12 @@ export interface SessionState {
   readonly checking: boolean;
   readonly notesMode: boolean;
   readonly selected: CellIndex | null;
-  readonly loadedDigit: Digit | null;
+  /**
+   * Digit-first: what is currently loaded onto the cursor. `ERASE` loads the
+   * same way a digit does, so it is part of the same slot rather than a
+   * separate mode (GAME-RULES.md).
+   */
+  readonly loadedDigit: Loaded;
 
   readonly status: SessionStatus;
   readonly canUndo: boolean;
@@ -59,7 +67,7 @@ export interface SessionState {
 
 export type Action =
   | { type: 'selectCell'; cell: CellIndex | null }
-  | { type: 'loadDigit'; digit: Digit | null }
+  | { type: 'loadDigit'; digit: Loaded }
   | { type: 'setMode'; mode: InputMode }
   | { type: 'toggleNotesMode' }
   | { type: 'placeDigit'; cell: CellIndex; digit: Digit }

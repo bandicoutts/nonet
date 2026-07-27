@@ -122,6 +122,31 @@ describe('digit-first containment through the session', () => {
   });
 });
 
+describe('loading ERASE in digit-first', () => {
+  test('ERASE loads like a digit', () => {
+    const state = apply(newSession({ mode: 'digitFirst' }), { type: 'loadDigit', digit: 'erase' });
+    expect(state.loadedDigit).toBe('erase');
+  });
+
+  test('loading ERASE ends containment, as changing digit does', () => {
+    let state = newSession({ mode: 'digitFirst' });
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+    state = apply(state, { type: 'placeDigit', cell: 2, digit: WRONG_DIGIT });
+    expect(state.mistakes).toBe(1);
+
+    state = apply(state, { type: 'loadDigit', digit: 'erase' });
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+    state = apply(state, { type: 'placeDigit', cell: 3, digit: WRONG_DIGIT });
+    expect(state.mistakes).toBe(2);
+  });
+
+  test('clearing the load with null still works', () => {
+    let state = apply(newSession({ mode: 'digitFirst' }), { type: 'loadDigit', digit: 5 });
+    state = apply(state, { type: 'loadDigit', digit: null });
+    expect(state.loadedDigit).toBeNull();
+  });
+});
+
 describe('erase', () => {
   test('clears an entry when there is one', () => {
     let state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
