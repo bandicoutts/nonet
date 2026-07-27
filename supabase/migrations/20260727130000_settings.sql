@@ -38,7 +38,14 @@ alter table public.profiles
 
   -- Hiding the timer does not stop it. The time is always recorded and always
   -- shown at the end.
-  add column show_timer boolean not null default true;
+  add column show_timer boolean not null default true,
+
+  -- Set the first time settings are pushed up. It is how "this profile has
+  -- never had settings written to it" is recognised, which is what decides
+  -- whether a first sign-in adopts the guest's choices or the account's. The
+  -- alternative — comparing every column against its default — cannot tell a
+  -- fresh profile from one whose owner happens to like the defaults.
+  add column settings_synced_at timestamptz;
 
 -- The settings a player would lose by signing in on a new device are the ones
 -- worth carrying, so they move with the profile the merge already touches.

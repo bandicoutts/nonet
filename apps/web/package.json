@@ -2,7 +2,7 @@
   "name": "@nonet/web",
   "version": "0.0.0",
   "private": true,
-  "description": "Nonet web app \u2014 Next.js 16 App Router, the board UI, and the routes around it.",
+  "description": "Nonet web app — Next.js 16 App Router, the board UI, and the routes around it.",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -16,6 +16,8 @@
   "dependencies": {
     "@nonet/design": "workspace:*",
     "@nonet/engine": "workspace:*",
+    "@supabase/ssr": "0.12.3",
+    "@supabase/supabase-js": "2.110.8",
     "next": "16.2.12",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

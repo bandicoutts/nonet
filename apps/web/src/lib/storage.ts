@@ -133,6 +133,29 @@ export function writeAutosave(record: AutosaveRecord): void {
   write(refKey(record.ref), record);
 }
 
+/**
+ * Every board this browser has in progress.
+ *
+ * The sign-in merge needs the guest's side *before* it knows what the account
+ * holds — looking only for boards the server already knows about would mean a
+ * guest's in-progress puzzle could never be the thing that gets uploaded, which
+ * is half the rule it is implementing.
+ */
+export function listAutosaves(): AutosaveRecord[] {
+  const found: AutosaveRecord[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (key === null || !key.startsWith(AUTOSAVE_PREFIX)) continue;
+      const value = read(key);
+      if (isAutosave(value)) found.push(value);
+    }
+  } catch {
+    return [];
+  }
+  return found.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+}
+
 /** Called when the puzzle is finished or abandoned — there is nothing to resume. */
 export function clearAutosave(ref: PuzzleRef): void {
   try {

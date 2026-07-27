@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import { PostSignIn } from '@/components/PostSignIn';
 import { SiteFooter } from '@/components/chrome/SiteFooter';
 import { SiteHeader } from '@/components/chrome/SiteHeader';
 
@@ -16,6 +18,12 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+
+      {/* Reads search params, so it needs a boundary to keep the rest of the
+          page static. It renders nothing unless a merge just happened. */}
+      <Suspense fallback={null}>
+        <PostSignIn />
+      </Suspense>
     </div>
   );
 }

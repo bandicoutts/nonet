@@ -43,7 +43,7 @@ Phases & milestones. Check off as completed.
 - [x] Settings: seven columns on `profiles`, guest store, and the shared shape the sync copies
 - [x] Retry / second attempt, and the PauseVeil copy corrected against `copy.md`
 - [x] Guest localStorage play + autosave/resume — `restoreSession` in the engine, storage and autosave in `apps/web/src/lib`
-- [ ] Sign-in sync (magic link; merge rules per ARCHITECTURE.md — tested, plus the post-sign-in merge summary)
+- [x] Sign-in sync (magic link; merge rules per ARCHITECTURE.md — 16 tests, plus the post-sign-in merge summary) — verified end to end against the local stack
 
 ## Phase 4 — Full surface
 - [ ] Streaks/stats derived from solves (local-day buckets)
