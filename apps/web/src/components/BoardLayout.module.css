@@ -1,0 +1,88 @@
+/*
+ * Board composition at three widths. Figures from design/export/layout.md.
+ *
+ * The markup order never changes — grid first, controls second — so the tab
+ * order and the reading order stay the same at every width. Only the placement
+ * moves.
+ */
+
+.layout {
+  display: grid;
+  gap: var(--space-l);
+  width: 100%;
+}
+
+.gridArea {
+  min-width: 0;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-s);
+  border-bottom: var(--border-hairline);
+  margin-bottom: var(--space-m);
+}
+
+/* The veil is absolutely placed against this. */
+.gridWrap {
+  position: relative;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+/* Desktop: a 320px rail to the right of the grid, separated by a rule. */
+@media (min-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 0;
+    align-items: start;
+  }
+
+  .gridArea {
+    padding: var(--space-m) var(--space-2xl) var(--space-m) 0;
+  }
+
+  .rail {
+    padding: var(--space-m) 0 var(--space-m) 36px;
+    border-left: var(--border-hairline);
+  }
+}
+
+/* Tablet: the rail becomes a band under the grid. */
+@media (max-width: 1099px) {
+  .rail {
+    padding-top: var(--space-m);
+    border-top: var(--border-rule);
+  }
+}
+
+/*
+ * Mobile: the band sticks to the bottom of the viewport, so the pad stays
+ * under the thumb while the grid scrolls behind it.
+ */
+@media (max-width: 767px) {
+  .layout {
+    gap: var(--space-s);
+  }
+
+  .titleBar {
+    padding-bottom: var(--space-s);
+    border-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  .rail {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    padding: var(--space-s) 0 var(--space-m);
+    background: var(--bg);
+  }
+}

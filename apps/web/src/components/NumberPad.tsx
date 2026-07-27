@@ -1,16 +1,18 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DIGITS, UNIT_SIZE, getCell } from '@nonet/engine';
 import type { Action, Digit, SessionState } from '@nonet/engine';
 import styles from './NumberPad.module.css';
 
 /**
- * How long a press has to last to count as a long press.
+ * How long a press has to last before it arms as a note.
  *
- * The gesture exists to take a pencil mark from four taps to two
- * (GAME-RULES.md), so it has to be comfortably longer than a tap and
- * comfortably shorter than a pause. 400ms is the usual landing spot.
+ * 340ms, from `design/export/components.md`. The gesture takes a pencil mark
+ * from four taps to two (GAME-RULES.md), and the spec is explicit that
+ * **arming is a visible step, not silent**: the key shows it is held as soon as
+ * the press begins, then changes again when it arms, so a player can tell
+ * whether letting go will place a digit or pencil one.
  */
-export const LONG_PRESS_MS = 400;
+export const HOLD_MS = 340;
 
 export interface NumberPadProps {
   readonly session: SessionState;
@@ -87,7 +89,8 @@ export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPad
   }, [locked, onAction, session.mode, session.selected]);
 
   return (
-    <div className={styles.pad} role="group" aria-label={label} aria-disabled={locked ? true : undefined}>
+    <div className={styles.padGroup} role="group" aria-label={label} aria-disabled={locked ? true : undefined}>
+      <div className={styles.pad}>
       {DIGITS.map((digit) => (
         <PadKey
           key={digit}
@@ -100,27 +103,22 @@ export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPad
         />
       ))}
 
-      <button
-        className={styles.control}
-        type="button"
-        data-key="erase"
-        aria-pressed={session.mode === 'digitFirst' ? session.loadedDigit === 'erase' : undefined}
-        onClick={eraseOrLoad}
-      >
-        Erase
-      </button>
 
-      <button
-        className={styles.control}
-        type="button"
-        data-key="notes"
-        aria-pressed={session.notesMode}
-        onClick={() => {
-          if (!locked) onAction({ type: 'toggleNotesMode' });
-        }}
-      >
-        Notes
-      </button>
+        {/*
+          ERASE takes the tenth slot of the pad grid, but only below the drawer
+          breakpoint — above it the toolbar carries Erase as a chip, and having
+          both would put the same control on screen twice. layout.md.
+        */}
+        <button
+          className={styles.eraseKey}
+          type="button"
+          data-key="erase"
+          aria-pressed={session.mode === 'digitFirst' ? session.loadedDigit === 'erase' : undefined}
+          onClick={eraseOrLoad}
+        >
+          Erase
+        </button>
+      </div>
     </div>
   );
 }
@@ -137,7 +135,7 @@ interface PadKeyProps {
 function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }: PadKeyProps) {
   const spent = remaining === 0;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fired = useRef(false);
+  const [hold, setHold] = useState<'idle' | 'held' | 'armed'>('idle');
 
   const clear = useCallback(() => {
     if (timer.current !== null) {
@@ -150,23 +148,24 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
 
   const start = useCallback(() => {
     if (spent) return;
-    fired.current = false;
-    timer.current = setTimeout(() => {
-      fired.current = true;
-      onLongPress();
-    }, LONG_PRESS_MS);
-  }, [onLongPress, spent]);
+    // Held straight away, armed at the threshold. Two visible steps, so
+    // letting go is never a guess.
+    setHold('held');
+    timer.current = setTimeout(() => setHold('armed'), HOLD_MS);
+  }, [spent]);
 
   const end = useCallback(() => {
     clear();
-    // The long press already did the work; a tap does the short-press job.
-    if (!fired.current && !spent) onPress();
-    fired.current = false;
-  }, [clear, onPress, spent]);
+    if (!spent) {
+      if (hold === 'armed') onLongPress();
+      else onPress();
+    }
+    setHold('idle');
+  }, [clear, hold, onLongPress, onPress, spent]);
 
   const cancel = useCallback(() => {
     clear();
-    fired.current = true;
+    setHold('idle');
   }, [clear]);
 
   return (
@@ -176,6 +175,8 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
       data-key={digit}
       data-spent={spent ? '' : undefined}
       data-loaded={loaded ? '' : undefined}
+      data-held={hold !== 'idle' ? '' : undefined}
+      data-armed={hold === 'armed' ? '' : undefined}
       aria-label={`${digit}, ${remaining === 0 ? 'none remaining' : `${remaining} remaining`}`}
       aria-disabled={spent ? true : undefined}
       aria-pressed={showPressed ? loaded : undefined}
@@ -194,7 +195,7 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
     >
       <span data-role="digit">{digit}</span>
       <span className={styles.count} data-role="count" aria-hidden="true">
-        {remaining}
+        {hold === 'idle' ? remaining : 'NOTE'}
       </span>
     </button>
   );

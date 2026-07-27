@@ -26,11 +26,11 @@ Phases & milestones. Check off as completed.
 - [ ] Touch targets per DECISIONS.md NONET-9 — fix the banner dismiss (the only WCAG AA breach, at ~22px against a 24px minimum), lift the 40px and 28px controls to 44; 39px grid cells at 390 are an accepted exception
 - [x] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
 - [x] Number pad (remaining counts, spent state)
-- [ ] Board toolbar + pause veil
+- [x] Board toolbar + pause veil
 - [x] Light/dark themes (tokens + `data-theme`, explicit choice beats system preference)
 - [x] Real ARIA grid semantics (the reference has none)
-- [ ] Focus states matched to the prototype's Focus screen
-- [ ] Board layout at all three viewports — rail at 1100+, bottom control band below
+- [x] Focus states matched to the prototype's Focus screen (2/4/6px ring stack when focused and selected)
+- [x] Board layout at all three viewports — rail at 1100+, band below, sticky at mobile
 
 ## Phase 3 — App shell + Supabase
 - [ ] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home

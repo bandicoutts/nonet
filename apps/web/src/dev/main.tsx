@@ -2,12 +2,11 @@
  * Component harness. Not the product — a place to look at and play the board
  * before the Next.js app shell arrives in Phase 3.
  */
-import { StrictMode, useReducer, useState } from 'react';
+import { StrictMode, useEffect, useReducer, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { apply, createSession, generatePuzzle } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import { Board } from '../components/Board.js';
-import { NumberPad } from '../components/NumberPad.js';
+import { BoardLayout } from '../components/BoardLayout.js';
 import { TokenStyles } from '../components/TokenStyles.js';
 import './harness.css';
 
@@ -19,8 +18,18 @@ function Harness() {
     createSession({ givens: puzzle.givens, solution: puzzle.solution }),
   );
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [paused, setPaused] = useState(false);
+  const [elapsedMs, setElapsed] = useState(0);
 
-  document.documentElement.setAttribute('data-theme', theme);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (paused || session.status !== 'playing') return;
+    const id = setInterval(() => setElapsed((ms) => ms + 1000), 1000);
+    return () => clearInterval(id);
+  }, [paused, session.status]);
 
   return (
     <div className="harness">
@@ -31,12 +40,6 @@ function Harness() {
           Nonet · {puzzle.difficulty} · {puzzle.givenCount} givens · score {puzzle.score}
         </span>
         <div className="harness__meta">
-          <span>{session.mistakes}/3 mistakes</span>
-          <span>{session.hintsUsed}/3 hints</span>
-          <span>{session.status}</span>
-          <button type="button" onClick={() => dispatch({ type: 'undo' })}>
-            Undo
-          </button>
           <button
             type="button"
             onClick={() =>
@@ -51,12 +54,22 @@ function Harness() {
           <button type="button" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
             {theme}
           </button>
+          <span>{session.status}</span>
         </div>
       </header>
 
       <main className="harness__stage">
-        <Board session={session} onAction={dispatch} />
-        <NumberPad session={session} onAction={dispatch} />
+        <BoardLayout
+          session={session}
+          onAction={dispatch}
+          elapsedMs={elapsedMs}
+          paused={paused}
+          onPause={() => setPaused(true)}
+          onResume={() => setPaused(false)}
+          onRetry={() => window.location.reload()}
+          onConfirmHint={() => dispatch({ type: 'hint' })}
+          back={<span className="harness__back">← Today</span>}
+        />
       </main>
     </div>
   );

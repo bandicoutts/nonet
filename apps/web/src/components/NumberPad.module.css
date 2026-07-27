@@ -1,11 +1,33 @@
 /* The digit pad. Every value is a token — see @nonet/design. */
 
+/*
+ * Tablet is nine across, desktop three (it lives in a 320px rail), mobile five
+ * over two rows with ERASE filling the tenth slot. layout.md.
+ */
 .pad {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
   width: 100%;
-  max-width: 540px;
+}
+
+@media (min-width: 1100px) {
+  .pad {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .key {
+    min-height: 60px;
+  }
+}
+
+@media (max-width: 767px) {
+  .pad {
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-2xs);
+  }
 }
 
 .key {
@@ -13,7 +35,7 @@
   display: grid;
   place-items: center;
   gap: 2px;
-  min-height: var(--tap-target-min);
+  min-height: 66px;
   padding: var(--space-2xs) 0;
   background: var(--surface);
   border: var(--border-hairline);
@@ -80,6 +102,62 @@
   margin-top: var(--space-2xs);
 }
 
+/* Held, before it arms: dashed accent, and the count reads NOTE. */
+.key[data-held] {
+  border: var(--border-dashed-accent);
+  color: var(--fg2);
+}
+
+/* Armed: the dash goes solid, so letting go is never a guess. */
+.key[data-armed] {
+  background: var(--cell-same);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.key[data-held] .count,
+.key[data-armed] .count {
+  color: inherit;
+}
+
+/*
+ * The pad's own ERASE. Hidden above the drawer breakpoint, where the toolbar
+ * chip takes over — display:none also removes it from the accessibility tree,
+ * so exactly one Erase is ever exposed.
+ */
+.eraseKey {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .eraseKey {
+    display: grid;
+    place-items: center;
+    min-height: 58px;
+    background: transparent;
+    border: var(--border-hairline);
+    border-radius: var(--radius-none);
+    color: var(--fg2);
+    font-family: var(--font-mono);
+    font-size: var(--type-control-size);
+    font-weight: var(--type-control-weight);
+    letter-spacing: var(--type-control-letter-spacing);
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .eraseKey:focus-visible {
+    outline: var(--border-focus-ring);
+    outline-offset: var(--focus-offset);
+  }
+
+  .eraseKey[aria-pressed='true'] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+}
+
 .control {
   flex: 1;
   min-height: var(--tap-target-min);
@@ -110,4 +188,11 @@
   background: var(--fg);
   border-color: var(--fg);
   color: var(--bg);
+}
+
+.padGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  width: 100%;
 }

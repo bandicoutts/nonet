@@ -10,9 +10,10 @@
   display: grid;
   grid-template-rows: repeat(9, 1fr);
   width: 100%;
-  max-width: 540px;
+  /* 9 x 80 at 1440, per layout.md. Below that the grid fills its column. */
+  max-width: 720px;
   aspect-ratio: 1;
-  background: var(--bg);
+  background: var(--surface);
   box-shadow: var(--border-cell-box);
   /* The grid owns keyboard focus through its cells, never itself. */
   outline: none;
@@ -78,19 +79,34 @@
 }
 
 .cell[aria-invalid='true'] {
+  background: var(--error-soft);
   color: var(--error);
   text-decoration: var(--border-error-underline);
   text-underline-offset: 0.18em;
 }
 
 /*
- * Focus is drawn inside, because a cell has no room outside itself. Two rings:
- * the ground first so the indicator reads against any shading beneath it.
+ * Focus is drawn inside, because cells meet edge to edge and an outline would
+ * be clipped by the neighbour. The ring is ink where selection is cobalt, so
+ * the two are never told apart by colour alone.
  */
 .cell:focus-visible {
   outline: none;
-  box-shadow: var(--border-focus-ring-cell);
+  box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 4px var(--fg);
   z-index: 1;
+}
+
+/*
+ * Focused *and* selected stacks both rings at 2 / 4 / 6px: cobalt selection
+ * innermost, the cell ground as a separator, then the ink focus ring. Two
+ * rings, never one colour — a player who cannot separate them by hue still
+ * sees two distinct bands.
+ */
+.cell[data-selected]:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    inset 0 0 0 4px var(--cell-sel),
+    inset 0 0 0 6px var(--fg);
 }
 
 .digit {

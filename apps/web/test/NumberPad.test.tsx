@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { apply, createSession, parseGrid } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import { LONG_PRESS_MS, NumberPad } from '../src/components/NumberPad.js';
+import { HOLD_MS, NumberPad } from '../src/components/NumberPad.js';
 
 const PUZZLE =
   '53..7....' + '6..195...' + '.98....6.' + '8...6...3' + '4..8.3..1' +
@@ -40,16 +40,27 @@ function key(digit: number) {
   return screen.getByRole('button', { name: new RegExp(`^${digit}\\b`) });
 }
 
+/** Pointer gestures come from dispatchEvent, so React needs act() to flush. */
+function pointer(el: Element, type: 'pointerdown' | 'pointerup' | 'pointercancel') {
+  act(() => {
+    el.dispatchEvent(new PointerEvent(type, { bubbles: true }));
+  });
+}
+
 afterEach(() => {
   vi.useRealTimers();
 });
 
 describe('layout and labels', () => {
-  test('offers nine digits, an eraser and a notes toggle', () => {
+  test('offers nine digits and an eraser', () => {
     renderPad();
     for (const digit of [1, 2, 3, 4, 5, 6, 7, 8, 9]) expect(key(digit)).toBeDefined();
     expect(screen.getByRole('button', { name: /erase/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /notes/i })).toBeDefined();
+  });
+
+  test('does not duplicate the toolbar — Notes lives there, not here', () => {
+    renderPad();
+    expect(screen.queryByRole('button', { name: /notes/i })).toBeNull();
   });
 
   test('each key announces how many of that digit are left', () => {
@@ -169,21 +180,38 @@ describe('long-press writes a note', () => {
     vi.useFakeTimers();
     const pad = renderPad(apply(session(), { type: 'selectCell', cell: 2 }));
 
-    key(4).dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    await vi.advanceTimersByTimeAsync(LONG_PRESS_MS + 50);
-    key(4).dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    pointer(key(4), 'pointerdown');
+    await act(async () => { await vi.advanceTimersByTimeAsync(HOLD_MS + 50); });
+    pointer(key(4), 'pointerup');
 
     expect(pad.current().grid[2]).toBe(0);
     expect(pad.current().notes[2]).not.toBe(0);
+  });
+
+  test('the hold arms visibly rather than firing silently', async () => {
+    vi.useFakeTimers();
+    renderPad(apply(session(), { type: 'selectCell', cell: 2 }));
+
+    pointer(key(4), 'pointerdown');
+    // Held but not yet armed: the key says so, and the count reads NOTE.
+    expect(key(4).hasAttribute('data-held')).toBe(true);
+    expect(key(4).hasAttribute('data-armed')).toBe(false);
+    expect(key(4).textContent).toMatch(/NOTE/);
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(HOLD_MS + 50); });
+    expect(key(4).hasAttribute('data-armed')).toBe(true);
+
+    pointer(key(4), 'pointerup');
+    expect(key(4).hasAttribute('data-held')).toBe(false);
   });
 
   test('a quick tap still places the digit', async () => {
     vi.useFakeTimers();
     const pad = renderPad(apply(session(), { type: 'selectCell', cell: 2 }));
 
-    key(4).dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    await vi.advanceTimersByTimeAsync(80);
-    key(4).dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    pointer(key(4), 'pointerdown');
+    await act(async () => { await vi.advanceTimersByTimeAsync(80); });
+    pointer(key(4), 'pointerup');
 
     expect(pad.current().grid[2]).toBe(4);
   });
@@ -192,23 +220,12 @@ describe('long-press writes a note', () => {
     vi.useFakeTimers();
     const pad = renderPad(apply(session(), { type: 'selectCell', cell: 2 }));
 
-    key(4).dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    key(4).dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }));
-    await vi.advanceTimersByTimeAsync(LONG_PRESS_MS + 50);
+    pointer(key(4), 'pointerdown');
+    pointer(key(4), 'pointercancel');
+    await act(async () => { await vi.advanceTimersByTimeAsync(HOLD_MS + 50); });
 
     expect(pad.current().notes[2]).toBe(0);
     expect(pad.current().grid[2]).toBe(0);
-  });
-});
-
-describe('the notes toggle', () => {
-  test('flips notes mode', async () => {
-    const user = userEvent.setup();
-    const pad = renderPad();
-
-    await user.click(screen.getByRole('button', { name: /notes/i }));
-    expect(pad.current().notesMode).toBe(true);
-    expect(screen.getByRole('button', { name: /notes/i }).getAttribute('aria-pressed')).toBe('true');
   });
 });
 

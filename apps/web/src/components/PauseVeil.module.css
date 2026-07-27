@@ -1,0 +1,79 @@
+/*
+ * The veil. It covers the grid completely rather than dimming it — a pause a
+ * player can read through is not a pause.
+ */
+
+.veil {
+  position: absolute;
+  inset: -2px;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s);
+  padding: var(--space-l);
+  background: var(--veil);
+  border: var(--border-rule);
+  text-align: center;
+}
+
+.veil[data-reason='locked'] {
+  border: 2px solid var(--error);
+}
+
+.kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-kicker-size);
+  font-weight: var(--type-kicker-weight);
+  letter-spacing: var(--type-kicker-letter-spacing);
+  text-transform: uppercase;
+  color: var(--fg3-text);
+}
+
+.veil[data-reason='locked'] .kicker {
+  color: var(--error);
+}
+
+.copy {
+  max-width: 34ch;
+  margin: 0;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  color: var(--fg2);
+}
+
+.action {
+  min-height: 48px;
+  padding: 0 var(--space-l);
+  background: var(--fg);
+  border: 0;
+  border-radius: var(--radius-none);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  letter-spacing: var(--type-button-letter-spacing);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--motion-hover) var(--ease-hover);
+}
+
+.action:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.action:focus-visible {
+  outline: var(--border-focus-ring);
+  outline-offset: var(--focus-offset-prominent);
+}
+
+/*
+ * layout.md gives the veil as -2 at 1440/834 and 18 left/right at 390 — but
+ * that 18 is measured from the page, and at 390 the grid area already carries
+ * 18px of horizontal padding. Against the grid itself the veil is flush at
+ * every width. Insetting it by 18 here would leave the outer columns of the
+ * puzzle on show, which defeats the point of pausing.
+ */

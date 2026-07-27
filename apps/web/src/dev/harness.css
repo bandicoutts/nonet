@@ -22,7 +22,7 @@ body {
 
 .harness__bar {
   width: 100%;
-  max-width: 540px;
+  max-width: 1240px;
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
@@ -61,8 +61,13 @@ body {
 
 .harness__stage {
   width: 100%;
-  max-width: 540px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-l);
+  max-width: 1240px;
+}
+
+.harness__back {
+  font-family: var(--font-mono);
+  font-size: var(--type-control-size);
+  letter-spacing: var(--type-control-letter-spacing);
+  text-transform: uppercase;
+  color: var(--fg2);
 }
