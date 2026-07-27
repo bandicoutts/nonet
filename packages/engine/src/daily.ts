@@ -20,13 +20,14 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DAY_MS = 86_400_000;
 
 /**
- * The first daily. Puzzle number counts from here, so No. 1 is this date.
+ * The first daily. Puzzle number counts from here, so this date is No. 1.
  *
- * The design prototype shows "No. 1247", which implies a launch offset rather
- * than a true first edition. Moving the epoch back is a one-line change and the
- * only thing it affects is the number in the share text — but it must be
- * decided **before** launch, because shifting it afterwards renumbers editions
- * people have already shared.
+ * The design prototype shows "No. 1247", which would have meant a vanity offset
+ * pretending the product had been running for three years. Decided against: the
+ * first edition is No. 1. Honest numbering matches a product whose whole streak
+ * model is built on not overstating things.
+ *
+ * **Now frozen.** Moving it renumbers editions people have already shared.
  */
 export const PUZZLE_EPOCH = '2026-07-27';
 
