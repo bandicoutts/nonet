@@ -30,6 +30,24 @@ quiet — see NONET-17, where the job body referenced a function that did not
 exist and nothing would have said so until someone noticed no daily had
 appeared.
 
+**The project now exists** (`vsabnsqwlagdxfmftovn`, West EU) and is linked, but
+nothing has been pushed to it. Everything below is still verified against the
+local stack only.
+
+**Custom SMTP is a hard dependency, and it is earlier than Phase 5 implies.**
+The hosted dashboard will not let you edit an email template at all until custom
+SMTP is configured, and the sign-in flow *is* a template — NONET-21 sends a code
+rather than a link, and Supabase decides which from whether the template
+references `{{ .Token }}`. So until SMTP is set up, **the hosted project sends
+magic links while local sends codes**, and nothing fails loudly. The built-in
+sender is development-only and rate-limited to a couple of emails an hour
+regardless, so this was always launch work; it is only listed here because the
+template lock makes it block auth rather than block launch.
+
+SMTP needs a domain to authenticate against (SPF, DKIM, DMARC), and `nonet.app`
+is not owned yet — so the ordering is: domain, then SMTP, then paste
+`supabase/templates/magic-link.html` into Authentication → Emails → Magic Link.
+
 ---
 
 ## 2. Four settings are stored and synced, and honoured by nothing

@@ -67,7 +67,13 @@ export function MergeSummary({ result, onDismiss }: { result: SyncResult; onDism
           </div>
           <div className={ROW}>
             <dt className="type-body-small text-fg2">Run after merge</dt>
-            <dd className="type-mono-data text-fg">{streak} days</dd>
+            {/* Pluralised. `copy.md` writes this row as "{18 or 41} days"
+                because the prototype only ever drew a long run — and the first
+                thing a new player sees after signing in is a run exactly one
+                day old. Same defect as the share text (NONET-20). */}
+            <dd className="type-mono-data text-fg">
+              {streak} {streak === 1 ? 'day' : 'days'}
+            </dd>
           </div>
           {keptBoard !== 'neither' ? (
             <div className={ROW}>
