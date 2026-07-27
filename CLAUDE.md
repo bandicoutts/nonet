@@ -2,9 +2,9 @@
 
 Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UTC publish, weekly difficulty rhythm) plus unlimited practice. Sibling product to Halve (`~/Documents/Github/parity`): same architecture patterns, deliberately distinct design. Web-first (Next.js + Supabase + Vercel). Working name/domain: `nonet.app`.
 
-## Repo map (pnpm monorepo — planned)
-- `apps/web` — Next.js 16 app (the only planned frontend)
-- `packages/engine` — pure TS sudoku generator + solver + difficulty rater (no deps, no DOM)
+## Repo map (pnpm monorepo)
+- `apps/web` — Next.js 16 app (the only planned frontend). **Stub until Phase 3.**
+- `packages/engine` — pure TS sudoku generator + solver + difficulty rater + play rules (no runtime deps, no DOM). **Built.** API in `packages/engine/README.md`.
 - `packages/design` — design tokens; single source of truth for styling. Claude Design prototype is the pixel reference.
 - `supabase/` — migrations, edge functions, seed
 - `design/` — the Claude Design prototype (pixel + behaviour reference, not code to port). **Start at `design/README.md`.**
@@ -22,6 +22,7 @@ Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UT
 Global Next.js 16 / Supabase / TypeScript rules apply. Project-specific:
 - Design tokens in `packages/design` are the source of truth — never hardcode colors/spacing in components. They are transcribed from the Claude Design prototype's **Tokens** screen.
 - `packages/engine` is framework-agnostic and must stay fully unit-tested; UI depends on it, not vice versa.
+- **pnpm is pinned to 9.15.9.** Do not run `corepack prepare pnpm@latest` — pnpm 11 requires Node 22 and imports `node:sqlite`; this project is on Node 20.18. Use `corepack enable` and let `packageManager` resolve.
 - Streaks/stats are **derived from the `solves` table**, never denormalized. Streak days use the player's LOCAL calendar day.
 - Guest-first: everything must work signed-out via localStorage; sign-in only adds sync.
 - No emoji, no exclamation marks anywhere in UI copy.
@@ -34,3 +35,4 @@ Full detail in DECISIONS.md NONET-2. The short version:
 - **Leaving a puzzle is a back control** labelled for its origin (`← TODAY` / `← ARCHIVE`), never "close".
 - **Sign-in merge:** server wins for completed solves, latest autosave wins for in-progress. Enforce in code and test it — the design mock cannot.
 - **The prototype has no real accessibility semantics.** It designs focus *visuals* only; roles, `aria-*`, roving tabindex and focus trapping are yours to write.
+- **Difficulty is one number: the engine's weighted effort score.** Given count no longer rates anything. `TECHNIQUE_WEIGHTS` and `TECHNIQUE_ORDER` are load-bearing — changing either silently re-rates every puzzle in the bank, so rerun `pnpm --filter @nonet/engine calibrate` and paste the new `SCORE_FLOORS`. Detail in DECISIONS.md NONET-4.

@@ -4,11 +4,11 @@ System overview for Nonet. Mirrors Halve's proven architecture; deltas are calle
 
 ## Stack
 - **Web:** Next.js 16 (App Router, SSR), Tailwind wired to `packages/design` tokens, deployed on Vercel.
-- **Engine:** `packages/engine` — pure TS. 9×9 sudoku generator (unique solution, technique-bounded), human-style solver, difficulty rater (technique ceiling + given count → Easy/Medium/Hard/Expert), and the mistake-counting rules (including digit-first repeat containment — see GAME-RULES.md; must be unit-tested).
+- **Engine:** `packages/engine` — pure TS, no runtime dependencies. 9×9 generator (unique solution by construction, technique-bounded), human-style solver over a nine-technique ladder, difficulty rater (**weighted effort score** → Easy/Medium/Hard/Expert; see DECISIONS.md NONET-4), and the play rules — notes, hints, mistake counting including digit-first repeat containment, and a session reducer whose undo/redo never uncounts a mistake. See `packages/engine/README.md` for the public API.
 - **Backend:** Supabase (Postgres + Auth + RLS + edge functions).
 
 ## Data model
-- `puzzles` — id, grid (givens), solution, difficulty, kind (`daily` | `practice`), publish date (daily only).
+- `puzzles` — id, grid (givens), solution, difficulty, **score**, seed, kind (`daily` | `practice`), publish date (daily only). `score` is the engine's weighted effort rating; persist it so the bank can be re-banded from real solve times after launch without re-solving every puzzle (DECISIONS.md NONET-4). `seed` makes any puzzle reproducible from the generator.
 - `profiles` — user id (FK auth.users), display name, created_at.
 - `solves` — user id, puzzle id, solved_at, local_date, duration_ms, mistakes, used_hint, attempt (1|2), checked (bool), kind (daily/archive/practice/replay). One row per completed solve. Streaks/stats **derived** from this, never denormalized.
 

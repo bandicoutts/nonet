@@ -47,7 +47,7 @@ The board is an immersive mode, not a page — no site nav during play. The exit
 - Explicit pause veils the grid; tab blur auto-pauses. Timer visibility is a setting (time always recorded). Display caps at 99:59+.
 
 ## Practice
-- Pre-built bank per difficulty (Easy → Expert; defined by technique ceiling + given count — UI shows only label, givens, median time).
+- Pre-built bank per difficulty (Easy → Expert; defined by the engine's **weighted effort score** — see DECISIONS.md NONET-4. UI shows only label, givens, median time; the score is internal).
 - One in-flight puzzle; starting a new one prompts to abandon. Own stats section on Record; invisible to streaks/percentiles.
 - **Practice lives on Home, not on its own page** — the picker, the resume band and the abandon confirm are all sections of Home. There is no `/practice` route. See DECISIONS.md NONET-2.
 - Practice boards still carry the 3-mistake lock and 3 hints; only the streak and percentile stakes are absent.
