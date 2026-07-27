@@ -203,12 +203,17 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
+    /* `dt` and `dd` sit directly inside this wrapper, which is the only
+       structure a definition list permits — nesting them inside a further div
+       for layout makes them orphans that no assistive technology pairs up. */
     <div className="flex flex-col gap-s border-b border-line py-m drawer:flex-row drawer:items-center drawer:justify-between drawer:gap-l">
-      <div className="max-w-[46ch]">
-        <dt className="type-body text-fg">{label}</dt>
-        <dd className="type-body-small text-fg3-text mt-2xs">{description}</dd>
-      </div>
-      <div className="flex flex-wrap gap-2xs">{children}</div>
+      <dt className="type-body text-fg max-w-[46ch]">
+        {label}
+        <span className="type-body-small text-fg3-text mt-2xs block font-normal">
+          {description}
+        </span>
+      </dt>
+      <dd className="flex flex-wrap gap-2xs">{children}</dd>
     </div>
   );
 }

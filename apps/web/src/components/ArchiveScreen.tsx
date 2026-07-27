@@ -31,8 +31,14 @@ const DAY_STYLE: Readonly<Record<EditionStatus, string>> = {
   failed: 'border border-error bg-error text-accent-ink',
   unplayed: 'border border-line bg-transparent text-fg3-text',
   today: 'border-2 border-accent bg-transparent text-accent',
-  future: 'border border-dashed border-deco bg-transparent text-deco',
-  'pre-epoch': 'border border-dashed border-deco bg-transparent text-deco',
+  /*
+   * `--deco` draws the border but never the text. It is contrast-exempt as a
+   * decorative token (NONET-5), and a day number is something a sighted player
+   * reads — so the dashed border carries "no puzzle here" and the numeral uses
+   * the token that was sized to be readable.
+   */
+  future: 'border border-dashed border-deco bg-transparent text-fg3-text',
+  'pre-epoch': 'border border-dashed border-deco bg-transparent text-fg3-text',
 };
 
 const STATUSES: readonly EditionStatus[] = ['unplayed', 'solved', 'failed', 'today'];
@@ -158,10 +164,12 @@ export function ArchiveScreen({ now }: { now?: Date }) {
           </button>
         </div>
 
-        {/* Non-interactive below the drawer breakpoint: at that width the cells
-            are 30px, under any reasonable touch target, so the list below is
-            the only way in (layout.md). */}
-        <div className="hidden drawer:block" aria-hidden="true">
+        {/* Hidden below the drawer breakpoint, where the cells would be 30px
+            and under any usable touch target, so the list is the only way in
+            (layout.md). Not `aria-hidden`: it holds real links at this width,
+            and hiding focusable content from the tree leaves a keyboard player
+            tabbing through controls a screen reader cannot see. */}
+        <div className="hidden drawer:block">
           <div className="grid grid-cols-7 gap-2xs">
             {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((head, i) => (
               <p key={i} className="type-mono-label text-center text-fg3-text">

@@ -66,7 +66,7 @@ than questions are here.
 - [ ] Replay play mode — `solves.kind` can hold `'replay'`, nothing writes it
 - [ ] Offline banner, edge/empty/error states per DESIGN-BRIEF.md
 - [x] Streaks/stats surfaced (NONET-23, NONET-25)
-- [ ] E2E suite (Playwright) + a11y pass
+- [x] E2E suite (Playwright, Chrome + WebKit) + a11y pass — four real violations found and fixed (NONET-29)
 - [x] Lint test for cleared Tailwind namespaces (NONET-20)
 
 ## Phase 5 — Launch

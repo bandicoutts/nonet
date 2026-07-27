@@ -25,7 +25,10 @@ describe('SettingsScreen', () => {
    */
   it('offers every setting the store holds', () => {
     const { container } = render(<SettingsScreen />);
-    const labels = [...container.querySelectorAll('dt')].map((dt) => dt.textContent);
+    /* The description lives inside the `dt` as a span, so that the term and its
+       definition are direct children of the list — see the Row comment. The
+       label is the first text node. */
+    const labels = [...container.querySelectorAll('dt')].map((dt) => dt.firstChild?.textContent);
 
     expect(labels).toEqual([
       'Theme',

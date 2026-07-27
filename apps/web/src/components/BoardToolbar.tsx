@@ -71,8 +71,15 @@ export function BoardToolbar({
   return (
     <div className="flex flex-col gap-sm">
       <div className="flex items-baseline justify-between gap-s">
+        {/* `role="timer"`, not a bare <p>: a paragraph is a role that prohibits
+            naming, so the aria-label was being dropped and the readout was
+            announced as raw digits. */}
         {showTimer ? (
-          <p className="type-timer m-0 text-fg" aria-label={`Elapsed time ${formatTime(elapsedMs)}`}>
+          <p
+            role="timer"
+            className="type-timer m-0 text-fg"
+            aria-label={`Elapsed time ${formatTime(elapsedMs)}`}
+          >
             <span aria-hidden="true">{formatTime(elapsedMs)}</span>
           </p>
         ) : (
@@ -83,6 +90,7 @@ export function BoardToolbar({
 
         {session.checking ? (
           <p
+            role="img"
             className="m-0 flex gap-[5px]"
             aria-label={`${session.mistakes} of ${MAX_MISTAKES} mistakes`}
           >
