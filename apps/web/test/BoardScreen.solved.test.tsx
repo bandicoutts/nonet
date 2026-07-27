@@ -3,6 +3,7 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { generatePuzzle } from '@nonet/engine';
 import { BoardScreen, SOLVED_DWELL_MS } from '@/components/BoardScreen';
 import { readSolves } from '@/lib/storage';
+import { dailyRef } from '@/lib/puzzles';
 import type { PuzzleRef } from '@/lib/storage';
 
 /* Easy, so the fixture solves in one pass and the test stays fast. */
@@ -18,7 +19,12 @@ const onSolved = vi.fn();
  * the screen's reaction to the session reaching `solved`.
  */
 function solveTheBoard(): void {
-  const puzzle = generatePuzzle(REF.difficulty, REF.seed);
+  solveBoardFor(REF);
+}
+
+/** Fill every empty cell of `ref`'s puzzle with its answer, through the UI. */
+function solveBoardFor(ref: PuzzleRef): void {
+  const puzzle = generatePuzzle(ref.difficulty, ref.seed);
 
   for (let index = 0; index < 81; index += 1) {
     if (puzzle.givens[index] !== 0) continue;
@@ -126,5 +132,40 @@ describe('BoardScreen, on solving', () => {
     });
     expect(onSolved).not.toHaveBeenCalled();
     expect(readSolves()).toHaveLength(0);
+  });
+});
+
+/*
+ * Archive solves are recorded and never extend a run (GAME-RULES.md).
+ *
+ * This became reachable when `/board` started taking a ref from the URL
+ * (NONET-23): before that the only daily it could load was today's. Recording
+ * an old edition as `daily` would stamp it with *today's* local date and hand
+ * the player a streak day for a puzzle that was not today's.
+ */
+describe('BoardScreen, which kind it records', () => {
+  const solveIt = (ref: PuzzleRef) => {
+    render(<BoardScreen puzzleRef={ref} onSolved={onSolved} />);
+    solveBoardFor(ref);
+  };
+
+  it('records today’s edition as a daily', () => {
+    const today = dailyRef();
+    solveIt(today);
+
+    expect(readSolves()[0]?.kind).toBe('daily');
+  });
+
+  it('records an older edition as an archive solve', () => {
+    const today = dailyRef();
+    // A different seed is a different edition — the seed *is* the date.
+    solveIt({ ...today, seed: today.seed + 1 });
+
+    expect(readSolves()[0]?.kind).toBe('archive');
+  });
+
+  it('still records practice as practice', () => {
+    solveIt({ kind: 'practice', difficulty: 'easy', seed: 7 });
+    expect(readSolves()[0]?.kind).toBe('practice');
   });
 });

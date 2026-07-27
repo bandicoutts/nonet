@@ -7,7 +7,7 @@ import type { Action, SessionState } from '@nonet/engine';
 import { BoardLayout } from './BoardLayout';
 import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
-import { canRetry, currentAttempt, recordFailure } from '@/lib/puzzles';
+import { canRetry, currentAttempt, dailyRef, recordFailure } from '@/lib/puzzles';
 import { DEFAULT_SETTINGS, readSettings } from '@/lib/settings';
 import { appendSolve, clearAutosave, localDate } from '@/lib/storage';
 import type { PuzzleRef } from '@/lib/storage';
@@ -210,7 +210,18 @@ export function BoardScreen({
       // attempt, with no percentile (GAME-RULES.md).
       attempt: currentAttempt(ref),
       checked: session.checking,
-      kind: ref.kind === 'daily' ? 'daily' : 'practice',
+      /*
+       * An old edition is an *archive* solve, not a daily one.
+       *
+       * Only today's edition can extend a run (GAME-RULES.md), and every
+       * consumer of the streak filters on `kind === 'daily'` — so getting this
+       * wrong here is the whole rule. It became reachable when `/board` started
+       * taking a ref from the URL (NONET-23): before that the only daily it
+       * could load was today's. Recording an old edition as `daily` would stamp
+       * it with *today's* local date and hand out a streak day for a puzzle
+       * that was not today's.
+       */
+      kind: ref.kind === 'practice' ? 'practice' : editionKind(ref),
     });
 
     clearAutosave(ref);
@@ -284,6 +295,17 @@ export function BoardScreen({
       ) : null}
     </>
   );
+}
+
+/**
+ * Whether a daily ref is *today's* edition or one from the archive.
+ *
+ * By seed, because the seed is derived from the date and therefore **is** the
+ * edition (NONET-16) — comparing dates would mean deciding which timezone's
+ * date, which the publish gate has already answered.
+ */
+function editionKind(ref: PuzzleRef): 'daily' | 'archive' {
+  return ref.seed === dailyRef().seed ? 'daily' : 'archive';
 }
 
 /**
