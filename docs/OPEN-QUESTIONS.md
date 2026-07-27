@@ -30,9 +30,29 @@ quiet — see NONET-17, where the job body referenced a function that did not
 exist and nothing would have said so until someone noticed no daily had
 appeared.
 
-**The project now exists** (`vsabnsqwlagdxfmftovn`, West EU) and is linked, but
-nothing has been pushed to it. Everything below is still verified against the
-local stack only.
+**The project exists and is provisioned** (`vsabnsqwlagdxfmftovn`, West EU).
+Migrations pushed with no schema drift, the 4000-puzzle bank loaded, the edge
+function deployed, and edition No. 1 published *by the function itself* rather
+than by hand — the hosted job returned seed `1150819893`, byte-identical to what
+the browser and the local stack derive, so NONET-16's claim that three
+independent implementations agree now holds against the real thing. Running it a
+second time returned the same id, so the SQL idempotency holds too.
+
+**The only thing left is the two Vault secrets**, and the cron is correctly inert
+without them: `cron.job` holds `publish-daily` at `5 0 * * *`, active, and
+`vault.decrypted_secrets` is empty, so the `where exists` guard means it fires
+and does nothing. That is the last untested link in the chain — the function is
+now proven by hand, but the *cron calling it* is not.
+
+**A trap for whoever runs a schema diff.** `supabase db diff --linked` reports
+`drop extension if exists "pg_net"`. Do not apply it. `pg_net` is preinstalled on
+hosted and absent locally, so the diff reads the asymmetry as drift; dropping it
+breaks the publish job, which is the same extension-schema trap NONET-17 hit from
+the other direction.
+
+**`supabase db query --linked` avoids the connection string entirely** — it goes
+through the Management API, so it needs no database password and no `psql`. That
+is how the bank was loaded.
 
 **Custom SMTP is a hard dependency, and it is earlier than Phase 5 implies.**
 The hosted dashboard will not let you edit an email template at all until custom
