@@ -1,8 +1,10 @@
 import { getCell, setCell } from '../grid';
+import { CELL_COUNT } from '../types';
 import type { CellIndex, Digit, Grid, Notes } from '../types';
 import { isSolved } from '../validate';
 import { chooseHint, MAX_HINTS } from './hints';
 import {
+  MAX_MISTAKES,
   createMistakeTracker,
   loadDigit as loadDigitInTracker,
   recordWrongPlacement,
@@ -100,6 +102,92 @@ export function createSession(options: SessionOptions): SessionState {
     tracker,
     past: [],
     future: [],
+  };
+}
+
+export interface RestoreOptions extends SessionOptions {
+  /** The board as the player left it, givens included. */
+  readonly grid: Grid;
+  readonly notes: Notes;
+  readonly mistakes?: number;
+  readonly hintsUsed?: number;
+  readonly hintedCells?: readonly CellIndex[];
+}
+
+/**
+ * Resume a saved puzzle.
+ *
+ * Restoring is rule work, not deserialisation: whether a board is finished,
+ * whether it is locked, and whether a spent hint still marks the solve assisted
+ * are all engine questions, and answering them in the app would put the rules
+ * in two places (NONET-8).
+ *
+ * Three things deliberately do **not** come back.
+ *
+ * The **undo history** is empty, because it is never saved — it is a full
+ * grid-and-notes snapshot per action and would grow the payload without bound
+ * on a write that happens every keystroke. Unlimited undo means unlimited
+ * within a sitting (NONET-9).
+ *
+ * **Digit-first containment** is dropped. It is an allowance within a gesture:
+ * the digit is loaded, it has already cost a life, and further misplacements of
+ * it are free until the player moves on. Nothing is loaded after a reload, so
+ * carrying it across would hand out a free mistake.
+ *
+ * **Selection** is dropped for the same reason — the cursor is where the player
+ * was looking, not part of the puzzle.
+ *
+ * A save is bytes from a device we do not control: localStorage is editable by
+ * hand and a sync can deliver a row written by an older version. Anything that
+ * could not have come from play is refused rather than resumed into, and the
+ * caller falls back to a fresh puzzle.
+ */
+export function restoreSession(options: RestoreOptions): SessionState {
+  const { givens, grid, notes } = options;
+  const mistakes = options.mistakes ?? 0;
+  const hintsUsed = options.hintsUsed ?? 0;
+
+  if (grid.length !== CELL_COUNT) {
+    throw new Error(`A saved grid needs exactly 81 cells, received ${grid.length}`);
+  }
+  if (notes.length !== CELL_COUNT) {
+    throw new Error(`Saved notes need exactly 81 cells, received ${notes.length}`);
+  }
+
+  // A given is the puzzle itself. A save that disagrees with one was not
+  // produced by playing, since givens are inert to every action.
+  for (let cell = 0; cell < CELL_COUNT; cell += 1) {
+    const given = givens[cell] ?? 0;
+    if (given !== 0 && grid[cell] !== given) {
+      throw new Error(`Saved grid contradicts the given at cell ${cell}`);
+    }
+  }
+
+  if (!Number.isInteger(mistakes) || mistakes < 0 || mistakes > MAX_MISTAKES) {
+    throw new Error(`Saved mistakes must be between 0 and ${MAX_MISTAKES}, received ${mistakes}`);
+  }
+  if (!Number.isInteger(hintsUsed) || hintsUsed < 0 || hintsUsed > MAX_HINTS) {
+    throw new Error(`Saved hints must be between 0 and ${MAX_HINTS}, received ${hintsUsed}`);
+  }
+
+  const tracker: MistakeTracker = {
+    mistakes,
+    locked: mistakes >= MAX_MISTAKES,
+    containedDigit: null,
+  };
+
+  return {
+    ...createSession(options),
+    grid,
+    notes,
+    mistakes,
+    hintsUsed,
+    hintedCells: options.hintedCells ?? [],
+    // One hint marks the solve assisted for the rest of the puzzle, reload or
+    // not — otherwise the cost could be shed by closing the tab.
+    assisted: hintsUsed > 0,
+    status: statusOf(grid, tracker),
+    tracker,
   };
 }
 

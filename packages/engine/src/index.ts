@@ -101,10 +101,11 @@ export type { InputMode, MistakeTracker } from './rules/mistakes';
 export { MAX_HINTS, chooseHint, hintNeedsConfirmation } from './rules/hints';
 export type { Hint } from './rules/hints';
 
-export { apply, createSession } from './rules/session';
+export { apply, createSession, restoreSession } from './rules/session';
 export type {
   Action,
   Loaded,
+  RestoreOptions,
   SessionOptions,
   SessionState,
   SessionStatus,
