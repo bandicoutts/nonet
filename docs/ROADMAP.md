@@ -53,8 +53,8 @@ than questions are here.
 
 - [x] **Solved flow.** Result screen, run extended, stat grid, spoiler-free share
       text, and the dwell-then-navigate from a finished board (DECISIONS.md NONET-20)
-- [ ] Home: daily hero, streak band, practice picker + resume + abandon confirm
-      (`pickPractice` is written and tested but has no caller)
+- [x] Home: daily hero across six states, streak band, practice picker + resume
+      + abandon confirm; `/board` now takes a puzzle in the URL (NONET-23)
 - [ ] Honour the four settings that are stored and synced but read by nothing —
       `showTimer`, `highlightMatching`, `highlightUnits`, `autoAdvance`.
       `autoAdvance` needs a new engine action; it is a play rule, not React state

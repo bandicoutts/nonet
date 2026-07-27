@@ -1,8 +1,13 @@
 import type { Metadata } from 'next';
-import { PageStub } from '@/components/chrome/PageStub';
+import { HomeScreen } from '@/components/HomeScreen';
 
 export const metadata: Metadata = { title: 'Today' };
 
+/**
+ * Home: the daily hero, the streak band and the practice section.
+ *
+ * Practice is a section here, not a route — there is no `/practice` (NONET-2).
+ */
 export default function Page() {
-  return <PageStub kicker="Daily sudoku" note="The daily hero, the streak band and the practice section land here. Practice is a section of Home, not a route of its own." />;
+  return <HomeScreen />;
 }
