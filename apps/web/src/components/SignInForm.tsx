@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { safeRedirect } from '@/lib/redirect';
 
@@ -20,19 +21,32 @@ const SUBMIT =
 const LINK = 'type-body-small text-fg2 underline underline-offset-4 hover:text-fg';
 
 /**
- * Magic link, and nothing else.
+ * A six-digit code, and nothing else.
  *
  * No password to create, forget or reset — which also means no password for
- * this product to hold. Copy is verbatim from `design/export/copy.md`,
- * including the fifteen-minute expiry, which `config.toml` is set to keep.
+ * this product to hold, and no reset flow, which would itself have been a
+ * magic link.
+ *
+ * **A code rather than a link, which reverses NONET-18.** The only thing an
+ * account does here is carry a streak between devices, so the moment someone
+ * signs in is very often on their *second* device — and that is exactly where
+ * a link fails. It opens in whatever browser the mail app owns rather than the
+ * tab the player started in, so they end up authenticated somewhere they were
+ * not playing. Mail gateways that prefetch links also spend the single-use
+ * token before any human clicks it. A code has neither failure: the player
+ * stays where they are and types six digits. DECISIONS.md NONET-21.
  *
  * Signing in is optional everywhere, so this is a convenience rather than a
  * gate: a player who never uses it loses nothing but sync.
  */
 export function SignInForm({ next = '/' }: { next?: string }) {
   const [email, setEmail] = useState('');
-  const [state, setState] = useState<'form' | 'sending' | 'sent' | 'error'>('form');
+  const [code, setCode] = useState('');
+  const [state, setState] = useState<'form' | 'sending' | 'sent' | 'verifying' | 'error' | 'bad-code'>(
+    'form',
+  );
 
+  const router = useRouter();
   const supabase = createClient();
 
   if (supabase === null) {
@@ -46,26 +60,83 @@ export function SignInForm({ next = '/' }: { next?: string }) {
 
   const send = async () => {
     setState('sending');
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // The whitelist runs again in the callback; this is belt and braces
-        // rather than the check itself.
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-          safeRedirect(next),
-        )}`,
-      },
-    });
+    // No `emailRedirectTo`: nothing is being redirected. The player stays in
+    // this tab, which is the entire point of the code.
+    const { error } = await supabase.auth.signInWithOtp({ email });
     setState(error ? 'error' : 'sent');
   };
 
-  if (state === 'sent') {
+  const verify = async () => {
+    setState('verifying');
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+
+    if (error) {
+      // Six digits typed by hand against a fifteen-minute window: a wrong or
+      // expired code is ordinary. Stay put and let them try again.
+      setState('bad-code');
+      return;
+    }
+
+    /*
+     * `merged=1` is what raises the post-sign-in summary, and the merge is what
+     * signing in is *for*. The link flow got this marker from the callback
+     * route; a code never touches the server, so it has to be added here —
+     * without it, signing in would silently stop carrying a guest's history.
+     *
+     * `next` is attacker-controlled and now reaches a client-side navigation
+     * rather than the callback's server-side one, so it still goes through the
+     * whitelist. The session is live by this line, which is the worst possible
+     * moment for an open redirect (NONET-18).
+     */
+    const destination = safeRedirect(next);
+    router.replace(`${destination}${destination.includes('?') ? '&' : '?'}merged=1`);
+  };
+
+  if (state !== 'form' && state !== 'sending' && state !== 'error') {
     return (
       <div className="flex max-w-[52ch] flex-col gap-s">
         <h1 className="type-display text-fg">Check your email</h1>
         <p className="type-body text-fg2">
-          A sign-in link is on its way to {email}. It expires in fifteen minutes.
+          A six-digit code is on its way to {email}. It expires in fifteen minutes.
         </p>
+
+        <form
+          className="mt-s flex flex-col gap-s"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void verify();
+          }}
+        >
+          <label className="type-mono-label text-fg3-text" htmlFor="code">
+            Code
+          </label>
+          <input
+            id="code"
+            className={`${INPUT} tracking-[0.3em] tabular-nums`}
+            name="code"
+            /* Typed for what it is, so a password manager does not offer a
+               password and iOS offers the code it has just received. */
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            placeholder="000000"
+            required
+            autoFocus
+            value={code}
+            onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
+          />
+
+          <button className={SUBMIT} type="submit" disabled={state === 'verifying'}>
+            Sign in
+          </button>
+
+          {state === 'bad-code' ? (
+            <p className="type-body-small text-error" role="alert">
+              That code did not work. Check it, or send another.
+            </p>
+          ) : null}
+        </form>
 
         <div className="mt-s flex flex-wrap items-center gap-s">
           <button type="button" className={LINK} onClick={() => void send()}>
@@ -86,7 +157,7 @@ export function SignInForm({ next = '/' }: { next?: string }) {
     <div className="flex max-w-[42ch] flex-col gap-s">
       <h1 className="type-display text-fg">Sign in</h1>
       <p className="type-body text-fg2">
-        We send a link, you click it. No password to forget. Your streak and stats then follow you
+        We send a six-digit code. No password to forget. Your streak and stats then follow you
         between devices.
       </p>
 
@@ -113,7 +184,7 @@ export function SignInForm({ next = '/' }: { next?: string }) {
         />
 
         <button className={SUBMIT} type="submit" disabled={state === 'sending'}>
-          Send the link
+          Send the code
         </button>
 
         {state === 'error' ? (

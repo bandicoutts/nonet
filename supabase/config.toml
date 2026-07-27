@@ -246,6 +246,20 @@ otp_expiry = 900
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# The sign-in email carries a code, not a link (NONET-21).
+#
+# Supabase decides which it sends from what the template references: a template
+# holding `{{ .Token }}` produces a code, one holding `{{ .ConfirmationURL }}`
+# produces a link. That means reverting this file silently reverts the entire
+# sign-in flow, with nothing failing until someone reads a real email.
+#
+# **This is local only.** The hosted project keeps its own copy of every
+# template, under Authentication → Emails → Magic Link, and it does not read
+# this file. Both have to be changed.
+[auth.email.template.magic_link]
+subject = "Your Nonet sign-in code"
+content_path = "./supabase/templates/magic-link.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
