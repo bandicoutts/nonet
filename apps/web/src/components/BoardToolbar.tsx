@@ -1,6 +1,26 @@
 import { MAX_HINTS, MAX_MISTAKES, hintNeedsConfirmation } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
-import styles from './BoardToolbar.module.css';
+/**
+ * Six chips below 1100, five at mobile (Erase lives on the pad there), and a
+ * paired Undo/Redo row in the desktop rail — where every other chip spans the
+ * full width. layout.md.
+ */
+const CHIPS =
+  'grid grid-cols-5 gap-2xs drawer:grid-cols-6 drawer:gap-xs rail:grid-cols-2 rail:gap-2xs';
+
+const CHIP =
+  'min-h-[50px] cursor-pointer border border-line bg-transparent px-3xs ' +
+  'drawer:min-h-[46px] drawer:px-sm ' +
+  'type-control text-fg2 ' +
+  'transition-colors duration-(--motion-hover) ease-(--ease-hover) ' +
+  'focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset) ' +
+  'aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-accent-ink ' +
+  // Disabled is a dashed border first and reduced contrast second. The dash is
+  // the non-colour cue, which is what lets --fg3 sit here at all (NONET-5).
+  'aria-disabled:cursor-default aria-disabled:border-(--border-dashed-line) aria-disabled:text-fg3 aria-disabled:opacity-[0.62]';
+
+/** In the rail everything but Undo and Redo spans both columns. */
+const CHIP_FULL_WIDTH = 'rail:col-span-2';
 
 export interface BoardToolbarProps {
   readonly session: SessionState;
@@ -42,21 +62,26 @@ export function BoardToolbar({
   };
 
   return (
-    <div className={styles.toolbar}>
-      <div className={styles.status}>
-        <p className={styles.timer} aria-label={`Elapsed time ${formatTime(elapsedMs)}`}>
+    <div className="flex flex-col gap-sm">
+      <div className="flex items-baseline justify-between gap-s">
+        <p className="type-timer m-0 text-fg" aria-label={`Elapsed time ${formatTime(elapsedMs)}`}>
           <span aria-hidden="true">{formatTime(elapsedMs)}</span>
         </p>
 
         {session.checking ? (
           <p
-            className={styles.mistakes}
+            className="m-0 flex gap-[5px]"
             aria-label={`${session.mistakes} of ${MAX_MISTAKES} mistakes`}
           >
             {Array.from({ length: MAX_MISTAKES }, (_, index) => (
               <span
                 key={index}
-                className={styles.dot}
+                className={`size-[9px] border ${
+                  index < session.mistakes
+                    ? // Spent lives are filled, not merely recoloured.
+                      'border-error bg-error'
+                    : 'border-fg3-text'
+                }`}
                 data-spent={index < session.mistakes ? '' : undefined}
                 aria-hidden="true"
               />
@@ -65,7 +90,7 @@ export function BoardToolbar({
         ) : null}
       </div>
 
-      <div className={styles.chips} role="group" aria-label="Board controls">
+      <div className={CHIPS} role="group" aria-label="Board controls">
         <Chip
           label="Notes"
           pressed={session.notesMode}
@@ -112,11 +137,17 @@ interface ChipProps {
 }
 
 function Chip({ label, describedAs, pressed, disabled = false, onClick }: ChipProps) {
+  const chip = label.toLowerCase();
   return (
     <button
-      className={styles.chip}
+      className={`${CHIP} ${chip === 'undo' || chip === 'redo' ? '' : CHIP_FULL_WIDTH} ${
+        // Erase lives on the pad below the drawer breakpoint, so the toolbar
+        // drops to five chips there. `hidden` also takes it out of the
+        // accessibility tree, so exactly one Erase is ever exposed.
+        chip === 'erase' ? 'hidden drawer:block' : ''
+      }`}
       type="button"
-      data-chip={label.toLowerCase()}
+      data-chip={chip}
       // aria-disabled rather than disabled: a disabled button drops out of the
       // tab order, and a player navigating by keyboard should still be able to
       // reach Hint and hear that none are left.

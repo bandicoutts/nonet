@@ -26,6 +26,25 @@
   --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
 }
 
+/*
+ * A digit or hint landing in a cell. The duration and easing are motion tokens
+ * (`--motion-place`, `--ease-place`); only the shape of the movement lives here,
+ * because keyframes are not something the token sheet expresses.
+ *
+ * Under `prefers-reduced-motion: reduce` the token sheet collapses every
+ * duration to 1ms, so the digit simply appears — feedback without movement.
+ */
+@keyframes place {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @layer base {
   /* Square corners are the design's, not a reset's oversight (RADIUS.none). */
   *,

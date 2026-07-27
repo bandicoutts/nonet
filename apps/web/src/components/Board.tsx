@@ -11,7 +11,73 @@ import {
   rowOf,
 } from '@nonet/engine';
 import type { Action, CellIndex, Digit, SessionState } from '@nonet/engine';
-import styles from './Board.module.css';
+
+/**
+ * Cells meet edge to edge, so every rule is an inset shadow — a real border
+ * would shift the grid by a pixel per cell and the 3x3 boxes would stop lining
+ * up. Three things then have to share one `box-shadow`, and the order inside it
+ * decides what is visible, because the first shadow paints on top:
+ *
+ *   selection ring → box rule → hairline
+ *
+ * The Phase 2 stylesheet expressed the box rules as `:nth-child` selectors and
+ * the ring as `[data-selected]`. That put them in competition rather than in
+ * sequence, and specificity (0,3,0) against (0,2,0) meant the ring lost on all
+ * 32 cells in columns 3 and 6 and rows 3 and 6. Composing the whole stack per
+ * cell removes the cascade from the question.
+ *
+ * Every combination is written out in full because Tailwind generates only the
+ * classes it can find in the source — a string built at runtime produces no CSS.
+ */
+const CELL_SHADOWS = {
+  'false-false-false': 'shadow-[var(--border-cell-thin)]',
+  'false-false-true': 'shadow-[var(--border-selected-ring),var(--border-cell-thin)]',
+  'true-false-false': 'shadow-[inset_2px_0_0_var(--rule),var(--border-cell-thin)]',
+  'true-false-true':
+    'shadow-[var(--border-selected-ring),inset_2px_0_0_var(--rule),var(--border-cell-thin)]',
+  'false-true-false': 'shadow-[inset_0_2px_0_var(--rule),var(--border-cell-thin)]',
+  'false-true-true':
+    'shadow-[var(--border-selected-ring),inset_0_2px_0_var(--rule),var(--border-cell-thin)]',
+  'true-true-false':
+    'shadow-[inset_2px_0_0_var(--rule),inset_0_2px_0_var(--rule),var(--border-cell-thin)]',
+  'true-true-true':
+    'shadow-[var(--border-selected-ring),inset_2px_0_0_var(--rule),inset_0_2px_0_var(--rule),var(--border-cell-thin)]',
+} as const;
+
+function cellShadow(boxLeft: boolean, boxTop: boolean, selected: boolean): string {
+  return CELL_SHADOWS[`${boxLeft}-${boxTop}-${selected}` as keyof typeof CELL_SHADOWS];
+}
+
+/**
+ * Cell shading, weakest to strongest, resolved to a single winning class.
+ *
+ * The stylesheet used to layer four rules and rely on source order for
+ * "selection always reads loudest". Tailwind utilities have no source order in
+ * JSX, so the precedence is decided here instead — and is now visible rather
+ * than implied by where the rules happened to sit in a file.
+ */
+function cellBackground(wrong: boolean, selected: boolean, matching: boolean, unit: boolean): string {
+  if (wrong) return 'bg-error-soft';
+  if (selected) return 'bg-cell-sel';
+  if (matching) return 'bg-cell-same';
+  if (unit) return 'bg-cell-hl';
+  return '';
+}
+
+/**
+ * Focus is drawn inside, because cells meet edge to edge and an outline would
+ * be clipped by the neighbour. The ring is ink where selection is cobalt, so
+ * the two are never told apart by colour alone.
+ *
+ * Focused *and* selected stacks both at 2 / 4 / 6px: cobalt innermost, the cell
+ * ground as a separator, then the ink ring. The second variant is written as an
+ * explicit selector so it outranks the first on specificity — (0,3,0) against
+ * (0,2,0) — rather than depending on the order Tailwind happens to emit them in.
+ */
+const FOCUS_RINGS =
+  'focus-visible:outline-none focus-visible:z-[1] ' +
+  'focus-visible:shadow-[inset_0_0_0_2px_var(--surface),inset_0_0_0_4px_var(--fg)] ' +
+  '[&[data-selected]:focus-visible]:shadow-[inset_0_0_0_2px_var(--accent),inset_0_0_0_4px_var(--cell-sel),inset_0_0_0_6px_var(--fg)]';
 
 export interface BoardProps {
   readonly session: SessionState;
@@ -151,14 +217,16 @@ export function Board({ session, onAction, onPause, label = 'Sudoku puzzle' }: B
   return (
     <div
       ref={gridRef}
-      className={styles.grid}
+      /* 9 x 80 at 1440, per layout.md. Below that the grid fills its column.
+         The grid owns keyboard focus through its cells, never itself. */
+      className="grid aspect-square w-full max-w-[720px] grid-rows-9 bg-surface outline-none shadow-[var(--border-cell-box)]"
       role="grid"
       aria-label={label}
       aria-disabled={locked ? true : undefined}
       onKeyDown={handleKeyDown}
     >
       {Array.from({ length: UNIT_SIZE }, (_, row) => (
-        <div className={styles.row} role="row" key={row}>
+        <div className="grid grid-cols-9" role="row" key={row}>
           {Array.from({ length: UNIT_SIZE }, (_, col) => (
             <Cell
               key={col}
@@ -187,6 +255,8 @@ function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
   const value = getCell(session.grid, cell);
   const given = getCell(session.givens, cell) !== 0;
   const notes = digitsOf(session.notes[cell] ?? 0);
+  const row = rowOf(cell);
+  const col = colOf(cell);
 
   // Auto-check flags a wrong digit immediately. With checking off nothing is
   // flagged, so nothing is announced as incorrect either.
@@ -199,33 +269,56 @@ function Cell({ cell, session, isFocused, onSelect, onActivate }: CellProps) {
   const conflicting =
     !given && value !== 0 && conflictsAt(session.grid, cell).length > 0;
 
+  const selected = session.selected === cell;
+  const flagged = wrong || conflicting;
+
+  const className = [
+    'relative grid cursor-pointer place-items-center select-none',
+    'type-cell-digit transition-colors duration-(--motion-hover) ease-(--ease-hover)',
+    // Givens are the puzzle; player entries are the player's. Weight carries the
+    // distinction as well as colour, so it survives without hue.
+    given
+      ? 'cursor-default font-[number:var(--type-cell-digit-weight)] text-fg'
+      : 'font-normal text-accent',
+    flagged && 'text-error [text-decoration:var(--border-error-underline)] underline-offset-[0.18em]',
+    cellBackground(flagged, selected, matchesSelectedDigit(session, cell), inSelectedUnit(session, cell)),
+    cellShadow(col % 3 === 0 && col !== 0, row % 3 === 0 && row !== 0, selected),
+    FOCUS_RINGS,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div
-      className={styles.cell}
+      className={className}
       role="gridcell"
       data-cell={cell}
       data-given={given ? '' : undefined}
-      data-selected={session.selected === cell ? '' : undefined}
+      data-selected={selected ? '' : undefined}
       data-hinted={session.hintedCells.includes(cell) ? '' : undefined}
       data-unit={inSelectedUnit(session, cell) ? '' : undefined}
       data-matching={matchesSelectedDigit(session, cell) ? '' : undefined}
       tabIndex={isFocused ? 0 : -1}
       aria-label={describe(cell, value, given, notes, wrong)}
       aria-readonly={given ? true : undefined}
-      aria-invalid={wrong || conflicting ? true : undefined}
-      aria-selected={session.selected === cell ? true : undefined}
+      aria-invalid={flagged ? true : undefined}
+      aria-selected={selected ? true : undefined}
       onClick={onActivate}
       onFocus={onSelect}
     >
       {value !== 0 ? (
-        <span className={styles.digit} data-role="digit">
+        <span className="animate-[place_var(--motion-place)_var(--ease-place)]" data-role="digit">
           {value}
         </span>
       ) : notes.length > 0 ? (
         // A fixed 3x3 so every pencil mark keeps its position as others come
         // and go. The cell's aria-label already reads them out, so this is
         // presentation only.
-        <span className={styles.notes} data-role="notes" aria-hidden="true">
+        <span
+          className="type-cell-note grid h-full w-full grid-cols-3 content-center p-[8%] text-center text-fg3-text"
+          data-role="notes"
+          aria-hidden="true"
+        >
           {DIGITS.map((digit) => (
             <span key={digit}>{notes.includes(digit) ? digit : ''}</span>
           ))}

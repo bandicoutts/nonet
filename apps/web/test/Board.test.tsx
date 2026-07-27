@@ -403,3 +403,49 @@ describe('a locked board', () => {
     expect(screen.getByRole('grid').getAttribute('aria-disabled')).toBe('true');
   });
 });
+
+/**
+ * The Phase 2 stylesheet drew the 3x3 box rules with `:nth-child` selectors at
+ * specificity (0,3,0) and the selection ring at `[data-selected]`, (0,2,0). The
+ * box rule therefore won outright, and the cobalt ring never painted on any of
+ * the 32 cells in columns 3 and 6 or rows 3 and 6 — nearly 40% of the board,
+ * on the affordance the design calls the most important one.
+ *
+ * Nothing caught it, because the tests asserted the attribute rather than what
+ * was drawn. Composing the shadow per cell removes the cascade from the
+ * question entirely, so these assert the composition.
+ */
+describe('cell rules and the selection ring coexist', () => {
+  const shadowOf = (cell: number) =>
+    [...(document.querySelector(`[data-cell="${cell}"]`)?.classList ?? [])].find((c) =>
+      c.startsWith('shadow-['),
+    ) ?? '';
+
+  test('an interior selected cell carries the ring', () => {
+    renderBoard(apply(session(), { type: 'selectCell', cell: 2 }));
+    expect(shadowOf(2)).toContain('--border-selected-ring');
+  });
+
+  test.each([
+    ['a left box boundary (row 0, column 3)', 3],
+    ['a top box boundary (row 3, column 0)', 27],
+    ['both boundaries at once (row 3, column 3)', 30],
+  ])('a selected cell on %s keeps the ring and the box rule', (_label, cell) => {
+    renderBoard(apply(session(), { type: 'selectCell', cell }));
+    const shadow = shadowOf(cell);
+    expect(shadow).toContain('--border-selected-ring');
+    expect(shadow).toContain('var(--rule)');
+  });
+
+  test('the ring is drawn before the box rule, so it is on top', () => {
+    renderBoard(apply(session(), { type: 'selectCell', cell: 30 }));
+    const shadow = shadowOf(30);
+    expect(shadow.indexOf('--border-selected-ring')).toBeLessThan(shadow.indexOf('var(--rule)'));
+  });
+
+  test('the hairline is drawn last, so a heavier rule is never covered', () => {
+    renderBoard();
+    const shadow = shadowOf(30);
+    expect(shadow.indexOf('var(--rule)')).toBeLessThan(shadow.indexOf('--border-cell-thin'));
+  });
+});

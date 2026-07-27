@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DIGITS, UNIT_SIZE, getCell } from '@nonet/engine';
 import type { Action, Digit, SessionState } from '@nonet/engine';
-import styles from './NumberPad.module.css';
 
 /**
  * How long a press has to last before it arms as a note.
@@ -14,6 +13,53 @@ import styles from './NumberPad.module.css';
  */
 export const HOLD_MS = 340;
 
+/**
+ * Tablet is nine across, desktop three (it lives in a 320px rail), mobile five
+ * over two rows with ERASE filling the tenth slot. layout.md.
+ */
+const PAD = 'grid w-full grid-cols-5 gap-2xs drawer:grid-cols-9 drawer:gap-xs rail:grid-cols-3';
+
+/** 58 / 66 / 60 at 390 / 834 / 1440, per layout.md. */
+const KEY_BASE =
+  'relative grid min-h-[58px] cursor-pointer place-items-center gap-[2px] py-2xs ' +
+  'drawer:min-h-[66px] rail:min-h-[60px] ' +
+  'type-stat-number font-semibold ' +
+  'border border-line bg-surface text-fg ' +
+  'transition-[background-color,border-color] duration-(--motion-hover) ease-(--ease-hover) ' +
+  'focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset)';
+
+/**
+ * The key's state, resolved to one winning pair of classes.
+ *
+ * The stylesheet layered `[data-loaded]`, `[data-spent]`, `[data-held]` and
+ * `[data-armed]` at equal specificity and let source order decide, which
+ * Tailwind cannot reproduce in JSX. The precedence is stated here instead:
+ * armed beats held beats spent beats loaded, exactly as the file order did.
+ *
+ * A spent key is dimmed *and* hatched. The hatch is the non-colour cue, and it
+ * is what keeps the dimmed `--fg3` inside the WCAG exemption for disabled
+ * controls rather than being a contrast failure (NONET-5). Do not remove the
+ * hatch and keep the dimming.
+ */
+function keyState(
+  hold: 'idle' | 'held' | 'armed',
+  spent: boolean,
+  loaded: boolean,
+): { key: string; count: string } {
+  // Armed: the dash goes solid, so letting go is never a guess.
+  if (hold === 'armed') return { key: 'border border-accent bg-cell-same text-accent', count: 'text-inherit' };
+  // Held, before it arms: dashed accent, and the count reads NOTE.
+  if (hold === 'held') return { key: 'border-(--border-dashed-accent) text-fg2', count: 'text-inherit' };
+  if (spent) {
+    return {
+      key: 'cursor-default bg-(image:--hatch-spent-key) font-normal text-fg3 [text-decoration:var(--border-spent-strike)]',
+      count: 'text-fg3',
+    };
+  }
+  if (loaded) return { key: 'border-accent bg-accent text-accent-ink', count: 'text-accent-ink' };
+  return { key: 'hover:bg-hover', count: 'text-fg3-text' };
+}
+
 export interface NumberPadProps {
   readonly session: SessionState;
   readonly onAction: (action: Action) => void;
@@ -24,10 +70,7 @@ export interface NumberPadProps {
  * The digit pad.
  *
  * Keys show how many of each digit are still unplaced and become
- * non-interactive at zero. A spent key is dimmed *and* hatched: the hatch is
- * the non-colour cue, and it is what keeps the dimmed `--fg3` inside the WCAG
- * exemption for disabled controls rather than being a contrast failure
- * (DECISIONS.md NONET-5). Removing it would break that.
+ * non-interactive at zero.
  */
 export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPadProps) {
   const locked = session.status !== 'playing';
@@ -89,28 +132,40 @@ export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPad
   }, [locked, onAction, session.mode, session.selected]);
 
   return (
-    <div className={styles.padGroup} role="group" aria-label={label} aria-disabled={locked ? true : undefined}>
-      <div className={styles.pad}>
-      {DIGITS.map((digit) => (
-        <PadKey
-          key={digit}
-          digit={digit}
-          remaining={remaining(digit)}
-          loaded={session.mode === 'digitFirst' && session.loadedDigit === digit}
-          showPressed={session.mode === 'digitFirst'}
-          onPress={() => press(digit)}
-          onLongPress={() => longPress(digit)}
-        />
-      ))}
-
+    <div
+      className="flex w-full flex-col gap-2xs"
+      role="group"
+      aria-label={label}
+      aria-disabled={locked ? true : undefined}
+    >
+      <div className={PAD}>
+        {DIGITS.map((digit) => (
+          <PadKey
+            key={digit}
+            digit={digit}
+            remaining={remaining(digit)}
+            loaded={session.mode === 'digitFirst' && session.loadedDigit === digit}
+            showPressed={session.mode === 'digitFirst'}
+            onPress={() => press(digit)}
+            onLongPress={() => longPress(digit)}
+          />
+        ))}
 
         {/*
           ERASE takes the tenth slot of the pad grid, but only below the drawer
           breakpoint — above it the toolbar carries Erase as a chip, and having
           both would put the same control on screen twice. layout.md.
+
+          `drawer:hidden` is `display: none`, which removes it from the
+          accessibility tree as well, so exactly one Erase is ever exposed.
         */}
         <button
-          className={styles.eraseKey}
+          className={
+            'grid min-h-[58px] cursor-pointer place-items-center border border-line bg-transparent ' +
+            'type-control text-fg2 drawer:hidden ' +
+            'focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset) ' +
+            'aria-pressed:border-accent aria-pressed:bg-accent aria-pressed:text-accent-ink'
+          }
           type="button"
           data-key="erase"
           aria-pressed={session.mode === 'digitFirst' ? session.loadedDigit === 'erase' : undefined}
@@ -168,9 +223,11 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
     setHold('idle');
   }, [clear]);
 
+  const state = keyState(hold, spent, loaded);
+
   return (
     <button
-      className={styles.key}
+      className={`${KEY_BASE} ${state.key}`}
       type="button"
       data-key={digit}
       data-spent={spent ? '' : undefined}
@@ -194,7 +251,7 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
       }}
     >
       <span data-role="digit">{digit}</span>
-      <span className={styles.count} data-role="count" aria-hidden="true">
+      <span className={`type-mono-label font-normal ${state.count}`} data-role="count" aria-hidden="true">
         {hold === 'idle' ? remaining : 'NOTE'}
       </span>
     </button>
