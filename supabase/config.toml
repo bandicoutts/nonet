@@ -264,7 +264,11 @@ host = "smtp.resend.com"
 port = 587
 user = "resend"
 pass = "env(RESEND_API_KEY)"
-admin_email = "env(NONET_SENDER_EMAIL)"
+# A literal, because `admin_email` is validated as an email address and
+# rejects an `env()` reference outright. It is not a secret — it is the From
+# header on every email this product sends — but it is a **temporary** domain
+# with no relation to Nonet, and it moves to `nonet.app` at launch.
+admin_email = "nonet@flynncoutts.com"
 sender_name = "Nonet"
 
 # The sign-in email carries a code, not a link (NONET-21).

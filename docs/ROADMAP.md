@@ -71,4 +71,9 @@ than questions are here.
 
 ## Phase 5 — Launch
 - [ ] Domain, analytics, OG images
+- [ ] Point email at `nonet.app` once owned — verify in Resend, change
+      `admin_email`, re-run `supabase config push` (NONET-30)
+- [ ] Update `site_url` and `additional_redirect_urls` on the hosted project.
+      Both are localhost-only, which is harmless while the code flow sends no
+      redirect target at all, and wrong the moment anything does
 - [ ] Seed puzzle bank + first dailies
