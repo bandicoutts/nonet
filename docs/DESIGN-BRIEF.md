@@ -1,6 +1,16 @@
 # Full-surface design brief (Claude Design handoff)
 
-The brief given to Claude Design on 2026-07-26 for the complete v1 web surface. Canonical inventory of every screen and state; GAME-RULES.md holds the same mechanics in doc form. The approved prototype (home light/dark, board mid-solve, solved) is the style source of truth.
+The brief given to Claude Design on 2026-07-26 for the complete v1 web surface. **Historical — reproduced as sent.** The approved prototype (home light/dark, board mid-solve, solved) was the style source of truth.
+
+> **Superseded in part by DECISIONS.md NONET-2 (2026-07-27).** Where this brief and NONET-2 disagree, NONET-2 wins. Notable deltas after eight review passes:
+> - **Practice is no longer a screen.** No `/practice` route; the picker, resume and abandon confirm are sections of Home. Nav is Today · Archive · Record.
+> - **Board input gained a second mode** (digit-first) plus long-press notes, `Shift`+digit, spent pad keys and optional auto-advance. Digit-first has its own mistake-containment rule.
+> - **The first hint per puzzle confirms.**
+> - **`CLOSE` became a contextual back control** (`← TODAY` / `← ARCHIVE`).
+> - **Archive and Record stopped sharing a calendar** — Record is a year heat strip, Archive a filterable month grid.
+> - **New surfaces:** mobile drawer (<768px), post-sign-in merge summary, hint confirmation, Tokens screen, Focus-states screen.
+>
+> For the current screen and state inventory, read the prototype's own state switcher; for the rules, read GAME-RULES.md.
 
 ---
 

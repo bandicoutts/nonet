@@ -13,14 +13,23 @@ Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UT
 - `docs/ARCHITECTURE.md` — system overview, data model, request flows
 - `docs/GAME-RULES.md` — game mechanics + product rules (mistakes, hints, streaks, daily/practice)
 - `docs/DESIGN.md` — locked design language (cool/architectural; NOT Halve's warm editorial)
-- `docs/DESIGN-BRIEF.md` — the full-surface Claude Design brief; canonical screen/state inventory
+- `docs/DESIGN-BRIEF.md` — the original Claude Design brief; **historical, superseded in part by DECISIONS.md NONET-2**
 - `docs/DECISIONS.md` — decision log; **append a new entry in the same commit as any architectural change**
 - `docs/ROADMAP.md` — phases & milestone checklist
 
 ## Conventions (delta vs global CLAUDE.md)
 Global Next.js 16 / Supabase / TypeScript rules apply. Project-specific:
-- Design tokens in `packages/design` are the source of truth — never hardcode colors/spacing in components.
+- Design tokens in `packages/design` are the source of truth — never hardcode colors/spacing in components. They are transcribed from the Claude Design prototype's **Tokens** screen.
 - `packages/engine` is framework-agnostic and must stay fully unit-tested; UI depends on it, not vice versa.
 - Streaks/stats are **derived from the `solves` table**, never denormalized. Streak days use the player's LOCAL calendar day.
 - Guest-first: everything must work signed-out via localStorage; sign-in only adds sync.
 - No emoji, no exclamation marks anywhere in UI copy.
+
+## Locked decisions worth knowing before you touch anything
+Full detail in DECISIONS.md NONET-2. The short version:
+- **Nav is Today · Archive · Record.** There is no `/practice` route — practice is a section of Home.
+- **The board has two input modes** (cell-first default, digit-first). In digit-first, repeated wrong placements of the *same loaded digit* count as **one** mistake. That is an engine rule and needs a test.
+- **The first hint per puzzle confirms.** Hints are irreversible and are not undoable.
+- **Leaving a puzzle is a back control** labelled for its origin (`← TODAY` / `← ARCHIVE`), never "close".
+- **Sign-in merge:** server wins for completed solves, latest autosave wins for in-progress. Enforce in code and test it — the design mock cannot.
+- **The prototype has no real accessibility semantics.** It designs focus *visuals* only; roles, `aria-*`, roving tabindex and focus trapping are yours to write.

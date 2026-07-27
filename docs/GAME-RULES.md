@@ -16,19 +16,46 @@ Product rules locked 2026-07-26 (see DECISIONS.md #1). The design brief (DESIGN-
 ## Hints
 - 3 per puzzle. A hint fills the selected cell (else the easiest unfilled cell) with the correct digit.
 - Any hint marks the solve "assisted": streak survives, no percentile. Mirrors Halve's `used_hint`.
+- **The first hint in a puzzle confirms once** (irreversible, forfeits the percentile). Hints 2 and 3 go straight through — the cost has already been accepted. Hints are not undoable.
 
 ## Board interaction
-- Select + type; full keyboard play: arrows navigate, 1–9 place/note, Space toggles notes, Backspace erases, Cmd/Ctrl+Z undo, +Shift redo, P pause, H hint.
+
+### Input modes
+Two, chosen in Settings and switchable on the board. Mode is remembered.
+- **Cell first** (default) — select a cell, then choose a digit.
+- **Digit first** — select a digit once, then tap every cell that takes it; the digit stays loaded until changed or cleared. `ERASE` can be loaded the same way.
+- Digit-first highlights existing instances of the loaded digit only. It must **never** highlight legal placements — that is auto-candidate assistance and is v2.
+
+### Mistakes in digit-first
+While a digit remains loaded, **repeated wrong placements of that same digit count as one mistake**, until the player changes digit or corrects the error. Distinct errors still cost distinct lives. Without this, three fast taps end a puzzle — a cliff that exists only because the mode is fast. **Engine rule; needs a unit test.**
+
+### Notes
+- Manual only in v1. Placing a digit auto-clears that digit from notes in the same row/column/box. Erase clears entry, else notes.
+- **Long-press a pad key** writes that digit as a note in the selected cell (takes a pencil mark from four taps to two). The `NOTES` mode toggle remains for players who prefer an explicit mode.
+
+### Other
+- Full keyboard play: arrows navigate, 1–9 place, **Shift+1–9 note**, Space toggles notes mode, Backspace/Del erases, Cmd/Ctrl+Z undo, +Shift redo, P pause, H hint.
 - Selection highlights row/column/box; cells with digits highlight all matching digits (both are settings, default on). Givens selectable for highlighting, inert to editing.
-- Notes: manual only in v1. Placing a digit auto-clears that digit from notes in the same row/column/box. Erase clears entry, else notes.
-- Undo unlimited (covers notes/erases), with redo.
+- Pad keys show per-digit remaining counts and become **non-interactive at zero**, with a non-colour cue as well as reduced contrast.
+- **Auto-advance** (setting, default off): after placing, selection moves to the next empty cell in reading order. Cell-first only.
+- Undo unlimited (covers notes/erases), with redo. Undo never uncounts a mistake and never restores a hint.
+
+## Leaving a puzzle
+The board is an immersive mode, not a page — no site nav during play. The exit is a left-aligned back control labelled for its origin: `← TODAY` for the daily and for practice, `← ARCHIVE` for an archive edition. Never "close" — the puzzle is autosaved and nothing is discarded.
 
 ## Timer & pause
 - Explicit pause veils the grid; tab blur auto-pauses. Timer visibility is a setting (time always recorded). Display caps at 99:59+.
 
 ## Practice
 - Pre-built bank per difficulty (Easy → Expert; defined by technique ceiling + given count — UI shows only label, givens, median time).
-- One in-flight puzzle; starting a new one prompts to abandon. Own stats section; invisible to streaks/percentiles.
+- One in-flight puzzle; starting a new one prompts to abandon. Own stats section on Record; invisible to streaks/percentiles.
+- **Practice lives on Home, not on its own page** — the picker, the resume band and the abandon confirm are all sections of Home. There is no `/practice` route. See DECISIONS.md NONET-2.
+- Practice boards still carry the 3-mistake lock and 3 hints; only the streak and percentile stakes are absent.
+
+## Accounts & sync
+- Guest-first: full play, settings and streaks in localStorage.
+- Sign-in (magic link) merges: **server wins for completed solves, most recent autosave wins for an in-progress puzzle.**
+- The merge is reported, never negotiated — a one-time post-sign-in summary states what merged, which run stands and which in-progress puzzle was kept, then continues. No choices, no conflict dialog.
 
 ## Sharing
 Spoiler-free text + link (clipboard + native share sheet): `NONET No. 1247 · Hard` / `7:12 · 1 mistake · top 22%` / URL. Image card is v2.

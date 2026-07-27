@@ -7,7 +7,8 @@ Phases & milestones. Check off as completed.
 - [x] Claude Design prototype approved (home light/dark, board, solved)
 - [x] Full-surface design brief written (DESIGN-BRIEF.md)
 - [x] Context docs + root CLAUDE.md
-- [ ] Claude Design full-surface build received (all screens/states/viewports)
+- [x] Claude Design full-surface build received (all screens/states/viewports)
+- [x] Design reviewed and resolved across 8 passes; decisions logged (DECISIONS.md NONET-2)
 - [ ] Init pnpm monorepo skeleton (`apps/web` stub, `packages/engine`, `packages/design`, `supabase/` stub)
 
 ## Phase 1 — Engine (`packages/engine`)
@@ -16,20 +17,22 @@ Phases & milestones. Check off as completed.
 - [ ] Uniqueness checker (backtracking)
 - [ ] Generator (unique solution, technique-bounded per difficulty)
 - [ ] Difficulty rater → Easy/Medium/Hard/Expert
+- [ ] Mistake rules incl. digit-first repeat containment (GAME-RULES.md) — unit-tested
 - [ ] Fuzz tests asserting invariants
 
 ## Phase 2 — Design system + board UI
-- [ ] Tokens in `packages/design` from the Claude Design build
-- [ ] Interactive board component (select/type, notes, undo/redo, error states, keyboard play)
-- [ ] Number pad + toolbar + pause veil
+- [ ] Tokens in `packages/design`, transcribed from the prototype's Tokens screen (colour, type, space, motion)
+- [ ] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
+- [ ] Number pad (remaining counts, spent state) + toolbar + pause veil
 - [ ] Light/dark themes
+- [ ] Focus states per the prototype's Focus screen + real ARIA grid semantics (the reference has none)
 
 ## Phase 3 — App shell + Supabase
-- [ ] Next.js routes (Home, Board, Practice, Archive, Record, Auth, Settings, How-to-play, About)
+- [ ] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home
 - [ ] Schema + RLS migrations (`puzzles`, `profiles`, `solves`)
 - [ ] Daily-puzzle edge function (00:05 UTC, weekly rhythm, idempotent)
 - [ ] Guest localStorage play + autosave/resume
-- [ ] Sign-in sync (magic link; merge rules per ARCHITECTURE.md)
+- [ ] Sign-in sync (magic link; merge rules per ARCHITECTURE.md — tested, plus the post-sign-in merge summary)
 
 ## Phase 4 — Full surface
 - [ ] Streaks/stats derived from solves (local-day buckets)
