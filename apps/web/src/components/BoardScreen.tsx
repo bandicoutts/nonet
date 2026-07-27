@@ -36,10 +36,20 @@ export const SOLVED_DWELL_MS = 1200;
 export function BoardScreen({
   puzzleRef,
   onSolved,
+  replay = false,
 }: {
   readonly puzzleRef: PuzzleRef;
   /** Where a finished puzzle goes. Injected so the dwell is testable. */
   readonly onSolved?: (ref: PuzzleRef) => void;
+  /**
+   * A replay of a puzzle already finished. **Unscored, in both directions.**
+   *
+   * It records `kind: 'replay'`, which every streak and percentile reader
+   * already filters out — and it costs nothing when it goes wrong: no attempt
+   * is spent and no failure is recorded, because the daily's single retry
+   * belongs to the day it was for, not to someone revisiting it (NONET-32).
+   */
+  readonly replay?: boolean;
 }) {
   const ref = puzzleRef;
   const [puzzle] = useState(() => generatePuzzle(ref.difficulty, ref.seed));
@@ -190,7 +200,9 @@ export function BoardScreen({
      */
     if (session.status === 'failed') {
       recorded.current = true;
-      recordFailure(ref);
+      // A replay costs nothing. Spending the daily's retry here would let a
+      // player lose an attempt at a puzzle they had already finished.
+      if (!replay) recordFailure(ref);
       clearAutosave(ref);
       return;
     }
@@ -221,7 +233,7 @@ export function BoardScreen({
        * it with *today's* local date and hand out a streak day for a puzzle
        * that was not today's.
        */
-      kind: ref.kind === 'practice' ? 'practice' : editionKind(ref),
+      kind: replay ? 'replay' : ref.kind === 'practice' ? 'practice' : editionKind(ref),
     });
 
     clearAutosave(ref);

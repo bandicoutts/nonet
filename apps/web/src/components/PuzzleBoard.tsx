@@ -13,7 +13,7 @@ import type { PuzzleRef } from '@/lib/storage';
  * injected, so the dwell is testable without a router (NONET-20). This is the
  * only place that decision is made, for the daily and for practice alike.
  */
-export function PuzzleBoard({ puzzleRef }: { puzzleRef: PuzzleRef }) {
+export function PuzzleBoard({ puzzleRef, replay = false }: { puzzleRef: PuzzleRef; replay?: boolean }) {
   const router = useRouter();
 
   /*
@@ -27,5 +27,5 @@ export function PuzzleBoard({ puzzleRef }: { puzzleRef: PuzzleRef }) {
     [router],
   );
 
-  return <BoardScreen puzzleRef={puzzleRef} onSolved={onSolved} />;
+  return <BoardScreen puzzleRef={puzzleRef} onSolved={onSolved} replay={replay} />;
 }

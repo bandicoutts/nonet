@@ -48,13 +48,14 @@ describe('ArchiveScreen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Earlier month' }));
 
     expect(screen.getByText('July 2026')).toBeDefined();
-    // The epoch is 27 July, so July holds five editions.
-    expect(screen.getByText(/5 of 5 in July/)).toBeDefined();
+    // A full month, now that the epoch is the start of the year (NONET-31).
+    expect(screen.getByText(/31 of 31 in July/)).toBeDefined();
   });
 
   it('links an edition to its board', () => {
     show();
-    const link = screen.getByRole('link', { name: /No\. 6/ });
+    // 1 August 2026 is No. 213.
+    const link = screen.getByRole('link', { name: /No\. 213/ });
 
     expect(link.getAttribute('href')).toContain('kind=daily');
     expect(link.getAttribute('href')).toContain(`seed=${dailySeed('2026-08-01')}`);

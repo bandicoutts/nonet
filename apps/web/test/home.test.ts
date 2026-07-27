@@ -129,7 +129,7 @@ describe('dailyStatus', () => {
     const status = dailyStatus(AT);
 
     expect(status.editionDate).toBe('2026-07-27');
-    expect(status.number).toBe(1);
+    expect(status.number).toBe(208);
     expect(status.difficulty).toBe('easy');
     expect(status.ref).toEqual(DAILY);
   });

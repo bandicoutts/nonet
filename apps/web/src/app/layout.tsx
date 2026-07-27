@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { TokenStyles } from '@/components/TokenStyles';
 import { mono, sans } from '@/lib/fonts';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { THEME_SCRIPT } from '@/lib/theme';
 import './globals.css';
 
@@ -35,6 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-bg text-fg font-sans">
         <TokenStyles />
+        {/* Above everything, on every route: losing a connection mid-puzzle is
+            exactly when a player needs telling that nothing is lost. */}
+        <OfflineBanner />
         {children}
       </body>
     </html>

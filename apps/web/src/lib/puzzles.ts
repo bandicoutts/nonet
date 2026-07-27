@@ -232,6 +232,17 @@ function single(value: string | string[] | undefined): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+/**
+ * Whether the URL asks for a replay.
+ *
+ * A separate flag rather than a fifth `kind`, because a replay is the *same
+ * puzzle* — same seed, same grid, same everything the ref identifies. What
+ * differs is only that nothing about this run counts (NONET-32).
+ */
+export function parseReplay(params: Record<string, string | string[] | undefined>): boolean {
+  return params['replay'] === '1';
+}
+
 /** The query string that names a puzzle, for links into `/solved`. */
 export function refParams(ref: PuzzleRef): string {
   return new URLSearchParams({

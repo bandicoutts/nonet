@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { DailyBoard } from '@/components/DailyBoard';
 import { PuzzleBoard } from '@/components/PuzzleBoard';
-import { parsePuzzleRef } from '@/lib/puzzles';
+import { parsePuzzleRef, parseReplay } from '@/lib/puzzles';
 
 export const metadata: Metadata = { title: 'Board' };
 
@@ -23,11 +23,12 @@ export default async function Page({
   // Next 16: `searchParams` is a promise and must be awaited.
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const puzzleRef = parsePuzzleRef(await searchParams);
+  const params = await searchParams;
+  const puzzleRef = parsePuzzleRef(params);
 
   return (
     <div className="mx-auto w-full px-m py-s drawer:px-2xl rail:px-4xl">
-      {puzzleRef === null ? <DailyBoard /> : <PuzzleBoard puzzleRef={puzzleRef} />}
+      {puzzleRef === null ? <DailyBoard /> : <PuzzleBoard puzzleRef={puzzleRef} replay={parseReplay(params)} />}
     </div>
   );
 }

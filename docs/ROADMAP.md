@@ -23,7 +23,8 @@ Phases & milestones. Check off as completed.
 ## Phase 2 — Design system + board UI
 - [x] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow) — with the `--fg3` / `--fg3-text` split applied and AA enforced by test
 - [x] Resolve the AA failure on `--fg3` before it is baked in — split into `--fg3` (disabled/spent, WCAG-exempt) and `--fg3-text` (light `#5A5F65` / dark `#A0A6AA`); DECISIONS.md NONET-5
-- [ ] Touch targets per DECISIONS.md NONET-9 — fix the banner dismiss (the only WCAG AA breach, at ~22px against a 24px minimum), lift the 40px and 28px controls to 44; 39px grid cells at 390 are an accepted exception
+- [x] Touch targets per DECISIONS.md NONET-9 — now enforced by `target-size`
+      in the a11y suite rather than remembered; passes at both viewports
 - [x] Interactive board component (cell-first + digit-first, notes incl. long-press, undo/redo, error states, keyboard play)
 - [x] Number pad (remaining counts, spent state)
 - [x] Board toolbar + pause veil
@@ -63,8 +64,8 @@ than questions are here.
 - [ ] Percentiles surfaced beyond the result screen
 - [x] Archive play mode — an old edition records `kind: 'archive'` and never
       extends a run (NONET-26)
-- [ ] Replay play mode — `solves.kind` can hold `'replay'`, nothing writes it
-- [ ] Offline banner, edge/empty/error states per DESIGN-BRIEF.md
+- [x] Replay play mode — unscored in both directions (NONET-32)
+- [x] Offline banner (NONET-32); empty states on Home, Record and Archive per DESIGN-BRIEF.md
 - [x] Streaks/stats surfaced (NONET-23, NONET-25)
 - [x] E2E suite (Playwright, Chrome + WebKit) + a11y pass — four real violations found and fixed (NONET-29)
 - [x] Lint test for cleared Tailwind namespaces (NONET-20)

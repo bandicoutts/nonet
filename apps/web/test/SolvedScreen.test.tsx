@@ -59,8 +59,8 @@ describe('SolvedScreen', () => {
     seedSolves(solve());
     renderScreen();
 
-    // 2026-07-27 is the epoch, so it is No. 1 — not the prototype's No. 1247.
-    expect(screen.getByText('No. 1 · 27 July 2026')).toBeDefined();
+    // The epoch is 1 January 2026, so 27 July is No. 208 (NONET-31).
+    expect(screen.getByText('No. 208 · 27 July 2026')).toBeDefined();
     expect(screen.getAllByText(/27 July 2026/).length).toBeGreaterThan(0);
   });
 
@@ -169,7 +169,7 @@ describe('SolvedScreen', () => {
 
       await userEvent.click(screen.getByRole('button', { name: /Share result/ }));
 
-      expect(writeText).toHaveBeenCalledWith('NONET No. 1 · Hard\n07:12 · 1 mistake · top 22%\nnonet.app');
+      expect(writeText).toHaveBeenCalledWith('NONET No. 208 · Hard\n07:12 · 1 mistake · top 22%\nnonet.app');
       await waitFor(() => expect(screen.getByText('Copied')).toBeDefined());
     });
 

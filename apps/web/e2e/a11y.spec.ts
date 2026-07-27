@@ -29,7 +29,15 @@ for (const route of ROUTES) {
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      /*
+       * 2.2 is included for `target-size`, which is the rule behind the one
+       * outstanding item from Phase 2: `layout.md` measured six controls under
+       * the minimum, and rather than fix them one by one and hope, the scanner
+       * now enforces the floor. SC 2.5.8 is 24x24 at AA — 44 is AAA and the
+       * product's own standard, with the 39px grid cell at 390 a documented
+       * exception (NONET-9).
+       */
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze();
 
     // Named rather than counted, so a failure says what is wrong.

@@ -164,6 +164,51 @@ describe('BoardScreen, which kind it records', () => {
     expect(readSolves()[0]?.kind).toBe('archive');
   });
 
+  /*
+   * A replay is unscored in both directions (NONET-32): it records `kind:
+   * 'replay'`, which every streak and percentile reader already filters out.
+   */
+  it('records a replay as a replay', () => {
+    render(<BoardScreen puzzleRef={dailyRef()} onSolved={onSolved} replay />);
+    solveBoardFor(dailyRef());
+
+    expect(readSolves()[0]?.kind).toBe('replay');
+  });
+
+  /*
+   * And it costs nothing when it goes wrong. The daily's single retry belongs
+   * to the day it was for, not to somebody revisiting the puzzle later.
+   */
+  it('spends no attempt when a replay is lost', () => {
+    const ref = dailyRef();
+    const puzzle = generatePuzzle(ref.difficulty, ref.seed);
+    render(<BoardScreen puzzleRef={ref} onSolved={onSolved} replay />);
+
+    const empty = puzzle.givens.findIndex((c) => c === 0);
+    const row = Math.floor(empty / 9) + 1;
+    const column = (empty % 9) + 1;
+    const cell = screen.getByRole('gridcell', {
+      name: new RegExp(`row ${row}, column ${column}`, 'i'),
+    });
+    const answer = puzzle.solution[empty]!;
+
+    for (const digit of [1, 2, 3, 4].filter((d) => d !== answer).slice(0, 3)) {
+      act(() => {
+        cell.focus();
+        cell.click();
+      });
+      act(() => {
+        cell.dispatchEvent(new KeyboardEvent('keydown', { key: String(digit), bubbles: true }));
+      });
+    }
+
+    expect(readSolves()).toHaveLength(0);
+    // No attempt record at all — the daily's retry is untouched.
+    expect(Object.keys(window.localStorage).filter((k) => k.startsWith('nonet:attempt:'))).toEqual(
+      [],
+    );
+  });
+
   it('still records practice as practice', () => {
     solveIt({ kind: 'practice', difficulty: 'easy', seed: 7 });
     expect(readSolves()[0]?.kind).toBe('practice');

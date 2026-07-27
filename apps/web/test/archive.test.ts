@@ -35,7 +35,8 @@ describe('editionFor', () => {
   it('derives number, difficulty and seed from the date alone', () => {
     const edition = editionFor('2026-07-27', [], [], AT);
 
-    expect(edition.number).toBe(1);
+    // The 208th day of 2026, the epoch being 1 January (NONET-31).
+    expect(edition.number).toBe(208);
     expect(edition.ref.seed).toBe(dailySeed('2026-07-27'));
     expect(edition.difficulty).toBe('easy');
   });
@@ -52,8 +53,9 @@ describe('editionFor', () => {
     expect(editionFor('2026-08-11', [], [], AT).status).toBe('future');
   });
 
+  /* The epoch is the start of 2026, so pre-epoch now means the year before. */
   it('marks dates before the first edition as pre-epoch', () => {
-    expect(editionFor('2026-07-26', [], [], AT).status).toBe('pre-epoch');
+    expect(editionFor('2025-12-31', [], [], AT).status).toBe('pre-epoch');
   });
 
   it('marks a solved edition as solved, and carries the time', () => {
@@ -120,8 +122,9 @@ describe('monthEditions', () => {
 
   it('numbers editions consecutively', () => {
     const august = monthEditions(2026, 8, [], [], AT);
-    expect(august[0]?.number).toBe(6);
-    expect(august[1]?.number).toBe(7);
+    // 1 August is the 213th day of 2026.
+    expect(august[0]?.number).toBe(213);
+    expect(august[1]?.number).toBe(214);
   });
 });
 
@@ -179,16 +182,18 @@ describe('matches', () => {
 });
 
 describe('browsableMonths', () => {
-  it('starts at the epoch and ends at the current edition', () => {
+  it('starts at the epoch and ends at the current edition, newest first', () => {
     const months = browsableMonths(AT);
 
     expect(months[0]).toEqual({ year: 2026, month: 8 });
-    expect(months.at(-1)).toEqual({ year: 2026, month: 7 });
+    expect(months.at(-1)).toEqual({ year: 2026, month: 1 });
+    // January through August inclusive.
+    expect(months).toHaveLength(8);
   });
 
-  it('is a single month on the first day', () => {
-    expect(browsableMonths(new Date('2026-07-27T09:00:00.000Z'))).toEqual([
-      { year: 2026, month: 7 },
+  it('is a single month on the very first day', () => {
+    expect(browsableMonths(new Date('2026-01-01T09:00:00.000Z'))).toEqual([
+      { year: 2026, month: 1 },
     ]);
   });
 
@@ -196,6 +201,7 @@ describe('browsableMonths', () => {
     const months = browsableMonths(new Date('2027-02-03T09:00:00.000Z'));
 
     expect(months[0]).toEqual({ year: 2027, month: 2 });
-    expect(months).toHaveLength(8);
+    // 2026 in full, plus January and February of 2027.
+    expect(months).toHaveLength(14);
   });
 });

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { DIFFICULTIES } from '@nonet/engine';
+import { DIFFICULTIES, PUZZLE_EPOCH } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
 import {
   NO_FILTERS,
@@ -213,7 +213,7 @@ export function ArchiveScreen({ now }: { now?: Date }) {
         </ul>
 
         <p className="type-body-small text-fg3-text">
-          {playable.length} editions · No. 1 was 27 July 2026
+          {playable.length} editions · No. 1 was {longDate(PUZZLE_EPOCH)}
         </p>
       </div>
     </section>
@@ -232,14 +232,26 @@ function Cell({ edition, dimmed }: { edition: Edition; dimmed: boolean }) {
   const content = (
     <>
       <span className="type-mono-data tabular-nums">{day}</span>
+      {/* No `opacity: .8`, which `components.md` specifies and also records as
+          a defect (an untokenised literal). It computed the difficulty letter
+          to 3.74:1 — `--fg3-text` exists precisely because it clears 4.5:1 with
+          headroom (NONET-5), and dimming it undoes the one thing it was chosen
+          for. Size, case and family already separate the letter from the day
+          number. */}
       {playable ? (
-        <span className="type-mono-label opacity-[.8]">
+        <span className="type-mono-label">
           {difficultyLabel(edition.difficulty).slice(0, edition.difficulty === 'expert' ? 2 : 1)}
         </span>
       ) : null}
     </>
   );
 
+  /*
+   * A filtered-out cell drops to `opacity: .3` per `components.md`. That is
+   * below any contrast floor deliberately: it is a non-interactive, filtered-out
+   * element, which WCAG 1.4.3 exempts as an inactive component — the same
+   * exemption `--fg3` relies on for disabled and spent states (NONET-5).
+   */
   const className = `flex min-h-[66px] flex-col items-start justify-between p-2xs ${DAY_STYLE[edition.status]} ${
     dimmed ? 'opacity-[.3]' : ''
   }`;
@@ -281,6 +293,12 @@ function ChipGroup<T extends string>({
       ))}
     </div>
   );
+}
+
+/** `1 January 2026`, from the parts so no timezone can shift it. */
+function longDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return `${day} ${MONTHS[(month ?? 1) - 1]} ${year}`;
 }
 
 /** `27 Jul 2026`, from the parts so no timezone can shift it. */

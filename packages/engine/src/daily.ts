@@ -25,11 +25,19 @@ const DAY_MS = 86_400_000;
  * The design prototype shows "No. 1247", which would have meant a vanity offset
  * pretending the product had been running for three years. Decided against: the
  * first edition is No. 1. Honest numbering matches a product whose whole streak
- * model is built on not overstating things.
+ * model is built on not overstating things — and that argument is about
+ * inventing a *past*, not about which real date the archive opens on.
  *
- * **Now frozen.** Moving it renumbers editions people have already shared.
+ * **The epoch is the start of the year the product launched**, so the archive is
+ * a calendar rather than a stub: every edition in it is a real, playable puzzle
+ * derived from its own date, and none of them claims to have been played by
+ * anyone. Moved here from the build date under NONET-31, deliberately and while
+ * there was still nobody to renumber.
+ *
+ * **Now frozen for real.** Moving it renumbers editions people have shared, and
+ * from launch onwards there are people.
  */
-export const PUZZLE_EPOCH = '2026-07-27';
+export const PUZZLE_EPOCH = '2026-01-01';
 
 /**
  * Mon Easy · Tue–Wed Medium · Thu–Fri Hard · Sat Expert · Sun Hard.

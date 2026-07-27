@@ -88,6 +88,22 @@ describe('the puzzle number', () => {
     expect(puzzleNumber(PUZZLE_EPOCH)).toBe(1);
   });
 
+  /*
+   * Pinned, not derived.
+   *
+   * Every other assertion here is a *difference* between two dates, so the
+   * whole suite passed unchanged when the epoch moved (NONET-31) — which is the
+   * right design for the arithmetic and no guard at all for the constant. The
+   * epoch is frozen from launch, because moving it renumbers editions people
+   * have already shared, so it is asserted directly and this test failing is
+   * the point.
+   */
+  test('the epoch is frozen at the start of 2026', () => {
+    expect(PUZZLE_EPOCH).toBe('2026-01-01');
+    expect(puzzleNumber('2026-07-27')).toBe(208);
+    expect(puzzleNumber('2026-12-31')).toBe(365);
+  });
+
   it('advances by one a day', () => {
     expect(puzzleNumber('2026-07-28') - puzzleNumber('2026-07-27')).toBe(1);
   });

@@ -272,7 +272,7 @@ describe('buildResult', () => {
       durationMs: 432_000,
       mistakes: 1,
       editionDate: '2026-07-27',
-      number: 1,
+      number: 208,
       run: { from: 0, to: 1, best: 1 },
     });
   });

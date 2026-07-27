@@ -114,7 +114,10 @@ describe('RecordScreen', () => {
     );
     show();
 
-    expect(screen.getByText(/1 solved · 1 failed · 0 unplayed/)).toBeDefined();
+    /* The unplayed count is left open: the epoch is now the start of the year
+       (NONET-31), so it is every day since 1 January and pinning it would make
+       this test about the calendar rather than about failures being counted. */
+    expect(screen.getByText(/1 solved · 1 failed · \d+ unplayed/)).toBeDefined();
   });
 
   it('draws a cell for every day of the year', () => {

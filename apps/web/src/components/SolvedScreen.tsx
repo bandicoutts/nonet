@@ -5,8 +5,14 @@ import Link from 'next/link';
 import { generatePuzzle } from '@nonet/engine';
 import { buildResult, difficultyLabel, formatCountdown, formatDuration, shareText } from '@/lib/result';
 import type { Result } from '@/lib/result';
+import { refParams } from '@/lib/puzzles';
 import { readSolves } from '@/lib/storage';
 import type { GuestSolve, PuzzleRef } from '@/lib/storage';
+
+const SECONDARY =
+  'type-button flex min-h-(--tap-target-min) items-center border border-fg px-l text-fg no-underline ' +
+  'transition-colors duration-(--motion-hover) ease-(--ease-hover) hover:bg-hover ' +
+  'focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset-prominent)';
 
 /** How long the Copied toast dwells, per `components.md`. */
 const TOAST_MS = 1800;
@@ -232,9 +238,15 @@ export function SolvedScreen({
         )}
         <Link
           href="/"
-          className="type-button flex min-h-(--tap-target-min) items-center border border-fg px-l text-fg no-underline transition-colors duration-(--motion-hover) ease-(--ease-hover) hover:bg-hover focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset-prominent)"
+          className={SECONDARY}
         >
           Practice another
+        </Link>
+        {/* Restored now that replay mode exists (NONET-32). It was absent while
+            the link would have landed on the ordinary board and recorded a
+            second *scored* solve for a puzzle already banked. */}
+        <Link href={`/board?${refParams(solve.ref)}&replay=1`} className={SECONDARY}>
+          Replay, unscored
         </Link>
       </div>
 

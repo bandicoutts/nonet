@@ -165,10 +165,15 @@ describe('yearGrid', () => {
     expect(grid.find((d) => d.date === '2026-07-28')?.status).toBe('future');
   });
 
-  /* Before the first edition there was no puzzle to miss. */
+  /*
+   * Before the first edition there was no puzzle to miss. The epoch is now the
+   * start of 2026 (NONET-31), so the whole of 2025 is pre-epoch and no day in
+   * 2026 is.
+   */
   it('marks days before the epoch as pre-epoch', () => {
-    const grid = yearGrid(2026, [], '2026-07-27');
-    expect(grid.find((d) => d.date === '2026-01-01')?.status).toBe('pre-epoch');
+    const grid = yearGrid(2025, [], '2026-07-27');
+    expect(grid.find((d) => d.date === '2025-12-31')?.status).toBe('pre-epoch');
+    expect(yearGrid(2026, [], '2026-07-27').every((d) => d.status !== 'pre-epoch')).toBe(true);
   });
 
   /*

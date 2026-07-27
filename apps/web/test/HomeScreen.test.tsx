@@ -75,7 +75,8 @@ describe('HomeScreen, the daily hero', () => {
     show();
 
     expect(screen.getByText('No.')).toBeDefined();
-    expect(screen.getByText('1')).toBeDefined();
+    // 2026-07-27 is the 208th day of 2026, and the epoch is 1 January.
+    expect(screen.getByText('208')).toBeDefined();
     expect(screen.getAllByText(/27 July 2026/).length).toBeGreaterThan(0);
   });
 
