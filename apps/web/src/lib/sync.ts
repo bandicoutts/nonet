@@ -10,9 +10,10 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { currentStreak } from './streak';
-import { mergeAutosave, mergeSettings, mergeSolves } from './merge';
-import type { MergeReport } from './merge';
+import { mergeAutosave, mergeFailures, mergeSettings, mergeSolves } from './merge';
+import type { GuestFailure, MergeReport } from './merge';
 import { fromProfileRow, readSettings, toProfileRow, writeSettings } from './settings';
+import { readFailures } from './puzzles';
 import { listAutosaves, localDate, readSolves, writeAutosave } from './storage';
 import type { AutosaveRecord, GuestSolve, PuzzleRef } from './storage';
 
@@ -140,6 +141,15 @@ export async function syncAfterSignIn(
     await supabase.from('solves').upsert(rows, { onConflict: 'user_id,puzzle_id,attempt' });
   }
 
+  /*
+   * Failures, by the same shape and for the same reason.
+   *
+   * A separate table, because a failure is not a solve (NONET-17) — but it
+   * still has to cross at sign-in, or a player's archive would differ between
+   * devices, which is the inconsistency sync exists to prevent (NONET-27).
+   */
+  await syncFailures(supabase, userId);
+
   // The merged history is what this browser now holds, so a later sign-out
   // leaves the player with everything rather than only their guest half.
   try {
@@ -263,4 +273,59 @@ async function mergeInProgress(
   }
 
   return result;
+}
+
+/** Upload the failures the account has not seen, or has an older count for. */
+async function syncFailures(supabase: SupabaseClient, userId: string): Promise<void> {
+  const guest = readFailures();
+  if (guest.length === 0) return;
+
+  const { data } = await supabase
+    .from('failures')
+    .select('puzzle_id, local_date, attempts, puzzles(id, kind, difficulty, seed)');
+
+  const server = ((data ?? []) as unknown as FailureRow[])
+    .map((row) => {
+      const puzzle = Array.isArray(row.puzzles) ? row.puzzles[0] : row.puzzles;
+      if (puzzle === undefined || puzzle === null) return null;
+      return {
+        ref: { kind: puzzle.kind, difficulty: puzzle.difficulty, seed: puzzle.seed },
+        localDate: row.local_date,
+        attempts: row.attempts,
+      } as GuestFailure;
+    })
+    .filter((f): f is GuestFailure => f !== null);
+
+  const { upload } = mergeFailures(guest, server);
+  if (upload.length === 0) return;
+
+  const ids = await resolveIds(supabase, upload.map((f) => f.ref));
+  const rows = upload
+    .map((failure) => {
+      const { kind, difficulty, seed } = failure.ref;
+      const puzzleId = ids.get(`${kind}:${difficulty}:${seed}`);
+      // A puzzle with no row on this deployment is skipped rather than
+      // invented, exactly as an unpublished daily is for solves.
+      if (puzzleId === undefined) return null;
+      return {
+        user_id: userId,
+        puzzle_id: puzzleId,
+        local_date: failure.localDate,
+        attempts: failure.attempts,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  if (rows.length > 0) {
+    // Keyed on (user_id, puzzle_id), so a repeat is a no-op and a half-finished
+    // sync is retried by signing in again.
+    await supabase.from('failures').upsert(rows, { onConflict: 'user_id,puzzle_id' });
+  }
+}
+
+interface FailureRow {
+  readonly puzzle_id: string;
+  readonly local_date: string;
+  readonly attempts: number;
+  readonly puzzles: PuzzleRow | PuzzleRow[] | null;
 }

@@ -7,6 +7,7 @@ import {
   dailyRef,
   failedAttempts,
   parsePuzzleRef,
+  readFailures,
   pickPractice,
   recordFailure,
 } from '../src/lib/puzzles';
@@ -183,5 +184,61 @@ describe('parsePuzzleRef', () => {
     ['nothing at all', {}],
   ])('rejects %s', (_why, params) => {
     expect(parsePuzzleRef(params as Record<string, string | string[] | undefined>)).toBeNull();
+  });
+});
+
+/*
+ * A failed day is part of the record (NONET-27).
+ *
+ * It is deliberately *not* a solve row — NONET-17 ruled that a failed board
+ * writes none, because inventing one would put a run in the stats that never
+ * finished. It is a different record, and it needs a date, because a day that
+ * was attempted and lost is otherwise indistinguishable from one never opened.
+ */
+describe('recording a failure', () => {
+  const ref: PuzzleRef = { kind: 'daily', difficulty: 'hard', seed: 99 };
+  const other: PuzzleRef = { kind: 'practice', difficulty: 'easy', seed: 1 };
+
+  it('stamps the failure with the local day', () => {
+    recordFailure(ref, new Date('2026-08-01T09:00:00.000Z'));
+
+    const [failure] = readFailures();
+    expect(failure?.localDate).toBe('2026-08-01');
+    expect(failure?.attempts).toBe(1);
+    expect(failure?.ref).toEqual(ref);
+  });
+
+  it('keeps the first date when a second attempt also fails', () => {
+    recordFailure(ref, new Date('2026-08-01T09:00:00.000Z'));
+    recordFailure(ref, new Date('2026-08-02T09:00:00.000Z'));
+
+    const [failure] = readFailures();
+    // The day the puzzle was lost is the day it was first lost.
+    expect(failure?.localDate).toBe('2026-08-01');
+    expect(failure?.attempts).toBe(2);
+  });
+
+  it('lists a failure per puzzle', () => {
+    recordFailure(ref);
+    recordFailure(other);
+
+    expect(readFailures()).toHaveLength(2);
+  });
+
+  it('has none when nothing has failed', () => {
+    expect(readFailures()).toEqual([]);
+  });
+
+  /*
+   * Records written before failures carried a date are plain numbers. They are
+   * still honoured for the attempt count — which is what gates the retry — and
+   * simply contribute no dated failure.
+   */
+  it('still reads a legacy attempt count, without inventing a date', () => {
+    window.localStorage.setItem('nonet:attempt:daily:hard:99', '2');
+
+    expect(failedAttempts(ref)).toBe(2);
+    expect(canRetry(ref)).toBe(false);
+    expect(readFailures()).toEqual([]);
   });
 });

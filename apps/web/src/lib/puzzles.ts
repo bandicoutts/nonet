@@ -10,7 +10,7 @@
  */
 import { DIFFICULTIES, currentEdition, dailyDifficulty, dailySeed } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
-import { readSolves } from './storage';
+import { localDate, readSolves } from './storage';
 import type { PuzzleRef } from './storage';
 
 /** How many puzzles per band `seed.sql` holds. */
@@ -82,19 +82,98 @@ function solvedPracticeSeeds(difficulty: Difficulty): number[] {
  */
 export type Attempt = 1 | 2;
 
+/**
+ * A puzzle that locked.
+ *
+ * **Not a solve row**, deliberately: NONET-17 ruled that a failed board writes
+ * none, because a failed board is not a solve and inventing one would put a run
+ * in the stats that never finished. It is a *different* record — and it carries
+ * a date, because without one a day that was attempted and lost is
+ * indistinguishable from a day never opened, which is what left the Archive and
+ * Record pages unable to say either (NONET-27).
+ */
+export interface FailureRecord {
+  readonly ref: PuzzleRef;
+  /** The day the puzzle was **first** lost, in the player's own timezone. */
+  readonly localDate: string;
+  readonly attempts: number;
+}
+
 function attemptKey(ref: PuzzleRef): string {
   return `${ATTEMPT_PREFIX}${ref.kind}:${ref.difficulty}:${ref.seed}`;
 }
 
-/** How many attempts have been *used up* by a locked board. */
-export function failedAttempts(ref: PuzzleRef): number {
+/**
+ * Read the stored attempt record.
+ *
+ * Records written before failures carried a date are plain numbers. They still
+ * gate the retry correctly and simply have no date, which is honest — inventing
+ * one would put a guessed day in the archive.
+ */
+function readAttempt(ref: PuzzleRef): { attempts: number; localDate: string | null } {
   try {
     const raw = window.localStorage.getItem(attemptKey(ref));
-    const value = raw === null ? 0 : Number(raw);
-    return Number.isInteger(value) && value >= 0 ? Math.min(value, 2) : 0;
+    if (raw === null) return { attempts: 0, localDate: null };
+
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed === 'number') return { attempts: clampAttempts(parsed), localDate: null };
+
+    if (typeof parsed === 'object' && parsed !== null) {
+      const r = parsed as Record<string, unknown>;
+      return {
+        attempts: clampAttempts(r['attempts']),
+        localDate: typeof r['localDate'] === 'string' ? r['localDate'] : null,
+      };
+    }
   } catch {
-    return 0;
+    // Unreadable, hand-edited, or denied. A fresh puzzle is the safe reading.
   }
+  return { attempts: 0, localDate: null };
+}
+
+function clampAttempts(value: unknown): number {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 0 ? Math.min(n, 2) : 0;
+}
+
+/** Every puzzle this browser has lost, with the day it was lost. */
+export function readFailures(): FailureRecord[] {
+  const found: FailureRecord[] = [];
+
+  try {
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (key === null || !key.startsWith(ATTEMPT_PREFIX)) continue;
+
+      const [kind, difficulty, seed] = key.slice(ATTEMPT_PREFIX.length).split(':');
+      if (kind === undefined || difficulty === undefined || seed === undefined) continue;
+
+      const ref = {
+        kind,
+        difficulty,
+        seed: Number(seed),
+        // Reconstructed from the key, which is the only place the ref lives.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the key
+        // was written from a valid ref, and a malformed one is dropped below.
+      } as any as PuzzleRef;
+
+      const record = readAttempt(ref);
+      // A legacy record has no date, so it is not a *dated* failure and cannot
+      // be placed on a calendar.
+      if (record.attempts === 0 || record.localDate === null) continue;
+
+      found.push({ ref, localDate: record.localDate, attempts: record.attempts });
+    }
+  } catch {
+    return [];
+  }
+
+  return found;
+}
+
+/** How many attempts have been *used up* by a locked board. */
+export function failedAttempts(ref: PuzzleRef): number {
+  return readAttempt(ref).attempts;
 }
 
 /** Which attempt the player is on now. */
@@ -108,9 +187,19 @@ export function canRetry(ref: PuzzleRef): boolean {
 }
 
 /** Record that a board locked. Called once, when the third mistake lands. */
-export function recordFailure(ref: PuzzleRef): void {
+export function recordFailure(ref: PuzzleRef, at: Date = new Date()): void {
+  const existing = readAttempt(ref);
+
   try {
-    window.localStorage.setItem(attemptKey(ref), String(Math.min(failedAttempts(ref) + 1, 2)));
+    window.localStorage.setItem(
+      attemptKey(ref),
+      JSON.stringify({
+        attempts: Math.min(existing.attempts + 1, 2),
+        // The day the puzzle was lost is the day it was *first* lost — a retry
+        // that also fails does not move it to a second day.
+        localDate: existing.localDate ?? localDate(at),
+      }),
+    );
   } catch {
     // A player who cannot persist gets an extra retry. Preferable to blocking
     // one who legitimately has it.

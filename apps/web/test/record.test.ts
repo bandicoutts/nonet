@@ -192,6 +192,21 @@ describe('yearGrid', () => {
     expect(grid.find((d) => d.date === '2026-08-01')?.status).toBe('future');
   });
 
+  it('marks a lost day as failed', () => {
+    const failure = { ref: { kind: 'daily' as const, difficulty: 'easy' as const, seed: 1 }, localDate: '2026-07-26', attempts: 2 };
+    const grid = yearGrid(2026, [], '2026-07-27', [failure]);
+
+    expect(grid.find((d) => d.date === '2026-07-26')?.status).toBe('failed');
+  });
+
+  /* Solving the retry beats having lost the first attempt. */
+  it('prefers solved over failed', () => {
+    const failure = { ref: { kind: 'daily' as const, difficulty: 'easy' as const, seed: 1 }, localDate: '2026-07-27', attempts: 1 };
+    const grid = yearGrid(2026, [solve()], '2026-07-27', [failure]);
+
+    expect(grid.find((d) => d.date === '2026-07-27')?.status).toBe('solved');
+  });
+
   it('marks a passed, unsolved day as unplayed', () => {
     const grid = yearGrid(2026, [], '2026-07-27');
     // The epoch itself is a real edition, and it has not been solved here.

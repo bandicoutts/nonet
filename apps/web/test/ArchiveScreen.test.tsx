@@ -91,12 +91,15 @@ describe('ArchiveScreen', () => {
     expect(screen.getByText(/Nothing in this month matches the filter/)).toBeDefined();
   });
 
-  /*
-   * copy.md lists a Failed chip. Nothing records a failed day, so a filter for
-   * it would silently match nothing — worse than its absence (NONET-25).
-   */
-  it('offers no Failed filter it cannot honour', () => {
+  /* Failures are recorded now, so the filter copy.md asks for works (NONET-27). */
+  it('narrows to failed editions', async () => {
+    window.localStorage.setItem(
+      `nonet:attempt:daily:${dailyDifficulty('2026-08-03')}:${dailySeed('2026-08-03')}`,
+      JSON.stringify({ attempts: 2, localDate: '2026-08-03' }),
+    );
     show();
-    expect(screen.queryByRole('button', { name: 'Failed' })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Failed' }));
+    expect(screen.getByText(/1 of 10 in August/)).toBeDefined();
   });
 });

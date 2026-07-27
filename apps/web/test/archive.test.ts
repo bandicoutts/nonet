@@ -33,7 +33,7 @@ function solveOf(date: string, over: Partial<GuestSolve> = {}): GuestSolve {
 
 describe('editionFor', () => {
   it('derives number, difficulty and seed from the date alone', () => {
-    const edition = editionFor('2026-07-27', [], AT);
+    const edition = editionFor('2026-07-27', [], [], AT);
 
     expect(edition.number).toBe(1);
     expect(edition.ref.seed).toBe(dailySeed('2026-07-27'));
@@ -41,23 +41,23 @@ describe('editionFor', () => {
   });
 
   it('marks the current edition as today', () => {
-    expect(editionFor('2026-08-10', [], AT).status).toBe('today');
+    expect(editionFor('2026-08-10', [], [], AT).status).toBe('today');
   });
 
   it('marks a passed, unsolved edition as unplayed', () => {
-    expect(editionFor('2026-08-01', [], AT).status).toBe('unplayed');
+    expect(editionFor('2026-08-01', [], [], AT).status).toBe('unplayed');
   });
 
   it('marks a later edition as future', () => {
-    expect(editionFor('2026-08-11', [], AT).status).toBe('future');
+    expect(editionFor('2026-08-11', [], [], AT).status).toBe('future');
   });
 
   it('marks dates before the first edition as pre-epoch', () => {
-    expect(editionFor('2026-07-26', [], AT).status).toBe('pre-epoch');
+    expect(editionFor('2026-07-26', [], [], AT).status).toBe('pre-epoch');
   });
 
   it('marks a solved edition as solved, and carries the time', () => {
-    const edition = editionFor('2026-08-01', [solveOf('2026-08-01')], AT);
+    const edition = editionFor('2026-08-01', [solveOf('2026-08-01')], [], AT);
 
     expect(edition.status).toBe('solved');
     expect(edition.durationMs).toBe(300_000);
@@ -68,34 +68,58 @@ describe('editionFor', () => {
    * see it as done rather than as an invitation. Same precedence Home applies.
    */
   it('prefers solved over today', () => {
-    expect(editionFor('2026-08-10', [solveOf('2026-08-10')], AT).status).toBe('solved');
+    expect(editionFor('2026-08-10', [solveOf('2026-08-10')], [], AT).status).toBe('solved');
   });
 
   /* Matching is by seed, so a solve of a *different* edition does not count. */
   it('does not credit a solve of another edition', () => {
-    expect(editionFor('2026-08-01', [solveOf('2026-08-02')], AT).status).toBe('unplayed');
+    expect(editionFor('2026-08-01', [solveOf('2026-08-02')], [], AT).status).toBe('unplayed');
+  });
+
+  /*
+   * A lost day is now distinguishable from an unopened one — the gap that left
+   * both `copy.md`'s Failed filter and its failure count unbuildable (NONET-27).
+   */
+  it('marks a lost edition as failed', () => {
+    const failure = { ref: { kind: 'daily' as const, difficulty: dailyDifficulty('2026-08-01'), seed: dailySeed('2026-08-01') }, localDate: '2026-08-01', attempts: 2 };
+    expect(editionFor('2026-08-01', [], [failure], AT).status).toBe('failed');
+  });
+
+  /* Solving the retry beats having lost the first attempt. */
+  it('prefers solved over failed', () => {
+    const failure = { ref: { kind: 'daily' as const, difficulty: dailyDifficulty('2026-08-01'), seed: dailySeed('2026-08-01') }, localDate: '2026-08-01', attempts: 1 };
+    expect(editionFor('2026-08-01', [solveOf('2026-08-01')], [failure], AT).status).toBe('solved');
+  });
+
+  /*
+   * An outcome outranks a position: today is findable anyway, being the last
+   * day not drawn as future, while what happened is the information.
+   */
+  it('prefers failed over today', () => {
+    const failure = { ref: { kind: 'daily' as const, difficulty: dailyDifficulty('2026-08-10'), seed: dailySeed('2026-08-10') }, localDate: '2026-08-10', attempts: 1 };
+    expect(editionFor('2026-08-10', [], [failure], AT).status).toBe('failed');
   });
 
   it('has no time for an edition never solved', () => {
-    expect(editionFor('2026-08-01', [], AT).durationMs).toBeNull();
+    expect(editionFor('2026-08-01', [], [], AT).durationMs).toBeNull();
   });
 });
 
 describe('monthEditions', () => {
   it('covers every day of the month', () => {
-    expect(monthEditions(2026, 8, [], AT)).toHaveLength(31);
+    expect(monthEditions(2026, 8, [], [], AT)).toHaveLength(31);
   });
 
   it('handles a short month', () => {
-    expect(monthEditions(2026, 2, [], AT)).toHaveLength(28);
+    expect(monthEditions(2026, 2, [], [], AT)).toHaveLength(28);
   });
 
   it('handles a leap February', () => {
-    expect(monthEditions(2024, 2, [], AT)).toHaveLength(29);
+    expect(monthEditions(2024, 2, [], [], AT)).toHaveLength(29);
   });
 
   it('numbers editions consecutively', () => {
-    const august = monthEditions(2026, 8, [], AT);
+    const august = monthEditions(2026, 8, [], [], AT);
     expect(august[0]?.number).toBe(6);
     expect(august[1]?.number).toBe(7);
   });
@@ -120,7 +144,7 @@ describe('leadingBlanks', () => {
 });
 
 describe('matches', () => {
-  const hardSolved = editionFor('2026-08-01', [solveOf('2026-08-01')], AT);
+  const hardSolved = editionFor('2026-08-01', [solveOf('2026-08-01')], [], AT);
 
   it('passes everything when nothing is filtered', () => {
     expect(matches(hardSolved, NO_FILTERS)).toBe(true);

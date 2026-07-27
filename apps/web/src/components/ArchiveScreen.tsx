@@ -13,7 +13,8 @@ import {
 } from '@/lib/archive';
 import type { Edition, EditionStatus, Filters } from '@/lib/archive';
 import { difficultyLabel, formatDuration } from '@/lib/result';
-import { refParams } from '@/lib/puzzles';
+import { readFailures, refParams } from '@/lib/puzzles';
+import type { FailureRecord } from '@/lib/puzzles';
 import { readSolves } from '@/lib/storage';
 import type { GuestSolve } from '@/lib/storage';
 
@@ -27,13 +28,21 @@ const CHIP_OFF = 'border-line bg-transparent text-fg3-text hover:text-fg';
 /** Per `components.md`'s calendar-day state table. */
 const DAY_STYLE: Readonly<Record<EditionStatus, string>> = {
   solved: 'border border-fg bg-fg text-bg',
+  failed: 'border border-error bg-error text-accent-ink',
   unplayed: 'border border-line bg-transparent text-fg3-text',
   today: 'border-2 border-accent bg-transparent text-accent',
   future: 'border border-dashed border-deco bg-transparent text-deco',
   'pre-epoch': 'border border-dashed border-deco bg-transparent text-deco',
 };
 
-const STATUSES: readonly EditionStatus[] = ['unplayed', 'solved', 'today'];
+const STATUSES: readonly EditionStatus[] = ['unplayed', 'solved', 'failed', 'today'];
+const STATUS_LABEL: Partial<Record<EditionStatus, string>> = {
+  unplayed: 'Unplayed',
+  solved: 'Solved',
+  failed: 'Failed',
+  today: 'Today',
+};
+
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -46,25 +55,32 @@ const MONTHS = [
  * browsable with Supabase down and without a `puzzles` row existing — the same
  * property that lets the daily be played offline.
  *
- * **`Failed` is not offered as a filter.** `copy.md` lists it, and nothing
- * records a failed *day*: a locked board writes no solve row and attempts carry
- * no date, so a lost day is indistinguishable from an unopened one. A filter
- * that silently matched nothing would be worse than its absence (NONET-25).
+ * A failed edition is drawn and filterable: failures are recorded with the day
+ * they happened, so a day that was attempted and lost is distinguishable from
+ * one never opened (NONET-27). A failure is not a solve row — NONET-17 keeps
+ * those for finished runs — but its own record.
  */
 export function ArchiveScreen({ now }: { now?: Date }) {
   const [solves, setSolves] = useState<readonly GuestSolve[] | null>(null);
+  const [failures, setFailures] = useState<readonly FailureRecord[]>([]);
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
 
   const months = useMemo(() => browsableMonths(now), [now]);
   const [index, setIndex] = useState(0);
 
   /* Read in an effect: no localStorage on the server (NONET-15). */
-  useEffect(() => setSolves(readSolves()), []);
+  useEffect(() => {
+    setSolves(readSolves());
+    setFailures(readFailures());
+  }, []);
 
   const shown = months[index] ?? months[0];
   const editions = useMemo(
-    () => (solves === null || shown === undefined ? [] : monthEditions(shown.year, shown.month, solves, now)),
-    [solves, shown, now],
+    () =>
+      solves === null || shown === undefined
+        ? []
+        : monthEditions(shown.year, shown.month, solves, failures, now),
+    [solves, failures, shown, now],
   );
 
   if (solves === null || shown === undefined) return null;
@@ -96,7 +112,7 @@ export function ArchiveScreen({ now }: { now?: Date }) {
         />
         <ChipGroup
           label="Status"
-          options={STATUSES.map((s) => [s, s === 'today' ? 'Today' : s === 'solved' ? 'Solved' : 'Unplayed'] as const)}
+          options={STATUSES.map((s) => [s, STATUS_LABEL[s] ?? s] as const)}
           active={filters.statuses}
           onToggle={(s) => setFilters((f) => ({ ...f, statuses: toggle(f.statuses, s) }))}
         />

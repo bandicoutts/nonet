@@ -7,6 +7,8 @@ import { buildRecord, spellNumber, yearGrid } from '@/lib/record';
 import type { Day, Record as RecordData, Window } from '@/lib/record';
 import { difficultyLabel, formatDuration } from '@/lib/result';
 import { localDate, readSolves } from '@/lib/storage';
+import { readFailures } from '@/lib/puzzles';
+import type { FailureRecord } from '@/lib/puzzles';
 import type { GuestSolve } from '@/lib/storage';
 
 const TAB =
@@ -16,6 +18,7 @@ const TAB =
 /** Heat cell fills, per `components.md`'s `dayFill` table. */
 const DAY_FILL: Readonly<Record<Day['status'], string>> = {
   solved: 'bg-fg',
+  failed: 'bg-error',
   unplayed: 'bg-transparent border border-line',
   future: 'bg-transparent border border-dashed border-deco',
   'pre-epoch': 'bg-transparent border border-dashed border-deco',
@@ -30,11 +33,15 @@ const DAY_FILL: Readonly<Record<Day['status'], string>> = {
  */
 export function RecordScreen({ now }: { now?: Date }) {
   const [solves, setSolves] = useState<readonly GuestSolve[] | null>(null);
+  const [failures, setFailures] = useState<readonly FailureRecord[]>([]);
   const [window, setWindow] = useState<'all' | 'thirty'>('all');
   const [year, setYear] = useState(() => Number(PUZZLE_EPOCH.slice(0, 4)));
 
   /* Read in an effect: no localStorage on the server (NONET-15). */
-  useEffect(() => setSolves(readSolves()), []);
+  useEffect(() => {
+    setSolves(readSolves());
+    setFailures(readFailures());
+  }, []);
 
   if (solves === null) return null;
 
@@ -61,9 +68,10 @@ export function RecordScreen({ now }: { now?: Date }) {
   }
 
   const years = yearsSince(Number(PUZZLE_EPOCH.slice(0, 4)), Number(today.slice(0, 4)));
-  const days = yearGrid(year, solves, today);
+  const days = yearGrid(year, solves, today, failures);
   const solvedInYear = days.filter((d) => d.status === 'solved').length;
   const unplayedInYear = days.filter((d) => d.status === 'unplayed').length;
+  const failedInYear = days.filter((d) => d.status === 'failed').length;
 
   return (
     <section className="mx-auto flex w-full max-w-[62rem] flex-col gap-l px-m py-l drawer:px-2xl rail:px-4xl">
@@ -134,7 +142,7 @@ export function RecordScreen({ now }: { now?: Date }) {
           <div
             className="grid w-max grid-flow-col grid-rows-7 gap-[3px]"
             role="img"
-            aria-label={`${solvedInYear} solved and ${unplayedInYear} unplayed in ${year}`}
+            aria-label={`${solvedInYear} solved, ${failedInYear} failed and ${unplayedInYear} unplayed in ${year}`}
           >
             {days.map((day) => (
               <span
@@ -146,11 +154,8 @@ export function RecordScreen({ now }: { now?: Date }) {
           </div>
         </div>
 
-        {/* copy.md's summary counts failures. Nothing records a failed *day* —
-            a locked board writes no solve row and attempts carry no date — so
-            saying so would be a guess. See lib/record.ts. */}
         <p className="type-body-small text-fg3-text">
-          {solvedInYear} solved · {unplayedInYear} unplayed
+          {solvedInYear} solved · {failedInYear} failed · {unplayedInYear} unplayed
         </p>
       </div>
 

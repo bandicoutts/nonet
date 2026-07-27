@@ -9,16 +9,11 @@
 import { PUZZLE_EPOCH, currentEdition, dailyDifficulty, dailySeed, puzzleNumber } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
 import type { GuestSolve, PuzzleRef } from './storage';
+import type { FailureRecord } from './puzzles';
 
 const DAY_MS = 86_400_000;
 
-/**
- * `failed` is absent, for the reason `record.ts` gives: nothing records a
- * failed *day*. A locked board writes no solve row (NONET-17) and attempts
- * carry no date, so a lost day is indistinguishable from an unopened one.
- * `copy.md` filters on Failed; that needs a schema that stores it.
- */
-export type EditionStatus = 'solved' | 'unplayed' | 'today' | 'future' | 'pre-epoch';
+export type EditionStatus = 'solved' | 'failed' | 'unplayed' | 'today' | 'future' | 'pre-epoch';
 
 export interface Edition {
   readonly date: string;
@@ -49,6 +44,7 @@ function toDate(day: number): string {
 export function editionFor(
   date: string,
   solves: readonly GuestSolve[],
+  failures: readonly FailureRecord[] = [],
   at: Date = new Date(),
 ): Edition {
   const difficulty = dailyDifficulty(date);
@@ -70,12 +66,12 @@ export function editionFor(
     number: puzzleNumber(date),
     difficulty,
     ref,
-    status: statusFor(date, solve !== undefined, at),
+    status: statusFor(date, solve !== undefined, failures.some((f) => f.ref.seed === seed), at),
     durationMs: solve?.durationMs ?? null,
   };
 }
 
-function statusFor(date: string, solved: boolean, at: Date): EditionStatus {
+function statusFor(date: string, solved: boolean, failed: boolean, at: Date): EditionStatus {
   const day = dayNumber(date);
   const current = dayNumber(currentEdition(at));
 
@@ -89,6 +85,15 @@ function statusFor(date: string, solved: boolean, at: Date): EditionStatus {
    * two contradictory figures on the Record page (NONET-25).
    */
   if (solved) return 'solved';
+
+  /*
+   * An outcome outranks a position.
+   *
+   * A day can be both today and lost. What the player needs from the calendar
+   * is what *happened*; today is findable anyway, being the last day that is
+   * not drawn as future.
+   */
+  if (failed) return 'failed';
   if (day === current) return 'today';
   if (day < dayNumber(PUZZLE_EPOCH)) return 'pre-epoch';
   return 'unplayed';
@@ -99,6 +104,7 @@ export function monthEditions(
   year: number,
   month: number,
   solves: readonly GuestSolve[],
+  failures: readonly FailureRecord[] = [],
   at: Date = new Date(),
 ): readonly Edition[] {
   const editions: Edition[] = [];
@@ -107,7 +113,7 @@ export function monthEditions(
   for (let day = start; ; day += 1) {
     const date = toDate(day);
     if (Number(date.slice(5, 7)) !== month || Number(date.slice(0, 4)) !== year) break;
-    editions.push(editionFor(date, solves, at));
+    editions.push(editionFor(date, solves, failures, at));
   }
 
   return editions;

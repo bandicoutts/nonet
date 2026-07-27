@@ -30,27 +30,20 @@ is not owned yet — so the ordering is: domain, then SMTP, then paste
 
 ---
 
-## 2. Archive: pre-generate editions, or publish forward only?
-
-The `published_at <= now()` policy exists precisely so a pre-generated future
-edition stays hidden (NONET-14). Nothing pre-generates yet, so that guard is
-currently protecting against a case that does not arise.
-
-**Recommendation:** publish forward via cron and backfill on demand. Add a
-script that loops a date range for backfill. Pre-generating buys nothing and
-puts every future answer in a world-readable table behind a single predicate.
-
----
-
-## 3. Run `security-review` on the branch
+## 2. Run `security-review` on the branch
 
 RLS policies and the auth callback now exist, which is the point the original
 Phase 3 handoff said to wait for.
 
-**Recommendation:** run it before Phase 4 adds surface area. Particular things
-worth an adversarial look: the `puzzles` select policy (it is the only thing
-between anyone and tomorrow's answer), `daily_percentile`'s security-definer
-body, and the auth callback's redirect handling.
+Run once on the solved flow (NONET-20) and **not since**, while Home, Settings,
+Record, Archive, the email-code auth rewrite and a URL-parsed puzzle ref all
+landed. That is a lot of surface reviewed only in passing, by the person who
+wrote it.
+
+**Recommendation:** re-run across the new surface. Worth an adversarial look:
+`parsePuzzleRef` (the only untrusted input parsed into a board), the client-side
+`safeRedirect` in the code flow (NONET-21 moved it off the server), the new
+`failures` RLS policies, and `daily_percentile`'s security-definer body.
 
 ---
 
@@ -60,14 +53,14 @@ body, and the auth callback's redirect handling.
   `toRecord` does not write it, so a hinted cell loses its marker across a
   reload. Currently cosmetic — the attribute drives an animation identical to
   the ordinary one — but the field exists and is a lie by omission.
-- **`pickPractice` has no caller.** It is written and tested; Home's practice
-  section (Phase 4) is what will use it.
-- **`kind: 'archive'` and `kind: 'replay'` are never written.** `BoardScreen`
-  only ever records `daily` or `practice`. The archive and replay play modes do
-  not exist yet.
-- **One in-flight practice puzzle is enforced in the database but not the
-  client.** The partial unique index covers signed-in players; a guest can hold
-  several. The abandon confirm on Home is what should enforce it.
+- **`kind: 'replay'` is never written.** `BoardScreen` records `daily`,
+  `archive` and `practice`; replay mode does not exist, so the solved screen
+  omits its "Replay, unscored" action rather than linking to a board that would
+  record a second scored solve (NONET-23).
+- **One in-flight practice puzzle is enforced in the database, and now by the
+  abandon confirm on Home** (NONET-23) — but a guest who never passes through
+  Home can still accumulate several, and `practiceInFlight` deliberately takes
+  the most recent rather than assuming there is one.
 - **Practice exclusion reads localStorage only.** A signed-in player's solves
   from another device are only reflected after the next merge, so a puzzle
   solved elsewhere today could be dealt again. Acceptable for v1 with a

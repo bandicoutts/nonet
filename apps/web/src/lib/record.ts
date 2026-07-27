@@ -13,6 +13,7 @@ import { DIFFICULTIES, PUZZLE_EPOCH } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
 import { currentStreak, longestStreak } from './streak';
 import type { GuestSolve } from './storage';
+import type { FailureRecord } from './puzzles';
 
 const DAY_MS = 86_400_000;
 
@@ -134,14 +135,12 @@ export function buildRecord(solves: readonly GuestSolve[], today: string): Recor
 /**
  * A day's state in the completion strip.
  *
- * **`failed` is deliberately absent.** Nothing records a failed *day*: attempts
- * are stored per puzzle without a date, and a locked board writes no `solves`
- * row at all, by design (NONET-17). So a past day that was attempted and lost
- * is indistinguishable from one never opened, and the strip says "unplayed"
- * rather than guessing. `copy.md`'s summary counts failures; that would need a
- * schema that records them.
+ * `failed` is a day the player lost and did not go on to solve. It is *not* a
+ * solve row — NONET-17 keeps those for finished runs — but a dated failure
+ * record, which is what makes a lost day distinguishable from an unopened one
+ * (NONET-27).
  */
-export type DayStatus = 'solved' | 'unplayed' | 'future' | 'pre-epoch';
+export type DayStatus = 'solved' | 'failed' | 'unplayed' | 'future' | 'pre-epoch';
 
 export interface Day {
   readonly date: string;
@@ -153,10 +152,13 @@ export function yearGrid(
   year: number,
   solves: readonly GuestSolve[],
   today: string,
+  failures: readonly FailureRecord[] = [],
 ): readonly Day[] {
   const solvedDays = new Set(
     solves.filter((s) => s.kind === 'daily').map((s) => s.localDate),
   );
+
+  const failedDays = new Set(failures.filter((f) => f.ref.kind === 'daily').map((f) => f.localDate));
 
   const todayNumber = dayNumber(today);
   const epochNumber = dayNumber(PUZZLE_EPOCH);
@@ -188,6 +190,9 @@ export function yearGrid(
      * slightly wrong.
      */
     if (solvedDays.has(date)) return 'solved';
+
+    // A lost day, which is now recorded rather than guessed at (NONET-27).
+    if (failedDays.has(date)) return 'failed';
 
     // Before the first edition there was no puzzle to miss.
     if (day < epochNumber) return 'pre-epoch';

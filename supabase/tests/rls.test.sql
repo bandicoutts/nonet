@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(48);
+select plan(56);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -392,6 +392,62 @@ select is(
   '5 0 * * *',
   'the daily is scheduled for 00:05 UTC'
 );
+
+-- ---------------------------------------------------------------------------
+-- Failures
+-- ---------------------------------------------------------------------------
+
+-- A failed board is a separate record from a solve (NONET-27). The thing worth
+-- asserting is that it stayed separate: nothing that reads `solves` should have
+-- gained a way to see a run that never finished.
+select has_table('public', 'failures', 'failures exists');
+
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.failures'::regclass),
+  'RLS is switched on for failures — a table with policies and RLS off is wide open'
+);
+
+select col_is_pk(
+  'public', 'failures', array['user_id', 'puzzle_id'],
+  'one failure row per player per puzzle'
+);
+
+-- There is no third attempt (NONET-17), and the column says so.
+select throws_ok(
+  $$insert into public.failures (user_id, puzzle_id, local_date, attempts)
+    values ('11111111-1111-1111-1111-111111111111',
+            (select id from public.puzzles limit 1), '2026-07-27', 3)$$,
+  '23514',
+  null,
+  'a third attempt is rejected'
+);
+
+-- Deleting a puzzle must not silently erase the record of someone playing it.
+select is(
+  (select confdeltype from pg_constraint
+    where conrelid = 'public.failures'::regclass and confrelid = 'public.puzzles'::regclass),
+  'r',
+  'failures restrict puzzle deletion rather than cascading'
+);
+
+-- Unlike solves, a failure is updatable: the count rises when the retry is also
+-- lost. Asserted because `solves` deliberately has no update policy, and the
+-- difference is easy to mirror by accident.
+select ok(
+  exists (select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'failures' and cmd = 'UPDATE'),
+  'failures may be updated by their owner, because a second loss raises the count'
+);
+
+select ok(
+  not exists (select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'solves' and cmd = 'UPDATE'),
+  'solves still may not be updated — a completed solve is a fact'
+);
+
+-- The local day is stored, not derived, so the generous timezone rule survives
+-- contact with the database (NONET-9).
+select col_not_null('public', 'failures', 'local_date', 'a failure carries the day it happened');
 
 select finish();
 rollback;

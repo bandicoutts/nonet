@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { mergeAutosave, mergeSettings, mergeSolves } from '../src/lib/merge';
+import { mergeAutosave, mergeSettings, mergeSolves,
+  mergeFailures,
+} from '../src/lib/merge';
+import type { GuestFailure } from '../src/lib/merge';
 import { DEFAULT_SETTINGS } from '../src/lib/settings';
 import type { AutosaveRecord, GuestSolve, PuzzleRef } from '../src/lib/storage';
 
@@ -200,5 +203,70 @@ describe('settings', () => {
   it('keep the guest choices when the profile is brand new', () => {
     const guest = { ...DEFAULT_SETTINGS, theme: 'light' as const, checking: false };
     expect(mergeSettings(guest, { ...DEFAULT_SETTINGS }, true)).toEqual(guest);
+  });
+});
+
+/*
+ * Failures merge by union, like solves — but they are *amendable*, which solves
+ * are not. A player who lost the first attempt on one device and the retry on
+ * another has lost the puzzle twice, and the account should say two.
+ */
+describe('mergeFailures', () => {
+  const failure = (seed: number, over: Partial<GuestFailure> = {}): GuestFailure => ({
+    ref: { kind: 'daily', difficulty: 'hard', seed },
+    localDate: '2026-08-01',
+    attempts: 1,
+    ...over,
+  });
+
+  it('uploads a failure the account has never seen', () => {
+    const merged = mergeFailures([failure(1)], []);
+
+    expect(merged.upload).toHaveLength(1);
+    expect(merged.upload[0]?.attempts).toBe(1);
+  });
+
+  it('uploads nothing when the account already agrees', () => {
+    const merged = mergeFailures([failure(1)], [failure(1)]);
+    expect(merged.upload).toHaveLength(0);
+  });
+
+  /* Two failures of the same puzzle on two devices is two attempts. */
+  it('takes the higher attempt count', () => {
+    const merged = mergeFailures([failure(1, { attempts: 2 })], [failure(1)]);
+
+    expect(merged.upload).toHaveLength(1);
+    expect(merged.upload[0]?.attempts).toBe(2);
+  });
+
+  it('does not lower a count the account already holds', () => {
+    const merged = mergeFailures([failure(1)], [failure(1, { attempts: 2 })]);
+    expect(merged.upload).toHaveLength(0);
+  });
+
+  /*
+   * The day a puzzle was lost is the day it was *first* lost, whichever side
+   * holds it — otherwise a retry on a later device moves the failure to a day
+   * the player was not even playing.
+   */
+  it('keeps the earlier date', () => {
+    const merged = mergeFailures(
+      [failure(1, { localDate: '2026-08-02', attempts: 2 })],
+      [failure(1, { localDate: '2026-08-01' })],
+    );
+
+    expect(merged.upload[0]?.localDate).toBe('2026-08-01');
+  });
+
+  /* Idempotent, like every other rule here: merging its own output uploads nothing. */
+  it('is idempotent', () => {
+    const first = mergeFailures([failure(1, { attempts: 2 })], []);
+    const second = mergeFailures([failure(1, { attempts: 2 })], first.upload);
+
+    expect(second.upload).toHaveLength(0);
+  });
+
+  it('keeps failures for different puzzles apart', () => {
+    expect(mergeFailures([failure(1), failure(2)], []).upload).toHaveLength(2);
   });
 });

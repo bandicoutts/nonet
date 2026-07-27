@@ -105,12 +105,16 @@ describe('RecordScreen', () => {
     expect(screen.queryByText(/per puzzle/)).toBeNull();
   });
 
-  it('summarises the year without claiming failures', () => {
+  /* Failures are recorded and counted now (NONET-27). */
+  it('summarises the year including failures', () => {
     seed(solve());
+    window.localStorage.setItem(
+      'nonet:attempt:daily:hard:4242',
+      JSON.stringify({ attempts: 2, localDate: '2026-07-26' }),
+    );
     show();
 
-    expect(screen.getByText(/1 solved · 0 unplayed/)).toBeDefined();
-    expect(screen.queryByText(/failed/)).toBeNull();
+    expect(screen.getByText(/1 solved · 1 failed · 0 unplayed/)).toBeDefined();
   });
 
   it('draws a cell for every day of the year', () => {

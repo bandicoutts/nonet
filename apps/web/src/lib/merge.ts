@@ -165,3 +165,72 @@ export interface MergeReport {
   readonly discardedBecauseSolved: boolean;
   readonly settingsFrom: 'guest' | 'account';
 }
+
+/**
+ * A puzzle that locked, on either side of the merge.
+ *
+ * Deliberately not a solve — NONET-17 keeps `solves` for finished runs, and a
+ * failure is its own record (NONET-27).
+ */
+export interface GuestFailure {
+  readonly ref: PuzzleRef;
+  /** The day the puzzle was **first** lost, in the player's own timezone. */
+  readonly localDate: string;
+  readonly attempts: number;
+}
+
+export interface FailureMerge {
+  /** The rows to write. Empty when the account already agrees. */
+  readonly upload: readonly GuestFailure[];
+}
+
+function failureKey(ref: PuzzleRef): string {
+  return `${ref.kind}:${ref.difficulty}:${ref.seed}`;
+}
+
+/**
+ * Merge failures by union, taking the higher count and the earlier date.
+ *
+ * **The higher count**, because losing the first attempt on one device and the
+ * retry on another means the puzzle was genuinely lost twice — and the count is
+ * what gates the retry, so taking the lower one would hand back an attempt the
+ * player has already spent.
+ *
+ * **The earlier date**, because the day a puzzle was lost is the day it was
+ * *first* lost. Taking the later one would move the failure onto a day the
+ * player may not have been playing at all, which is exactly the kind of quiet
+ * fiction the archive exists not to tell.
+ *
+ * Nothing is uploaded when the account already holds an equal-or-better row, so
+ * merging this function's own output is a no-op — the same idempotence every
+ * other rule here has, and for the same reason: signing in twice on one device
+ * must not re-send a history.
+ */
+export function mergeFailures(
+  guest: readonly GuestFailure[],
+  server: readonly GuestFailure[],
+): FailureMerge {
+  const byKey = new Map<string, GuestFailure>();
+  for (const failure of server) byKey.set(failureKey(failure.ref), failure);
+
+  const upload: GuestFailure[] = [];
+
+  for (const mine of guest) {
+    const theirs = byKey.get(failureKey(mine.ref));
+
+    if (theirs === undefined) {
+      upload.push(mine);
+      continue;
+    }
+
+    const attempts = Math.max(mine.attempts, theirs.attempts);
+    const localDate = mine.localDate < theirs.localDate ? mine.localDate : theirs.localDate;
+
+    // Only write when the row would actually change.
+    if (attempts === theirs.attempts && localDate === theirs.localDate) continue;
+
+    upload.push({ ref: mine.ref, localDate, attempts });
+  }
+
+  return { upload };
+}
