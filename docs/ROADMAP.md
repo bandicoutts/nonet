@@ -9,16 +9,16 @@ Phases & milestones. Check off as completed.
 - [x] Context docs + root CLAUDE.md
 - [x] Claude Design full-surface build received (all screens/states/viewports)
 - [x] Design reviewed and resolved across 8 passes; decisions logged (DECISIONS.md NONET-2)
-- [ ] Init pnpm monorepo skeleton (`apps/web` stub, `packages/engine`, `packages/design`, `supabase/` stub)
+- [x] Init pnpm monorepo skeleton (`apps/web` stub, `packages/engine`, `packages/design`, `supabase/` stub)
 
 ## Phase 1 — Engine (`packages/engine`)
-- [ ] Board representation + constraint validators
-- [ ] Human-style solver (technique-ranked: singles → pairs → X-wing → chains)
-- [ ] Uniqueness checker (backtracking)
-- [ ] Generator (unique solution, technique-bounded per difficulty)
-- [ ] Difficulty rater → Easy/Medium/Hard/Expert
-- [ ] Mistake rules incl. digit-first repeat containment (GAME-RULES.md) — unit-tested
-- [ ] Fuzz tests asserting invariants
+- [x] Board representation + constraint validators
+- [x] Human-style solver (technique-ranked: singles → pairs → X-wing → chains)
+- [x] Uniqueness checker (backtracking)
+- [x] Generator (unique solution, technique-bounded per difficulty)
+- [x] Difficulty rater → Easy/Medium/Hard/Expert
+- [x] Mistake rules incl. digit-first repeat containment (GAME-RULES.md) — unit-tested
+- [x] Fuzz tests asserting invariants
 
 ## Phase 2 — Design system + board UI
 - [ ] Tokens in `packages/design`, from `design/export/tokens.json` (colour, type, space, motion, border, shadow)

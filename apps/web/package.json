@@ -1,0 +1,7 @@
+{
+  "name": "@nonet/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nonet web app — stub. The Next.js 16 app lands in Phase 3.",
+  "type": "module"
+}

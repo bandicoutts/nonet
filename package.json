@@ -1,0 +1,17 @@
+{
+  "name": "nonet",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Premium daily Sudoku web app",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r exec tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

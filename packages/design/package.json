@@ -1,0 +1,9 @@
+{
+  "name": "@nonet/design",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nonet design tokens — placeholder. Transcribed from the prototype Tokens screen in Phase 2.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts"
+}
