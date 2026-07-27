@@ -64,7 +64,7 @@ Labels are in sentence case in the DOM (`'Digit first'`), even though CSS render
 The export files audited the prototype against its own token sheet and found real problems. Each is recorded in place; these are the ones that matter most.
 
 **Accessibility**
-- `--fg3` on `--bg` measures **4.34:1 in light — below AA**, and it carries every mono kicker, caption and metadata string. It fails harder on shaded cells (3.61:1 on `--cell-sel`). WCAG AA is a stated hard requirement, so this needs resolving before launch, not after. See `export/tokens.json` → `color.contrast._belowAA`.
+- ~~`--fg3` on `--bg` measures **4.34:1 in light — below AA**~~ **RESOLVED — see DECISIONS.md NONET-5.** It was nine failures across both themes, not one, because `--fg3` was doing four jobs at once. `--fg3` (light `#6C7278`, dark `#8B9298`) is now scoped to **disabled and spent states only**, which WCAG exempts. Everything else — captions, mono kickers, metadata, inactive states and **note text** — uses the new **`--fg3-text`: light `#5A5F65`, dark `#A0A6AA`**. Worst pairing is note text on `--cell-sel` at 4.79:1 light / 4.77:1 dark. The ratios in `export/tokens.json` → `color.contrast._belowAA` are still those of the *exported prototype* and are left as measured; build to the values here.
 - Six interactive elements are **under 44px at 390** despite the token sheet claiming the minimum is never breached: grid cell 39, record window tab 40, settings sign-out 40, record year chip 28, footer link 24, banner dismiss ~22. See `export/layout.md`.
 - Focus rings exist only as specimens on the Focus screen. No live control sets `tabIndex` except the drawer, so the documented tab order is aspirational.
 
