@@ -47,18 +47,7 @@ Flagged because the columns existing makes this look finished when it is not.
 
 ---
 
-## 3. Solving a puzzle does nothing visible
-
-`BoardScreen` records the solve and clears the autosave, then the board sits
-there with a completed grid. There is no navigation to `/solved`, and `/solved`
-is still a stub.
-
-**Recommendation:** first thing in Phase 4. It is the most visible
-incompleteness in the app as it stands.
-
----
-
-## 4. Archive: pre-generate editions, or publish forward only?
+## 3. Archive: pre-generate editions, or publish forward only?
 
 The `published_at <= now()` policy exists precisely so a pre-generated future
 edition stays hidden (NONET-14). Nothing pre-generates yet, so that guard is
@@ -70,20 +59,7 @@ puts every future answer in a world-readable table behind a single predicate.
 
 ---
 
-## 5. A lint test for cleared Tailwind namespaces
-
-`theme.generated.css` clears `--color-*`, `--spacing-*` and `--breakpoint-*`,
-so `bg-red-500`, `p-4` and `md:` **generate no CSS at all**. An ungenerated
-utility is indistinguishable from one that has no effect: this is what hid the
-`inset-0` bug in NONET-19, which silently broke every fixed overlay in the app.
-
-**Recommendation:** add a test that scans `apps/web/src` for class names in the
-cleared namespaces and fails on a match. Cheap, and it closes the whole class of
-bug rather than the one instance. Nothing currently violates it.
-
----
-
-## 6. Run `security-review` on the branch
+## 4. Run `security-review` on the branch
 
 RLS policies and the auth callback now exist, which is the point the original
 Phase 3 handoff said to wait for.

@@ -6,6 +6,7 @@ import {
   currentAttempt,
   dailyRef,
   failedAttempts,
+  parsePuzzleRef,
   pickPractice,
   recordFailure,
 } from '../src/lib/puzzles';
@@ -145,5 +146,42 @@ describe('attempts', () => {
   it('treats unreadable storage as a fresh puzzle rather than a spent one', () => {
     window.localStorage.setItem('nonet:attempt:daily:hard:99', 'nonsense');
     expect(currentAttempt(ref)).toBe(1);
+  });
+});
+
+describe('parsePuzzleRef', () => {
+  it('reads a well-formed ref', () => {
+    expect(parsePuzzleRef({ kind: 'daily', difficulty: 'hard', seed: '4242' })).toEqual({
+      kind: 'daily',
+      difficulty: 'hard',
+      seed: 4242,
+    });
+  });
+
+  it('reads a practice ref', () => {
+    expect(parsePuzzleRef({ kind: 'practice', difficulty: 'easy', seed: '7' })).toEqual({
+      kind: 'practice',
+      difficulty: 'easy',
+      seed: 7,
+    });
+  });
+
+  /*
+   * A URL is untrusted input. Nothing here throws or renders a broken screen —
+   * an unparseable ref is simply not a puzzle, and the caller sends the player
+   * somewhere that is.
+   */
+  it.each([
+    ['a missing kind', { difficulty: 'hard', seed: '1' }],
+    ['an unknown kind', { kind: 'archive', difficulty: 'hard', seed: '1' }],
+    ['an unknown difficulty', { kind: 'daily', difficulty: 'fiendish', seed: '1' }],
+    ['a missing seed', { kind: 'daily', difficulty: 'hard' }],
+    ['a non-numeric seed', { kind: 'daily', difficulty: 'hard', seed: 'abc' }],
+    ['a fractional seed', { kind: 'daily', difficulty: 'hard', seed: '4.5' }],
+    ['a negative seed', { kind: 'daily', difficulty: 'hard', seed: '-1' }],
+    ['repeated params', { kind: ['daily', 'practice'], difficulty: 'hard', seed: '1' }],
+    ['nothing at all', {}],
+  ])('rejects %s', (_why, params) => {
+    expect(parsePuzzleRef(params as Record<string, string | string[] | undefined>)).toBeNull();
   });
 });

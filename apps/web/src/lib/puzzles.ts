@@ -8,7 +8,7 @@
  * needed when a solve is recorded or a percentile is wanted, and it is resolved
  * then, by `(kind, difficulty, seed)`.
  */
-import { currentEdition, dailyDifficulty, dailySeed } from '@nonet/engine';
+import { DIFFICULTIES, currentEdition, dailyDifficulty, dailySeed } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
 import { readSolves } from './storage';
 import type { PuzzleRef } from './storage';
@@ -115,4 +115,43 @@ export function recordFailure(ref: PuzzleRef): void {
     // A player who cannot persist gets an extra retry. Preferable to blocking
     // one who legitimately has it.
   }
+}
+
+/**
+ * Read a puzzle ref out of URL parameters.
+ *
+ * The Solved screen is a route of its own, so which puzzle it describes has to
+ * survive a reload and a bookmark — which means it lives in the URL, and the URL
+ * is untrusted input. Anything unparseable is `null` rather than a throw or a
+ * guess: the caller sends the player somewhere that has a puzzle, and nobody
+ * sees an error for typing in an address.
+ *
+ * A repeated parameter arrives as an array and is rejected outright rather than
+ * having its first value taken, since there is no honest reason for one.
+ */
+export function parsePuzzleRef(
+  params: Record<string, string | string[] | undefined>,
+): PuzzleRef | null {
+  const kind = single(params['kind']);
+  const difficulty = single(params['difficulty']);
+  const seed = single(params['seed']);
+
+  if (kind !== 'daily' && kind !== 'practice') return null;
+  if (difficulty === null || !(DIFFICULTIES as readonly string[]).includes(difficulty)) return null;
+  if (seed === null || !/^\d+$/.test(seed)) return null;
+
+  return { kind, difficulty: difficulty as Difficulty, seed: Number(seed) };
+}
+
+function single(value: string | string[] | undefined): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+/** The query string that names a puzzle, for links into `/solved`. */
+export function refParams(ref: PuzzleRef): string {
+  return new URLSearchParams({
+    kind: ref.kind,
+    difficulty: ref.difficulty,
+    seed: String(ref.seed),
+  }).toString();
 }

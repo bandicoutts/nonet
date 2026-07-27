@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BoardScreen } from './BoardScreen';
-import { dailyRef } from '@/lib/puzzles';
+import { dailyRef, refParams } from '@/lib/puzzles';
 import type { PuzzleRef } from '@/lib/storage';
 
 /**
@@ -19,5 +20,18 @@ import type { PuzzleRef } from '@/lib/storage';
  */
 export function DailyBoard() {
   const [ref] = useState<PuzzleRef>(() => dailyRef());
-  return <BoardScreen puzzleRef={ref} />;
+  const router = useRouter();
+
+  /*
+   * `replace`, not `push`. The board is finished and its autosave is cleared,
+   * so Back from the result would land on a puzzle that cannot be resumed and
+   * would deal itself fresh — offering a solved player their solved puzzle
+   * again, unsolved.
+   */
+  const onSolved = useCallback(
+    (solved: PuzzleRef) => router.replace(`/solved?${refParams(solved)}`),
+    [router],
+  );
+
+  return <BoardScreen puzzleRef={ref} onSolved={onSolved} />;
 }

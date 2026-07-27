@@ -16,6 +16,16 @@ import type { PuzzleRef } from '@/lib/storage';
 const TIMER_SAVE_MS = 10_000;
 
 /**
+ * How long the completed grid stays on screen before the result replaces it.
+ *
+ * Long enough that the last digit lands and the finished board is actually
+ * seen, short enough that it does not read as the app having stalled. Skipped
+ * entirely under `prefers-reduced-motion`, where the product's rule is that a
+ * duration collapses rather than shortens.
+ */
+export const SOLVED_DWELL_MS = 1200;
+
+/**
  * The playable board.
  *
  * The puzzle comes from a fixed seed for now — the daily edge function is the
@@ -23,7 +33,14 @@ const TIMER_SAVE_MS = 10_000;
  * that line is final: the session reducer is the engine's, so no rule is
  * reimplemented here.
  */
-export function BoardScreen({ puzzleRef }: { puzzleRef: PuzzleRef }) {
+export function BoardScreen({
+  puzzleRef,
+  onSolved,
+}: {
+  readonly puzzleRef: PuzzleRef;
+  /** Where a finished puzzle goes. Injected so the dwell is testable. */
+  readonly onSolved?: (ref: PuzzleRef) => void;
+}) {
   const ref = puzzleRef;
   const [puzzle] = useState(() => generatePuzzle(ref.difficulty, ref.seed));
 
@@ -56,26 +73,36 @@ export function BoardScreen({ puzzleRef }: { puzzleRef: PuzzleRef }) {
     // the server, and the board's input mode and checking come from them.
     const settings = readSettings();
 
-    setSession((fresh) => {
-      const configured = apply(
-        apply(fresh, { type: 'setMode', mode: settings.inputMode }),
-        { type: 'selectCell', cell: null },
-      );
-      const withChecking =
-        settings.checking === configured.checking
-          ? configured
-          : createSession({
-              givens: fresh.givens,
-              solution: fresh.solution,
-              mode: settings.inputMode,
-              checking: settings.checking,
-            });
-
-      const saved = resume(ref, withChecking);
-      if (saved === null) return withChecking;
-      setElapsed(saved.elapsedMs);
-      return saved.session;
+    /*
+     * Built outside `setSession`, deliberately.
+     *
+     * This was written as a functional update with `setElapsed` called inside
+     * the updater, and it cost a player's clock. An updater must be pure:
+     * StrictMode invokes it twice and React discards the nested update, so the
+     * restored time never reached state — and the autosave effect then wrote
+     * the board straight back out with `elapsedMs: 0`, destroying the saved
+     * time rather than merely mis-displaying it. It passed jsdom, which does
+     * not run StrictMode unless asked, and was obvious on screen: a board saved
+     * at 7:11 came back reading 0:05.
+     *
+     * `createSession` is pure and the puzzle is already in hand, so there is
+     * nothing the updater form was buying.
+     */
+    const configured = createSession({
+      givens: puzzle.givens,
+      solution: puzzle.solution,
+      mode: settings.inputMode,
+      checking: settings.checking,
     });
+
+    const saved = resume(ref, configured);
+    if (saved === null) {
+      setSession(configured);
+      return;
+    }
+
+    setSession(saved.session);
+    setElapsed(saved.elapsedMs);
     // Once, for this puzzle. `ref` is derived from props that do not change
     // while a board is mounted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -168,8 +195,26 @@ export function BoardScreen({ puzzleRef }: { puzzleRef: PuzzleRef }) {
     });
 
     clearAutosave(ref);
+
+    /*
+     * And then the result, which is the whole point of having finished.
+     *
+     * After the solve is written, never before: the result screen reads it back
+     * out of storage, so navigating first would arrive at a screen with nothing
+     * to describe and bounce the player home.
+     */
+    const dwell = prefersReducedMotion() ? 0 : SOLVED_DWELL_MS;
+    if (dwell === 0) onSolved?.(ref);
+    else leaving.current = setTimeout(() => onSolved?.(ref), dwell);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.status]);
+
+  // A player who leaves during the dwell — the back control, or a reload — must
+  // not be pulled to the result a second later.
+  const leaving = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (leaving.current !== null) clearTimeout(leaving.current);
+  }, []);
 
   return (
     <>
@@ -217,4 +262,19 @@ export function BoardScreen({ puzzleRef }: { puzzleRef: PuzzleRef }) {
       ) : null}
     </>
   );
+}
+
+/**
+ * Whether the player has asked for no motion.
+ *
+ * Guarded because `matchMedia` does not exist under the server render or in
+ * every test environment, and a missing media query must not be read as a
+ * preference either way.
+ */
+function prefersReducedMotion(): boolean {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
 }
