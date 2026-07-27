@@ -34,7 +34,7 @@ Phases & milestones. Check off as completed.
 
 ## Phase 3 — App shell + Supabase
 - [x] Next.js routes (Home, Board, Solved, Archive, Record, Auth, Settings, How-to-play, About) — no Practice route; it is a section of Home
-- [ ] Mobile drawer below 768 (full-frame overlay, focus-trapped, Esc closes) — the nav stays visible at every width until it exists
+- [x] Mobile drawer below 768 (full-frame overlay, focus-trapped, Esc closes, scroll locked) — 18 tests, verified in the browser
 - [x] Schema + RLS migrations (`puzzles`, `profiles`, `solves`) — 23 pgTAP assertions, incl. that anon cannot read an unpublished daily
 - [x] Streak derivation over solve rows, shared by guest and signed-in
 - [x] Daily-puzzle edge function (00:05 UTC, weekly rhythm, idempotent) — idempotency in SQL, verified against the local stack

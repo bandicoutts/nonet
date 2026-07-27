@@ -29,6 +29,12 @@
      falls between steps. */
   --spacing: initial;
   --spacing-*: initial;
+  /* Zero is not off-scale. Disabling the multiplier above also
+     removes `inset-0`, `p-0` and `gap-0`, and it removes them
+     *silently* — a `fixed inset-0` overlay simply does not cover
+     anything. Naming the step brings those back without bringing
+     back `p-4`. */
+  --spacing-0: 0px;
   --spacing-3xs: var(--space-3xs);
   --spacing-2xs: var(--space-2xs);
   --spacing-xs: var(--space-xs);

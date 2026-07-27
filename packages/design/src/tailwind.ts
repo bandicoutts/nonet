@@ -48,6 +48,12 @@ function themeBlock(): string {
   lines.push('     falls between steps. */');
   lines.push('  --spacing: initial;');
   lines.push('  --spacing-*: initial;');
+  lines.push('  /* Zero is not off-scale. Disabling the multiplier above also');
+  lines.push('     removes `inset-0`, `p-0` and `gap-0`, and it removes them');
+  lines.push('     *silently* — a `fixed inset-0` overlay simply does not cover');
+  lines.push('     anything. Naming the step brings those back without bringing');
+  lines.push('     back `p-4`. */');
+  lines.push('  --spacing-0: 0px;');
   for (const token of Object.keys(SPACE)) {
     lines.push(`  --spacing-${token.slice('space-'.length)}: var(--${token});`);
   }
