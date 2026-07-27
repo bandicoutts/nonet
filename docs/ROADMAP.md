@@ -46,10 +46,25 @@ Phases & milestones. Check off as completed.
 - [x] Sign-in sync (magic link; merge rules per ARCHITECTURE.md — 16 tests, plus the post-sign-in merge summary) — verified end to end against the local stack
 
 ## Phase 4 — Full surface
-- [ ] Streaks/stats derived from solves (local-day buckets)
+
+Phase 3 left the shell complete and every screen but the board a stub. The
+known gaps are listed in `OPEN-QUESTIONS.md`; the ones that are work rather
+than questions are here.
+
+- [ ] **Solved flow.** Solving currently records the solve and leaves the player
+      staring at a finished grid. `/solved` is a stub. Most visible gap.
+- [ ] Home: daily hero, streak band, practice picker + resume + abandon confirm
+      (`pickPractice` is written and tested but has no caller)
+- [ ] Honour the four settings that are stored and synced but read by nothing —
+      `showTimer`, `highlightMatching`, `highlightUnits`, `autoAdvance`.
+      `autoAdvance` needs a new engine action; it is a play rule, not React state
+- [ ] Settings screen (the store, columns and sync shape already exist)
 - [ ] Archive + Record pages, percentiles
-- [ ] Share, settings, edge/empty/error states per DESIGN-BRIEF.md
+- [ ] Archive and replay play modes — `solves.kind` can hold them, nothing writes them
+- [ ] Share text, offline banner, edge/empty/error states per DESIGN-BRIEF.md
+- [ ] Streaks/stats surfaced (derivation itself is done and tested)
 - [ ] E2E suite (Playwright) + a11y pass
+- [ ] Lint test for cleared Tailwind namespaces (see OPEN-QUESTIONS.md #5)
 
 ## Phase 5 — Launch
 - [ ] Domain, analytics, OG images

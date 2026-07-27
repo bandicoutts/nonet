@@ -40,8 +40,52 @@ Archivo and IBM Plex Mono are self-hosted through `next/font`. The token sheet
 names the families; `globals.css` points `--font-sans` and `--font-mono` at the
 loaded faces.
 
+## Where things are
+
+| Path | Holds |
+| --- | --- |
+| `src/lib/merge.ts` | **The sign-in merge rules, as pure functions.** The one place being wrong destroys history. Change rules here, not in `sync.ts` |
+| `src/lib/sync.ts` | The plumbing that runs the merge against Supabase |
+| `src/lib/storage.ts` | Guest localStorage. Shape mirrors the `autosaves` row so the merge compares like with like |
+| `src/lib/autosave.ts` | Session ↔ saved record, both directions |
+| `src/lib/puzzles.ts` | Which puzzle to play: today's edition, practice selection, attempt tracking |
+| `src/lib/settings.ts` | Settings, in the `profiles` columns' shape |
+| `src/lib/streak.ts` | Streak derivation, shared by guest and signed-in |
+| `src/lib/redirect.ts` | The auth-callback whitelist |
+| `src/lib/theme.ts` | Theme choice and the pre-hydration script |
+| `src/proxy.ts` | Session refresh. Guards nothing — every route is playable signed out |
+
+Rules live in `@nonet/engine`, never here. If you are about to decide what a
+board *means* — finished, locked, still assisted — that belongs in the engine
+(DECISIONS.md NONET-8, NONET-15).
+
+## Sign-in, locally
+
+Copy `.env.example` to `.env.local` and fill it from `supabase status`. With it
+absent the app still runs: both client factories return `null` and the auth
+screen says sign-in is unavailable.
+
+The magic link arrives in Mailpit at http://127.0.0.1:54324.
+
 ## Relative imports carry no extension
 
 Turbopack does not resolve a `.js` specifier to a `.ts` file, so relative imports
-here and in the workspace packages are extensionless. App code imports through
-the `@/` alias.
+here are extensionless and app code imports through the `@/` alias. **`packages/engine`
+is the exception** — it names `.ts`, because Deno consumes it in the edge functions
+and cannot resolve an extensionless specifier. `.ts` is the one form all three
+resolvers accept (DECISIONS.md NONET-16).
+
+`@/` is configured in two places: `tsconfig.json` for Next, and `vitest.config.ts`
+for the tests. Vitest does not read tsconfig paths.
+
+## If a style does nothing
+
+Check the generated stylesheet for the rule before debugging anything else. The
+cleared namespaces mean `bg-red-500`, `p-4` and `md:` produce **no CSS at all**,
+which looks exactly like a class that has no effect. This hid a bug that broke
+every fixed overlay in the app (DECISIONS.md NONET-19).
+
+```js
+[...document.styleSheets].flatMap(s => [...s.cssRules]).map(r => r.cssText)
+  .filter(t => t.includes('inset-0'))
+```
