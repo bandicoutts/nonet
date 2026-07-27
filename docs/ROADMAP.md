@@ -58,10 +58,11 @@ than questions are here.
 - [x] Honour the four settings that were stored and synced but read by nothing;
       `autoAdvance` is an engine rule, not React state (NONET-24)
 - [x] Settings screen (NONET-24)
-- [ ] Archive + Record pages, percentiles
+- [x] Record page — streaks, completion strip, times by band (NONET-25)
+- [ ] Archive page, percentiles
 - [ ] Archive and replay play modes — `solves.kind` can hold them, nothing writes them
 - [ ] Offline banner, edge/empty/error states per DESIGN-BRIEF.md
-- [ ] Streaks/stats surfaced (derivation itself is done and tested)
+- [x] Streaks/stats surfaced (NONET-23, NONET-25)
 - [ ] E2E suite (Playwright) + a11y pass
 - [x] Lint test for cleared Tailwind namespaces (NONET-20)
 

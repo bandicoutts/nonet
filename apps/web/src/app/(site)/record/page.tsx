@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
-import { PageStub } from '@/components/chrome/PageStub';
+import { RecordScreen } from '@/components/RecordScreen';
 
 export const metadata: Metadata = { title: 'Record' };
 
+/**
+ * Record: streaks, completion and times, all derived from the solve rows.
+ *
+ * Nothing on this page is stored (NONET-13), so it cannot drift from the
+ * figures Home and the result screen show.
+ */
 export default function Page() {
-  return <PageStub kicker="Record" note="A non-interactive year heat strip, streak and stat blocks, and a separate section for practice. Everything here is derived from solves." />;
+  return <RecordScreen />;
 }
