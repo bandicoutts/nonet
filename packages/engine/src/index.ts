@@ -36,7 +36,15 @@ export {
 export { ALL_UNITS, BOXES, COLS, PEERS, ROWS, UNITS_OF } from './units.ts';
 export type { Unit } from './units.ts';
 
-export { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from './validate.ts';
+export {
+  canPlace,
+  conflictsAt,
+  findConflicts,
+  hasConflictAt,
+  isComplete,
+  isLegal,
+  isSolved,
+} from './validate.ts';
 
 export {
   ALL_CANDIDATES,

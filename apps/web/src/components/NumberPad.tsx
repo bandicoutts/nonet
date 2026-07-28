@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { DIGITS, UNIT_SIZE, getCell } from '@nonet/engine';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CELL_COUNT, DIGITS, UNIT_SIZE, getCell } from '@nonet/engine';
 import type { Action, Digit, SessionState } from '@nonet/engine';
 
 /**
@@ -83,21 +83,45 @@ export interface NumberPadProps {
 export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPadProps) {
   const locked = session.status !== 'playing';
 
-  const remaining = useCallback(
-    (digit: Digit) => {
-      let placed = 0;
-      for (let cell = 0; cell < 81; cell += 1) {
-        if (getCell(session.grid, cell) === digit) placed += 1;
-      }
-      return Math.max(0, UNIT_SIZE - placed);
-    },
-    [session.grid],
-  );
+  /*
+   * How many of each digit are still unplaced — all nine in one pass.
+   *
+   * This was a function that scanned the whole grid for a single digit, called
+   * once per key while rendering: nine scans, 729 `getCell` calls, to count the
+   * contents of one 81-cell array. `useCallback` memoised the function, which
+   * is not the expensive part.
+   *
+   * Indexed by digit, so slot 0 is unused and a key reads its own count
+   * directly.
+   */
+  const remaining = useMemo(() => {
+    const placed = new Array<number>(UNIT_SIZE + 1).fill(0);
+    for (let cell = 0; cell < CELL_COUNT; cell += 1) {
+      const value = getCell(session.grid, cell);
+      // `?? 0` for the index checker only — `value` is 1..9 and the array is
+      // sized for it, so the fallback is unreachable.
+      if (value !== 0) placed[value] = (placed[value] ?? 0) + 1;
+    }
+    return placed.map((count) => Math.max(0, UNIT_SIZE - count));
+  }, [session.grid]);
+
+  /*
+   * The session, for the handlers.
+   *
+   * They need the mode, the selection and the notes toggle at the moment the
+   * key is pressed, not at the moment they are defined — and listing those as
+   * dependencies would rebuild the handlers every time any of them changed,
+   * which would defeat the memo on all nine keys. The ref keeps the behaviour
+   * identical and the identities stable.
+   */
+  const latest = useRef(session);
+  latest.current = session;
 
   /** A short press: load in digit-first, place in cell-first. */
   const press = useCallback(
     (digit: Digit) => {
-      if (locked) return;
+      const session = latest.current;
+      if (session.status !== 'playing') return;
 
       if (session.mode === 'digitFirst') {
         onAction({ type: 'loadDigit', digit });
@@ -112,22 +136,24 @@ export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPad
           : { type: 'placeDigit', cell, digit },
       );
     },
-    [locked, onAction, session.mode, session.notesMode, session.selected],
+    [onAction],
   );
 
   /** A long press always writes a note, whatever the mode or the toggle says. */
   const longPress = useCallback(
     (digit: Digit) => {
-      if (locked) return;
+      const session = latest.current;
+      if (session.status !== 'playing') return;
       const cell = session.selected;
       if (cell === null) return;
       onAction({ type: 'toggleNote', cell, digit });
     },
-    [locked, onAction, session.selected],
+    [onAction],
   );
 
   const eraseOrLoad = useCallback(() => {
-    if (locked) return;
+    const session = latest.current;
+    if (session.status !== 'playing') return;
 
     if (session.mode === 'digitFirst') {
       onAction({ type: 'loadDigit', digit: 'erase' });
@@ -137,7 +163,7 @@ export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPad
     const cell = session.selected;
     if (cell === null) return;
     onAction({ type: 'erase', cell });
-  }, [locked, onAction, session.mode, session.selected]);
+  }, [onAction]);
 
   return (
     <div
@@ -151,11 +177,12 @@ export function NumberPad({ session, onAction, label = 'Number pad' }: NumberPad
           <PadKey
             key={digit}
             digit={digit}
-            remaining={remaining(digit)}
+            remaining={remaining[digit] ?? 0}
             loaded={session.mode === 'digitFirst' && session.loadedDigit === digit}
             showPressed={session.mode === 'digitFirst'}
-            onPress={() => press(digit)}
-            onLongPress={() => longPress(digit)}
+            // Shared by all nine keys; each names itself on the way out.
+            onPress={press}
+            onLongPress={longPress}
           />
         ))}
 
@@ -191,11 +218,23 @@ interface PadKeyProps {
   readonly remaining: number;
   readonly loaded: boolean;
   readonly showPressed: boolean;
-  readonly onPress: () => void;
-  readonly onLongPress: () => void;
+  readonly onPress: (digit: Digit) => void;
+  readonly onLongPress: (digit: Digit) => void;
 }
 
-function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }: PadKeyProps) {
+/**
+ * One key. Memoised, on scalars and stable handlers — so a placement re-renders
+ * the one key whose count changed, and the one that gained or lost the loaded
+ * state, rather than all nine.
+ */
+const PadKey = memo(function PadKey({
+  digit,
+  remaining,
+  loaded,
+  showPressed,
+  onPress,
+  onLongPress,
+}: PadKeyProps) {
   const spent = remaining === 0;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hold, setHold] = useState<'idle' | 'held' | 'armed'>('idle');
@@ -220,11 +259,11 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
   const end = useCallback(() => {
     clear();
     if (!spent) {
-      if (hold === 'armed') onLongPress();
-      else onPress();
+      if (hold === 'armed') onLongPress(digit);
+      else onPress(digit);
     }
     setHold('idle');
-  }, [clear, hold, onLongPress, onPress, spent]);
+  }, [clear, digit, hold, onLongPress, onPress, spent]);
 
   const cancel = useCallback(() => {
     clear();
@@ -255,7 +294,7 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
       onKeyDown={(event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        if (!spent) onPress();
+        if (!spent) onPress(digit);
       }}
     >
       <span data-role="digit">{digit}</span>
@@ -264,4 +303,4 @@ function PadKey({ digit, remaining, loaded, showPressed, onPress, onLongPress }:
       </span>
     </button>
   );
-}
+});

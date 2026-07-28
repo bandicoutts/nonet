@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
+  CELL_COUNT,
   DIGITS,
   UNIT_SIZE,
   boxOf,
   cellAt,
   colOf,
-  conflictsAt,
   digitsOf,
   getCell,
+  hasConflictAt,
   rowOf,
 } from '@nonet/engine';
-import type { Action, CellIndex, Digit, SessionState } from '@nonet/engine';
+import type { Action, CandidateMask, CellIndex, Digit, SessionState } from '@nonet/engine';
 
 /**
  * Cells meet edge to edge, so every rule is an inset shadow — a real border
@@ -126,6 +127,91 @@ export function Board({
   const gridRef = useRef<HTMLDivElement>(null);
   const locked = session.status !== 'playing';
 
+  /*
+   * The three highlight layers, derived once per change instead of 81 times per
+   * render.
+   *
+   * Each cell used to answer these for itself, which meant `conflictsAt` — an
+   * array allocation and a sort — ran 81 times to produce 81 booleans, and the
+   * row/column/box test ran 81 times against a selection that had not moved.
+   * The work is the same work; it is just done once and looked up.
+   *
+   * The dependency lists are the point. `conflicting` depends on the grid and
+   * nothing else, so selecting a cell does not recompute it; `matching` and
+   * `unit` depend on the selection but not on the grid's contents beyond the
+   * digits they read. Getting these wrong shows up as stale highlighting, which
+   * is why each is keyed on exactly what it reads.
+   */
+  const conflicting = useMemo(() => {
+    const flagged = new Set<CellIndex>();
+    for (let cell = 0; cell < CELL_COUNT; cell += 1) {
+      // Only the player's own entries can be wrong. A given that a bad entry
+      // clashes with is not a mistake and must not be dressed as one.
+      if (getCell(session.givens, cell) !== 0) continue;
+      if (hasConflictAt(session.grid, cell)) flagged.add(cell);
+    }
+    return flagged;
+  }, [session.givens, session.grid]);
+
+  /*
+   * Cells sharing the selected cell's digit — or in digit-first, the loaded
+   * one. Existing instances only, never legal placements, which would be
+   * auto-candidate assistance (GAME-RULES.md).
+   *
+   * Empty when the setting is off, so the gate costs one comparison per cell
+   * rather than a lookup that has to be second-guessed at the call site.
+   */
+  const matching = useMemo(() => {
+    const found = new Set<CellIndex>();
+    if (!highlightMatching) return found;
+
+    const target =
+      session.mode === 'digitFirst'
+        ? session.loadedDigit === 'erase' || session.loadedDigit === null
+          ? 0
+          : session.loadedDigit
+        : session.selected === null
+          ? 0
+          : getCell(session.grid, session.selected);
+
+    if (target === 0) return found;
+
+    for (let cell = 0; cell < CELL_COUNT; cell += 1) {
+      // In cell-first the selected cell is not "matching" itself — it is
+      // selected, which reads louder anyway.
+      if (session.mode !== 'digitFirst' && cell === session.selected) continue;
+      if (getCell(session.grid, cell) === target) found.add(cell);
+    }
+    return found;
+  }, [
+    highlightMatching,
+    session.grid,
+    session.loadedDigit,
+    session.mode,
+    session.selected,
+  ]);
+
+  /** Row, column and box of the selection — the highlight the design calls for. */
+  const inUnit = useMemo(() => {
+    const found = new Set<CellIndex>();
+    const selected = session.selected;
+    if (!highlightUnits || selected === null) return found;
+
+    for (let cell = 0; cell < CELL_COUNT; cell += 1) {
+      if (cell === selected) continue;
+      if (
+        rowOf(selected) === rowOf(cell) ||
+        colOf(selected) === colOf(cell) ||
+        boxOf(selected) === boxOf(cell)
+      ) {
+        found.add(cell);
+      }
+    }
+    return found;
+  }, [highlightUnits, session.selected]);
+
+  const hinted = useMemo(() => new Set(session.hintedCells), [session.hintedCells]);
+
   // The cell that owns the tab stop. Falls back to the first cell so the grid is
   // always reachable, even before anything is selected.
   const focused: CellIndex = session.selected ?? 0;
@@ -193,6 +279,19 @@ export function Board({
     [focused, move, onAction, onPause],
   );
 
+  /*
+   * The session, for the handlers.
+   *
+   * `activate` needs the mode, the loaded digit and the notes toggle, but it
+   * needs them *when it fires* — not when it is defined. Listing them as
+   * dependencies would mint a new function every time any of them changed, and
+   * since the handler is a prop on all 81 cells, a new identity defeats the
+   * memo on every one of them. Reading through a ref inside the event keeps the
+   * behaviour identical and the identity stable for the life of the board.
+   */
+  const latest = useRef(session);
+  latest.current = session;
+
   /**
    * What a tap does depends on the mode. Cell-first selects and waits for a
    * digit; digit-first applies whatever is loaded — a digit, or the eraser —
@@ -200,6 +299,7 @@ export function Board({
    */
   const activate = useCallback(
     (cell: CellIndex) => {
+      const session = latest.current;
       onAction({ type: 'selectCell', cell });
 
       if (session.mode !== 'digitFirst') return;
@@ -217,7 +317,13 @@ export function Board({
           : { type: 'placeDigit', cell, digit: loaded },
       );
     },
-    [onAction, session.loadedDigit, session.mode, session.notesMode],
+    [onAction],
+  );
+
+  /** Focus selects. Stable, for the same reason as `activate`. */
+  const select = useCallback(
+    (cell: CellIndex) => onAction({ type: 'selectCell', cell }),
+    [onAction],
   );
 
   // Keep DOM focus with the selection, but only while focus is already inside
@@ -250,18 +356,41 @@ export function Board({
     >
       {Array.from({ length: UNIT_SIZE }, (_, row) => (
         <div className="grid grid-cols-9" role="row" key={row}>
-          {Array.from({ length: UNIT_SIZE }, (_, col) => (
-            <Cell
-              key={col}
-              cell={cellAt(row, col)}
-              session={session}
-              isFocused={cellAt(row, col) === focused}
-              highlightMatching={highlightMatching}
-              highlightUnits={highlightUnits}
-              onSelect={() => onAction({ type: 'selectCell', cell: cellAt(row, col) })}
-              onActivate={() => activate(cellAt(row, col))}
-            />
-          ))}
+          {Array.from({ length: UNIT_SIZE }, (_, col) => {
+            const cell = cellAt(row, col);
+            const value = getCell(session.grid, cell);
+            const given = getCell(session.givens, cell) !== 0;
+
+            /*
+             * Auto-check flags a wrong digit immediately. With checking off
+             * nothing is flagged, so nothing is announced as incorrect either.
+             *
+             * `wrong` and `conflicting` are separate props because they are
+             * separate facts: both paint the cell, but only `wrong` is
+             * announced as incorrect to a screen reader.
+             */
+            const wrong =
+              session.checking && !given && value !== 0 && session.solution[cell] !== value;
+
+            return (
+              <Cell
+                key={col}
+                cell={cell}
+                value={value}
+                given={given}
+                notes={session.notes[cell] ?? 0}
+                selected={session.selected === cell}
+                matching={matching.has(cell)}
+                inUnit={inUnit.has(cell)}
+                hinted={hinted.has(cell)}
+                wrong={wrong}
+                flagged={wrong || conflicting.has(cell)}
+                isFocused={cell === focused}
+                onSelect={select}
+                onActivate={activate}
+              />
+            );
+          })}
         </div>
       ))}
     </div>
@@ -270,47 +399,54 @@ export function Board({
 
 interface CellProps {
   readonly cell: CellIndex;
-  readonly session: SessionState;
+  readonly value: number;
+  readonly given: boolean;
+  /** The raw mask, not the digits: a number compares by value, an array does not. */
+  readonly notes: CandidateMask;
+  readonly selected: boolean;
+  readonly matching: boolean;
+  readonly inUnit: boolean;
+  readonly hinted: boolean;
+  /** Wrong against the solution. Only this is announced as incorrect. */
+  readonly wrong: boolean;
+  /** Wrong *or* clashing with a peer — both paint the cell. */
+  readonly flagged: boolean;
   readonly isFocused: boolean;
-  readonly highlightMatching: boolean;
-  readonly highlightUnits: boolean;
-  readonly onSelect: () => void;
-  readonly onActivate: () => void;
+  readonly onSelect: (cell: CellIndex) => void;
+  readonly onActivate: (cell: CellIndex) => void;
 }
 
-function Cell({
+/**
+ * One cell.
+ *
+ * **Memoised, and the props are why it works.** It used to take the whole
+ * `SessionState` plus two closures built fresh in the parent's render, so every
+ * prop changed identity on every render and a memo would have compared eleven
+ * things to conclude nothing. Scalars and stable handlers mean the comparison
+ * is cheap and usually true, so entering a digit re-renders the handful of
+ * cells whose appearance actually changed rather than all 81.
+ *
+ * Everything here is now *given* to the cell. It derives nothing about the
+ * board, which is what keeps 81 of these off the highlight logic.
+ */
+const Cell = memo(function Cell({
   cell,
-  session,
+  value,
+  given,
+  notes: mask,
+  selected,
+  matching,
+  inUnit,
+  hinted,
+  wrong,
+  flagged,
   isFocused,
-  highlightMatching,
-  highlightUnits,
   onSelect,
   onActivate,
 }: CellProps) {
-  const value = getCell(session.grid, cell);
-  const given = getCell(session.givens, cell) !== 0;
-  const notes = digitsOf(session.notes[cell] ?? 0);
+  const notes = digitsOf(mask);
   const row = rowOf(cell);
   const col = colOf(cell);
-
-  // Auto-check flags a wrong digit immediately. With checking off nothing is
-  // flagged, so nothing is announced as incorrect either.
-  //
-  // Only the player's own entries can be wrong. A given that a bad entry
-  // happens to clash with is not a mistake and must not be dressed as one —
-  // otherwise placing a duplicate paints two cells red and the player has to
-  // work out which of them is theirs.
-  const wrong = session.checking && !given && value !== 0 && session.solution[cell] !== value;
-  const conflicting =
-    !given && value !== 0 && conflictsAt(session.grid, cell).length > 0;
-
-  const selected = session.selected === cell;
-  const flagged = wrong || conflicting;
-
-  // Selection is not a highlight. Turning the shading off must not take the
-  // board's most important affordance with it (DESIGN.md).
-  const matching = highlightMatching && matchesSelectedDigit(session, cell);
-  const unit = highlightUnits && inSelectedUnit(session, cell);
 
   const className = [
     'relative grid cursor-pointer place-items-center select-none',
@@ -321,7 +457,7 @@ function Cell({
       ? 'cursor-default font-[number:var(--type-cell-digit-weight)] text-fg'
       : 'font-normal text-accent',
     flagged && 'text-error [text-decoration:var(--border-error-underline)] underline-offset-[0.18em]',
-    cellBackground(flagged, selected, matching, unit),
+    cellBackground(flagged, selected, matching, inUnit),
     cellShadow(col % 3 === 0 && col !== 0, row % 3 === 0 && row !== 0, selected),
     FOCUS_RINGS,
   ]
@@ -335,16 +471,18 @@ function Cell({
       data-cell={cell}
       data-given={given ? '' : undefined}
       data-selected={selected ? '' : undefined}
-      data-hinted={session.hintedCells.includes(cell) ? '' : undefined}
-      data-unit={unit ? '' : undefined}
+      data-hinted={hinted ? '' : undefined}
+      data-unit={inUnit ? '' : undefined}
       data-matching={matching ? '' : undefined}
       tabIndex={isFocused ? 0 : -1}
       aria-label={describe(cell, value, given, notes, wrong)}
       aria-readonly={given ? true : undefined}
       aria-invalid={flagged ? true : undefined}
       aria-selected={selected ? true : undefined}
-      onClick={onActivate}
-      onFocus={onSelect}
+      // The handlers are shared by all 81 cells, so the cell names itself
+      // rather than each cell carrying a closure that knows which it is.
+      onClick={() => onActivate(cell)}
+      onFocus={() => onSelect(cell)}
     >
       {value !== 0 ? (
         <span className="animate-[place_var(--motion-place)_var(--ease-place)]" data-role="digit">
@@ -366,7 +504,7 @@ function Cell({
       ) : null}
     </div>
   );
-}
+});
 
 /**
  * What a screen reader says. Position first, because it is the thing a sighted
@@ -393,31 +531,4 @@ function describe(
   }
 
   return parts.join(', ');
-}
-
-/** Row, column and box of the selection — the highlight the design calls for. */
-function inSelectedUnit(session: SessionState, cell: CellIndex): boolean {
-  const selected = session.selected;
-  if (selected === null || selected === cell) return false;
-  return (
-    rowOf(selected) === rowOf(cell) ||
-    colOf(selected) === colOf(cell) ||
-    boxOf(selected) === boxOf(cell)
-  );
-}
-
-/**
- * Cells sharing the selected cell's digit. In digit-first this follows the
- * loaded digit instead — and it highlights only existing instances, never legal
- * placements, which would be auto-candidate assistance (GAME-RULES.md).
- */
-function matchesSelectedDigit(session: SessionState, cell: CellIndex): boolean {
-  const value = getCell(session.grid, cell);
-  if (value === 0) return false;
-
-  if (session.mode === 'digitFirst') return session.loadedDigit === value;
-
-  const selected = session.selected;
-  if (selected === null || selected === cell) return false;
-  return getCell(session.grid, selected) === value;
 }

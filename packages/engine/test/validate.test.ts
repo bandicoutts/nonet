@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import { parseGrid, setCell } from '../src/grid.ts';
-import { canPlace, conflictsAt, findConflicts, isComplete, isLegal, isSolved } from '../src/validate.ts';
+import {
+  canPlace,
+  conflictsAt,
+  findConflicts,
+  hasConflictAt,
+  isComplete,
+  isLegal,
+  isSolved,
+} from '../src/validate.ts';
 import { CLASSIC_PUZZLE, CLASSIC_SOLUTION, EMPTY_PUZZLE } from './fixtures.ts';
 
 describe('canPlace', () => {
@@ -56,6 +64,51 @@ describe('conflictsAt', () => {
     // Cell 3 shares row 0 with the 5 at cell 0 and box 1 with the 5 at cell 14.
     const grid = setCell(parseGrid(CLASSIC_PUZZLE), 3, 5);
     expect(conflictsAt(grid, 3)).toEqual([0, 14]);
+  });
+});
+
+/**
+ * The board asks this for all 81 cells on every render, and only ever wanted a
+ * boolean — so the contract that matters is that it agrees with `conflictsAt`
+ * everywhere, not merely on the cases someone thought to write down.
+ */
+describe('hasConflictAt', () => {
+  test('is false for an empty cell', () => {
+    expect(hasConflictAt(parseGrid(CLASSIC_PUZZLE), 2)).toBe(false);
+  });
+
+  test('is false for a cell that agrees with all its peers', () => {
+    expect(hasConflictAt(parseGrid(CLASSIC_PUZZLE), 0)).toBe(false);
+  });
+
+  test('is true on both sides of a clash', () => {
+    const grid = setCell(setCell(parseGrid(EMPTY_PUZZLE), 0, 5), 3, 5);
+    expect(hasConflictAt(grid, 3)).toBe(true);
+    expect(hasConflictAt(grid, 0)).toBe(true);
+  });
+
+  test('is true when the clash is on the box axis rather than the row', () => {
+    // Cell 3 shares row 0 with the 5 at cell 0 and box 1 with the 5 at cell 14.
+    const grid = setCell(parseGrid(CLASSIC_PUZZLE), 3, 5);
+    expect(hasConflictAt(grid, 3)).toBe(true);
+  });
+
+  test('agrees with conflictsAt on every cell of every grid it is asked about', () => {
+    const grids = [
+      parseGrid(EMPTY_PUZZLE),
+      parseGrid(CLASSIC_PUZZLE),
+      parseGrid(CLASSIC_SOLUTION),
+      setCell(setCell(parseGrid(EMPTY_PUZZLE), 0, 5), 3, 5),
+      setCell(parseGrid(CLASSIC_PUZZLE), 3, 5),
+      // A grid with a clash in every unit type at once.
+      setCell(setCell(setCell(parseGrid(CLASSIC_PUZZLE), 3, 5), 9, 1), 20, 8),
+    ];
+
+    for (const grid of grids) {
+      for (let cell = 0; cell < 81; cell += 1) {
+        expect(hasConflictAt(grid, cell)).toBe(conflictsAt(grid, cell).length > 0);
+      }
+    }
   });
 });
 

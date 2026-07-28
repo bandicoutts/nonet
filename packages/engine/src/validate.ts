@@ -26,11 +26,31 @@ export function conflictsAt(grid: Grid, index: CellIndex): CellIndex[] {
   return clashes.sort((a, b) => a - b);
 }
 
+/**
+ * Whether `index` clashes with any peer — the same question as
+ * `conflictsAt(...).length > 0`, without building the answer it then throws
+ * away.
+ *
+ * `conflictsAt` allocates an array and sorts it. That is the right shape when a
+ * caller wants to *know which* peers clash, and the wrong one for the board,
+ * which asks only whether to paint the cell red and asks it for all 81 cells on
+ * every render. This returns on the first clash and allocates nothing.
+ */
+export function hasConflictAt(grid: Grid, index: CellIndex): boolean {
+  const value = getCell(grid, index);
+  if (value === 0) return false;
+
+  for (const peer of PEERS[index] ?? []) {
+    if (grid[peer] === value) return true;
+  }
+  return false;
+}
+
 /** Every cell involved in a clash, in reading order. */
 export function findConflicts(grid: Grid): CellIndex[] {
   const flagged: CellIndex[] = [];
   for (let index = 0; index < CELL_COUNT; index += 1) {
-    if (conflictsAt(grid, index).length > 0) flagged.push(index);
+    if (hasConflictAt(grid, index)) flagged.push(index);
   }
   return flagged;
 }
@@ -43,7 +63,7 @@ export function isComplete(grid: Grid): boolean {
 /** No clashes. Says nothing about completeness. */
 export function isLegal(grid: Grid): boolean {
   for (let index = 0; index < CELL_COUNT; index += 1) {
-    if (conflictsAt(grid, index).length > 0) return false;
+    if (hasConflictAt(grid, index)) return false;
   }
   return true;
 }
