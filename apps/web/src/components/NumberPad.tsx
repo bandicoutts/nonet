@@ -17,7 +17,15 @@ export const HOLD_MS = 340;
  * Tablet is nine across, desktop three (it lives in a 320px rail), mobile five
  * over two rows with ERASE filling the tenth slot. layout.md.
  */
-const PAD = 'grid w-full grid-cols-5 gap-2xs drawer:grid-cols-9 drawer:gap-xs rail:grid-cols-3';
+/*
+ * `touch-action: manipulation` for the same reason as the grid: repeated taps
+ * on one key are how a digit-first player fills a board, and the browser is
+ * entitled to read them as a double tap and zoom. It suppresses that gesture
+ * only — pinch zoom still works, and the viewport is left alone.
+ */
+const PAD =
+  'grid w-full grid-cols-5 gap-2xs drawer:grid-cols-9 drawer:gap-xs rail:grid-cols-3 ' +
+  '[touch-action:manipulation]';
 
 /** 58 / 66 / 60 at 390 / 834 / 1440, per layout.md. */
 const KEY_BASE =

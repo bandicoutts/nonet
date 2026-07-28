@@ -235,8 +235,14 @@ export function Board({
     <div
       ref={gridRef}
       /* 9 x 80 at 1440, per layout.md. Below that the grid fills its column.
-         The grid owns keyboard focus through its cells, never itself. */
-      className="grid aspect-square w-full max-w-[720px] grid-rows-9 bg-surface outline-none shadow-[var(--border-cell-box)]"
+         The grid owns keyboard focus through its cells, never itself.
+
+         `touch-action: manipulation` because cells are 31.6px at 320 and a
+         player fills a grid by tapping quickly across neighbouring ones. That
+         is indistinguishable from a double tap, and a board that zooms mid
+         puzzle costs a pinch to undo. It removes the double-tap zoom gesture
+         and nothing else — pinch zoom, and every other way in, are untouched. */
+      className="grid aspect-square w-full max-w-[720px] grid-rows-9 bg-surface outline-none [touch-action:manipulation] shadow-[var(--border-cell-box)]"
       role="grid"
       aria-label={label}
       aria-disabled={locked ? true : undefined}

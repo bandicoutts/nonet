@@ -16,7 +16,10 @@ export { formatTime } from '@/lib/elapsed';
  * full width. layout.md.
  */
 const CHIPS =
-  'grid grid-cols-5 gap-2xs drawer:grid-cols-6 drawer:gap-xs rail:grid-cols-2 rail:gap-2xs';
+  'grid grid-cols-5 gap-2xs drawer:grid-cols-6 drawer:gap-xs rail:grid-cols-2 rail:gap-2xs ' +
+  // Undo in particular gets tapped repeatedly, which the browser may read as a
+  // double tap. Suppresses that gesture and nothing else.
+  '[touch-action:manipulation]';
 
 const CHIP =
   'min-h-[50px] cursor-pointer border border-line bg-transparent px-3xs ' +
