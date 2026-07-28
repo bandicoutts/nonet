@@ -6,9 +6,10 @@ import { apply, createSession, generatePuzzle } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
 import { BoardLayout } from './BoardLayout';
 import { FirstRunNotice, ResumedNotice } from './BoardNotice';
-import { formatTime } from './BoardToolbar';
+import { ElapsedReadout } from './ElapsedTime';
 import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
+import { createElapsedClock } from '@/lib/elapsed';
 import { canRetry, currentAttempt, dailyRef, recordFailure } from '@/lib/puzzles';
 import { DEFAULT_SETTINGS, readSettings } from '@/lib/settings';
 import {
@@ -95,8 +96,21 @@ export function BoardScreen({
   const [notice, setNotice] = useState<'none' | 'first-run' | 'resumed'>('none');
 
   const [paused, setPaused] = useState(false);
-  const [elapsedMs, setElapsed] = useState(0);
   const [confirmingHint, setConfirmingHint] = useState(false);
+
+  /**
+   * The clock, deliberately not `useState`.
+   *
+   * As state it re-rendered this component every second, and through it the
+   * layout, the board and all 81 cells — a full board rebuild per second on a
+   * board nobody had touched. The store keeps the value outside React: this
+   * component reads it with `clock.get()` when it needs a number to save or to
+   * record, and the only thing that re-renders on the tick is the readout leaf.
+   *
+   * Held in `useState` purely for a stable identity across renders; it is never
+   * set again.
+   */
+  const [clock] = useState(createElapsedClock);
 
   /**
    * Resume happens in an effect, not in the initial state.
@@ -153,8 +167,12 @@ export function BoardScreen({
       return;
     }
 
+    // The clock first, then the board. The autosave effect below fires on the
+    // session change and reads `clock.get()`, so the restored time has to be in
+    // the store before the session lands — otherwise the first write after a
+    // resume would put a zero over a real time.
+    clock.set(saved.elapsedMs);
     setSession(saved.session);
-    setElapsed(saved.elapsedMs);
     // Once, for this puzzle. `ref` is derived from props that do not change
     // while a board is mounted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,9 +180,11 @@ export function BoardScreen({
 
   useEffect(() => {
     if (paused || session.status !== 'playing') return;
-    const id = setInterval(() => setElapsed((ms) => ms + 1000), 1000);
+    // Unchanged in every respect but where the number lands: pausing still
+    // stops it, and so does a board that is no longer playing.
+    const id = setInterval(() => clock.advance(1000), 1000);
     return () => clearInterval(id);
-  }, [paused, session.status]);
+  }, [clock, paused, session.status]);
 
   // Tab blur auto-pauses (GAME-RULES.md). The timer records real time spent, so
   // a player who looks away is not charged for it.
@@ -184,19 +204,19 @@ export function BoardScreen({
    * the clock moves every second, and a write per second would be a hundred
    * times the traffic for the same guarantee.
    */
-  const latest = useRef({ session, elapsedMs });
-  latest.current = { session, elapsedMs };
+  const latest = useRef(session);
+  latest.current = session;
 
   useEffect(() => {
     if (!restored.current || session.status !== 'playing') return;
-    save(ref, session, latest.current.elapsedMs);
+    save(ref, session, clock.get());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   useEffect(() => {
     if (paused || session.status !== 'playing') return;
     const id = setInterval(() => {
-      save(ref, latest.current.session, latest.current.elapsedMs);
+      save(ref, latest.current, clock.get());
     }, TIMER_SAVE_MS);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -238,7 +258,7 @@ export function BoardScreen({
       solvedAt: new Date().toISOString(),
       // The device's own day, which is what a streak counts (NONET-9).
       localDate: localDate(),
-      durationMs: latest.current.elapsedMs,
+      durationMs: clock.get(),
       mistakes: session.mistakes,
       usedHint: session.assisted,
       // Solving a retry before local midnight keeps the streak, marked second
@@ -291,7 +311,11 @@ export function BoardScreen({
       {notice === 'resumed' ? (
         <ResumedNotice
           placed={placed}
-          time={formatTime(elapsedMs)}
+          // A reading leaf rather than a formatted string: the notice used to
+          // re-render every second along with everything else, and its time
+          // ticked up while it was on screen. It still does — the subscription
+          // just sits in the leaf now, so the notice itself is not on the tick.
+          time={<ElapsedReadout clock={clock} />}
           onDismiss={() => setNotice('none')}
         />
       ) : null}
@@ -299,7 +323,7 @@ export function BoardScreen({
       <BoardLayout
         session={session}
         onAction={dispatch}
-        elapsedMs={elapsedMs}
+        clock={clock}
         showTimer={display.showTimer}
         highlightMatching={display.highlightMatching}
         highlightUnits={display.highlightUnits}

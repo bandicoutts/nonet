@@ -5,6 +5,7 @@ import { apply, createSession, parseGrid } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
 import { BoardToolbar, formatTime } from '../src/components/BoardToolbar';
 import { PauseVeil } from '../src/components/PauseVeil';
+import { createElapsedClock } from '../src/lib/elapsed';
 
 const PUZZLE =
   '53..7....' + '6..195...' + '.98....6.' + '8...6...3' + '4..8.3..1' +
@@ -22,6 +23,7 @@ function session(overrides: Partial<Parameters<typeof createSession>[0]> = {}): 
 }
 
 function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
+  const clock = createElapsedClock(elapsedMs);
   let state = initial;
   const seen: Action[] = [];
   const onPause = vi.fn();
@@ -33,7 +35,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
       onAction={() => undefined}
       onPause={onPause}
       onConfirmHint={onConfirmHint}
-      elapsedMs={elapsedMs}
+      clock={clock}
     />,
   );
 
@@ -46,7 +48,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
         onAction={dispatch}
         onPause={onPause}
         onConfirmHint={onConfirmHint}
-        elapsedMs={elapsedMs}
+        clock={clock}
       />,
     );
   }
@@ -57,7 +59,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
       onAction={dispatch}
       onPause={onPause}
       onConfirmHint={onConfirmHint}
-      elapsedMs={elapsedMs}
+      clock={clock}
     />,
   );
 
@@ -243,7 +245,7 @@ describe('PauseVeil', () => {
    * its own strings, which read fine and were not the design's.
    */
   test('names the time it was paused at', () => {
-    render(<PauseVeil reason="paused" elapsedMs={432_000} onResume={() => undefined} />);
+    render(<PauseVeil reason="paused" clock={createElapsedClock(432_000)} onResume={() => undefined} />);
     expect(screen.getByText(/paused at 7:12/i)).toBeDefined();
   });
 

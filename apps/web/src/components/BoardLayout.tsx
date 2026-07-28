@@ -4,6 +4,7 @@ import { Board } from './Board';
 import { BoardToolbar } from './BoardToolbar';
 import { NumberPad } from './NumberPad';
 import { PauseVeil } from './PauseVeil';
+import type { ElapsedClock } from '@/lib/elapsed';
 /*
  * Board composition at three widths. Figures from design/export/layout.md.
  *
@@ -35,7 +36,14 @@ const RAIL =
 export interface BoardLayoutProps {
   readonly session: SessionState;
   readonly onAction: (action: Action) => void;
-  readonly elapsedMs: number;
+  /**
+   * The clock as a store, never as a number.
+   *
+   * A `elapsedMs: number` here put the 1s tick on the path to `Board`, and so
+   * re-rendered all 81 cells every second at rest. This prop is stable for the
+   * life of the board, so the tick reaches only the leaves that subscribe.
+   */
+  readonly clock: ElapsedClock;
   /** Display settings, from the player's own choices. Default to the stored defaults. */
   readonly showTimer?: boolean;
   readonly highlightMatching?: boolean;
@@ -61,7 +69,7 @@ export interface BoardLayoutProps {
 export function BoardLayout({
   session,
   onAction,
-  elapsedMs,
+  clock,
   showTimer = true,
   highlightMatching = true,
   highlightUnits = true,
@@ -100,7 +108,7 @@ export function BoardLayout({
           {veiled ? (
             <PauseVeil
               reason={locked ? 'locked' : 'paused'}
-              elapsedMs={elapsedMs}
+              clock={clock}
               onResume={onResume}
               {...(onRetry === undefined ? {} : { onRetry })}
             />
@@ -114,7 +122,7 @@ export function BoardLayout({
           onAction={onAction}
           onPause={onPause}
           onConfirmHint={onConfirmHint}
-          elapsedMs={elapsedMs}
+          clock={clock}
           showTimer={showTimer}
         />
         <NumberPad session={session} onAction={onAction} />

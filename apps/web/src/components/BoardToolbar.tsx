@@ -1,5 +1,15 @@
 import { MAX_HINTS, MAX_MISTAKES, hintNeedsConfirmation } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
+import { BoardTimer } from './ElapsedTime';
+import type { ElapsedClock } from '@/lib/elapsed';
+
+/**
+ * Re-exported, not defined here.
+ *
+ * It moved to `lib/elapsed` alongside the clock so the readouts can import it
+ * without a cycle; this keeps the callers that already had it working.
+ */
+export { formatTime } from '@/lib/elapsed';
 /**
  * Six chips below 1100, five at mobile (Erase lives on the pad there), and a
  * paired Undo/Redo row in the desktop rail — where every other chip spans the
@@ -32,22 +42,20 @@ export interface BoardToolbarProps {
    * owning it, because the same confirm is reachable from the keyboard.
    */
   readonly onConfirmHint: () => void;
-  readonly elapsedMs: number;
+  /**
+   * The clock, not the time.
+   *
+   * A number here would re-render the toolbar — and through it nothing, but the
+   * board sat on the same tick and did re-render. The store is stable, so this
+   * prop never changes and only `BoardTimer` re-renders each second.
+   */
+  readonly clock: ElapsedClock;
   /**
    * Hiding the timer does not stop it (Settings copy): the time is still
    * recorded and shown at the end. So this hides the readout and nothing else —
-   * `elapsedMs` keeps arriving and keeps being saved.
+   * the clock keeps running and keeps being saved.
    */
   readonly showTimer?: boolean;
-}
-
-/** Display caps at 99:59+, so a long session never breaks the layout. */
-export function formatTime(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(total / 60);
-  const seconds = total % 60;
-  if (minutes > 99) return '99:59+';
-  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 export function BoardToolbar({
@@ -55,7 +63,7 @@ export function BoardToolbar({
   onAction,
   onPause,
   onConfirmHint,
-  elapsedMs,
+  clock,
   showTimer = true,
 }: BoardToolbarProps) {
   const locked = session.status !== 'playing';
@@ -71,17 +79,8 @@ export function BoardToolbar({
   return (
     <div className="flex flex-col gap-sm">
       <div className="flex items-baseline justify-between gap-s">
-        {/* `role="timer"`, not a bare <p>: a paragraph is a role that prohibits
-            naming, so the aria-label was being dropped and the readout was
-            announced as raw digits. */}
         {showTimer ? (
-          <p
-            role="timer"
-            className="type-timer m-0 text-fg"
-            aria-label={`Elapsed time ${formatTime(elapsedMs)}`}
-          >
-            <span aria-hidden="true">{formatTime(elapsedMs)}</span>
-          </p>
+          <BoardTimer clock={clock} />
         ) : (
           /* Something has to hold the row's left edge, or the mistake dots
              slide across when the timer is hidden. */

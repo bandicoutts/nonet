@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { formatTime } from './BoardToolbar';
+import { ElapsedReadout } from './ElapsedTime';
+import type { ElapsedClock } from '@/lib/elapsed';
 
 /**
  * layout.md gives the veil as -2 at 1440/834 and 18 left/right at 390 — but
@@ -20,8 +21,15 @@ const ACTION =
 export interface PauseVeilProps {
   /** Why the grid is covered. Locked is not resumable; paused is. */
   readonly reason: 'paused' | 'locked';
-  /** Shown in the paused kicker — "Paused at 7:12". */
-  readonly elapsedMs?: number;
+  /**
+   * The clock, read in the paused kicker — "Paused at 7:12".
+   *
+   * The reading happens in `ElapsedReadout` rather than here, so the veil is
+   * not something that re-renders on a tick. In practice a paused clock does
+   * not tick at all; keeping the subscription in the leaf means that stays true
+   * by construction rather than by coincidence.
+   */
+  readonly clock?: ElapsedClock;
   readonly onResume?: () => void;
   /** Absent when both attempts are spent. There is no third. */
   readonly onRetry?: () => void;
@@ -42,7 +50,7 @@ export interface PauseVeilProps {
  * Copy is verbatim from `design/export/copy.md`, including the shorter locked
  * body the design specifies at 390.
  */
-export function PauseVeil({ reason, elapsedMs = 0, onResume, onRetry }: PauseVeilProps) {
+export function PauseVeil({ reason, clock, onResume, onRetry }: PauseVeilProps) {
   const actionRef = useRef<HTMLButtonElement>(null);
 
   // Focus lands on the way out, so a keyboard player is not left stranded on a
@@ -68,7 +76,11 @@ export function PauseVeil({ reason, elapsedMs = 0, onResume, onRetry }: PauseVei
       }}
     >
       <p className={`type-kicker m-0 ${paused ? 'text-fg3-text' : 'text-error'}`}>
-        {paused ? `Paused at ${formatTime(elapsedMs)}` : 'Three mistakes — locked'}
+        {paused ? (
+          <>Paused at {clock === undefined ? '0:00' : <ElapsedReadout clock={clock} />}</>
+        ) : (
+          'Three mistakes — locked'
+        )}
       </p>
 
       {paused ? (

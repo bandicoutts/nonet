@@ -73,7 +73,8 @@ export function ResumedNotice({
   onDismiss,
 }: {
   readonly placed: number;
-  readonly time: string;
+  /** A node, not a string, so a live readout can be dropped in without a wrapper. */
+  readonly time: React.ReactNode;
   readonly onDismiss: () => void;
 }) {
   return (
