@@ -167,10 +167,23 @@ export function BoardScreen({
       return;
     }
 
-    // The clock first, then the board. The autosave effect below fires on the
-    // session change and reads `clock.get()`, so the restored time has to be in
-    // the store before the session lands — otherwise the first write after a
-    // resume would put a zero over a real time.
+    /*
+     * The clock first, then the board — for reading order, not for correctness.
+     *
+     * An earlier comment here claimed the order was load-bearing. It is not,
+     * and the claim was checked rather than trusted: both statements are
+     * synchronous within one effect body, so React has not re-rendered between
+     * them, and the autosave effect that reads `clock.get()` runs after both.
+     * Swapping them passes every test in the suite.
+     *
+     * What *is* load-bearing is that the clock is set from outside a state
+     * updater, and `clock-restores.test.tsx` enforces that by asserting on the
+     * first write rather than on the order of these two lines. The original bug
+     * put `setElapsed` inside the `setSession` updater, where StrictMode's
+     * double invocation made React discard it — and the autosave then wrote the
+     * board back out with `elapsedMs: 0`, destroying a real time rather than
+     * merely displaying the wrong one.
+     */
     clock.set(saved.elapsedMs);
     setSession(saved.session);
     // Once, for this puzzle. `ref` is derived from props that do not change

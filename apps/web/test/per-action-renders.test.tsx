@@ -91,11 +91,22 @@ describe('the cost of one digit entry', () => {
     await user.keyboard('{ArrowRight}');
 
     /*
-     * Eighteen, and the number is arithmetic rather than a budget. Cell 0 to
-     * cell 1 keeps row 0 and box 0, so only the columns change hands: eight
-     * cells leave column 0, eight join column 1, and the two cells that swap
-     * the selection make eighteen. Across both commits — the key press and the
-     * focus that follows it — the old code rendered 162.
+     * Eighteen, and it is worth writing out, because the obvious account of it
+     * is wrong. Cell 0 to cell 1 keeps row 0 *and* box 0, so the top three
+     * cells of each column stay lit either way: only **six** leave column 0
+     * (27, 36, 45, 54, 63, 72) and six join column 1 (28, 37, 46, 55, 64, 73).
+     * With the two cells that swap the selection, that is fourteen.
+     *
+     * The other four are the matching-digit layer, which is easy to forget
+     * because it has nothing to do with geometry. Cell 0 holds a given 5 and
+     * cell 1 a given 3, so the board stops shading the other 5s (14, 71) and
+     * starts shading the other 3s (35, 41).
+     *
+     * Fourteen plus four, on a board where the two cells happen to hold
+     * digits. An arrow press still produces **two** commits — the key, then the
+     * focus that follows the selection — and the second re-renders no cells at
+     * all, because every prop it hands them compares equal. That second commit
+     * is why the old count was 162 rather than 81.
      */
     expect(renders.cells).toBe(18);
   });

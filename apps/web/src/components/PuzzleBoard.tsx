@@ -27,5 +27,29 @@ export function PuzzleBoard({ puzzleRef, replay = false }: { puzzleRef: PuzzleRe
     [router],
   );
 
-  return <BoardScreen puzzleRef={puzzleRef} onSolved={onSolved} replay={replay} />;
+  /*
+   * Keyed by the puzzle, because a board is not a view of a ref — it is a
+   * sitting at one puzzle, and almost everything it owns is established once
+   * on mount: the generated grid, the session, the clock, and the refs that
+   * remember whether this board has already been restored and recorded.
+   *
+   * An App Router navigation from one puzzle straight to another is the same
+   * element in the same position with new props, so React reconciles rather
+   * than remounts and every one of those survives. Measured before this key
+   * existed: switching refs left the previous puzzle's givens on screen and
+   * the previous puzzle's time on the clock.
+   *
+   * A key is the whole fix, and it is the right one — the alternative is an
+   * effect per piece of mounted state, each of which has to remember to reset
+   * itself. Nothing changes for the daily, whose ref is fixed for the life of
+   * the page.
+   */
+  return (
+    <BoardScreen
+      key={refParams(puzzleRef)}
+      puzzleRef={puzzleRef}
+      onSolved={onSolved}
+      replay={replay}
+    />
+  );
 }
