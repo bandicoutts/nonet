@@ -272,6 +272,92 @@ describe('undo and redo', () => {
   });
 });
 
+/**
+ * Placing the digit a cell already holds.
+ *
+ * It changes nothing, so it is nothing to undo — but it used to go on the stack
+ * regardless, and the player then spent an undo watching the board not move.
+ */
+describe('re-placing a digit that is already there', () => {
+  test('undo goes back to before the original placement, not to an identical board', () => {
+    let state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
+    state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
+
+    state = apply(state, { type: 'undo' });
+
+    // One undo, all the way back to empty. Before this, the first undo landed
+    // on a board identical to the one it started from.
+    expect(getCell(state.grid, EMPTY_CELL)).toBe(0);
+  });
+
+  test('does not grow the undo stack', () => {
+    let state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
+    const depth = state.past.length;
+
+    state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
+
+    expect(state.past.length).toBe(depth);
+  });
+
+  test('leaves the grid and notes by reference, so nothing downstream sees a change', () => {
+    const state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
+    const again = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
+
+    expect(again.grid).toBe(state.grid);
+    expect(again.notes).toBe(state.notes);
+  });
+
+  /**
+   * A repeat that achieved nothing must not destroy a redo the player can still
+   * use — `commit` clearing `future` was the other half of this bug.
+   */
+  test('keeps a redo that is still legitimately available', () => {
+    let state = apply(newSession(), { type: 'placeDigit', cell: 2, digit: CORRECT_DIGIT });
+    state = apply(state, { type: 'placeDigit', cell: 3, digit: wrongFor(3) });
+    state = apply(state, { type: 'undo' });
+    expect(state.canRedo).toBe(true);
+
+    // Cell 2 still holds what it was given, so this is the redundant case.
+    state = apply(state, { type: 'placeDigit', cell: 2, digit: CORRECT_DIGIT });
+
+    expect(state.canRedo).toBe(true);
+    expect(getCell(apply(state, { type: 'redo' }).grid, 3)).toBe(wrongFor(3));
+  });
+
+  test('still auto-advances, because that is where the cursor belongs', () => {
+    let state = apply(newSession({ autoAdvance: true }), { type: 'selectCell', cell: 2 });
+    state = apply(state, { type: 'placeDigit', cell: 2, digit: CORRECT_DIGIT });
+    const landed = state.selected;
+
+    state = apply(state, { type: 'selectCell', cell: 2 });
+    state = apply(state, { type: 'placeDigit', cell: 2, digit: CORRECT_DIGIT });
+
+    expect(state.selected).toBe(landed);
+  });
+
+  /**
+   * **Encodes today's rule, which is under review.**
+   *
+   * Whether a repeated wrong digit costs a second life is a containment
+   * question (OPEN-QUESTIONS #1) and is deliberately not answered by the undo
+   * fix. This test exists to prove the two are separate — it is expected to
+   * change when containment extends to cell-first, and its changing is the
+   * point.
+   */
+  test('charges the tally exactly as it did before, in cell-first', () => {
+    let state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
+    expect(state.mistakes).toBe(1);
+
+    state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
+
+    expect(state.mistakes).toBe(2);
+    // And the board still locks on the third, from a state with one undo entry.
+    state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
+    expect(state.status).toBe('failed');
+    expect(state.past.length).toBe(1);
+  });
+});
+
 describe('hints', () => {
   test('the first hint confirms, later ones do not', () => {
     const state = newSession();

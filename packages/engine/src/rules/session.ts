@@ -297,6 +297,22 @@ function placeDigit(state: SessionState, cell: CellIndex, digit: Digit): Session
 
   if (state.notesMode) return writeNote(state, cell, digit);
 
+  /*
+   * Placing the digit that is already in the cell moves nothing.
+   *
+   * The grid and notes come out identical, so there is nothing for undo to go
+   * back to — but it went on the stack anyway, and the player then had to spend
+   * an undo to watch nothing happen. Worse, `commit` clears the redo stack, so
+   * a repeat that achieved nothing also destroyed a redo that was still
+   * legitimately available.
+   *
+   * History is the only thing this skips. The mistake tally is deliberately
+   * left exactly as it was — whether a repeated wrong digit should cost a
+   * second life is a rule question about containment, not about undo, and
+   * answering it here would settle it by accident (OPEN-QUESTIONS #1).
+   */
+  if (getCell(state.grid, cell) === digit) return replaceNothing(state, cell, digit);
+
   const grid = setCell(state.grid, cell, digit);
   const notes = clearPeerNotes(state.notes, cell, digit);
   const correct = state.solution[cell] === digit;
@@ -323,6 +339,43 @@ function placeDigit(state: SessionState, cell: CellIndex, digit: Digit): Session
     : recordWrongPlacement(state.tracker, { mode: state.mode, digit });
 
   return commit(state, { grid, notes, tracker, selected: advanced });
+}
+
+/**
+ * Re-placing the digit a cell already holds.
+ *
+ * Everything the normal path does *except* touch history: the tally is charged
+ * exactly as it would have been, auto-advance still moves on, and the status is
+ * recomputed because a charged mistake can lock the board. The grid and notes
+ * are reused by reference, since they are provably identical.
+ *
+ * `past` and `future` both carry through untouched. A move that changes nothing
+ * has nothing to undo *and* no business discarding a redo the player can still
+ * legitimately use.
+ */
+function replaceNothing(state: SessionState, cell: CellIndex, digit: Digit): SessionState {
+  const correct = state.solution[cell] === digit;
+
+  const advanced =
+    state.autoAdvance && state.mode === 'cellFirst' && correct
+      ? nextEmptyCell(state.grid, cell)
+      : state.selected;
+
+  if (!state.checking) {
+    return advanced === state.selected ? state : { ...state, selected: advanced };
+  }
+
+  const tracker = correct
+    ? releaseContainment(state.tracker)
+    : recordWrongPlacement(state.tracker, { mode: state.mode, digit });
+
+  return {
+    ...state,
+    selected: advanced,
+    tracker,
+    mistakes: tracker.mistakes,
+    status: statusOf(state.grid, tracker),
+  };
 }
 
 /**
