@@ -11,9 +11,9 @@ import type { ElapsedClock } from '@/lib/elapsed';
  */
 export { formatTime } from '@/lib/elapsed';
 /**
- * Six chips below 1100, five at mobile (Erase lives on the pad there), and a
- * paired Undo/Redo row in the desktop rail — where every other chip spans the
- * full width. layout.md.
+ * Six chips below 1100, five at mobile (Erase lives on the pad there), stacked
+ * full-width in the desktop rail. layout.md, less the Undo/Redo pairing — Redo
+ * gave up its slot to the input-mode chip.
  */
 const CHIPS =
   'grid grid-cols-5 gap-2xs drawer:grid-cols-6 drawer:gap-xs rail:grid-cols-2 rail:gap-2xs ' +
@@ -32,7 +32,13 @@ const CHIP =
   // the non-colour cue, which is what lets --fg3 sit here at all (NONET-5).
   'aria-disabled:cursor-default aria-disabled:border-(--border-dashed-line) aria-disabled:text-fg3 aria-disabled:opacity-[0.62]';
 
-/** In the rail everything but Undo and Redo spans both columns. */
+/**
+ * In the rail every chip spans both columns.
+ *
+ * `layout.md` pairs Undo and Redo on one row; with Redo gone there is nothing
+ * to pair Undo with, and pairing it with the mode chip would put a history
+ * control and a mode control on one line because a column was free.
+ */
 const CHIP_FULL_WIDTH = 'rail:col-span-2';
 
 export interface BoardToolbarProps {
@@ -48,6 +54,13 @@ export interface BoardToolbarProps {
    * decision lives in `BoardLayout` now, where both callers share it.
    */
   readonly onHint: () => void;
+  /**
+   * Flip the input mode.
+   *
+   * The board reads `inputMode` once on mount, so this has to dispatch and
+   * persist together — see `BoardScreen`. The toolbar only asks.
+   */
+  readonly onToggleMode: () => void;
   /**
    * The clock, not the time.
    *
@@ -69,6 +82,7 @@ export function BoardToolbar({
   onAction,
   onPause,
   onHint,
+  onToggleMode,
   clock,
   showTimer = true,
 }: BoardToolbarProps) {
@@ -128,10 +142,22 @@ export function BoardToolbar({
           disabled={locked || !session.canUndo}
           onClick={() => onAction({ type: 'undo' })}
         />
+        {/*
+          Where Redo used to be.
+          
+          `inputMode` was a Settings choice with no board control, so a player
+          who never opened Settings never learned digit-first existed. Redo gave
+          up the slot because undo in sudoku is corrective — a player who takes
+          back a wrong digit does not then put it back — and it stays on
+          `Cmd+Shift+Z`, which `Board` handles directly. A seventh chip was the
+          alternative and would have taken the row to about 42px at 320, below
+          the tap-target floor, on the controls a player touches constantly.
+        */}
         <Chip
-          label="Redo"
-          disabled={locked || !session.canRedo}
-          onClick={() => onAction({ type: 'redo' })}
+          label="Digit first"
+          pressed={session.mode === 'digitFirst'}
+          disabled={locked}
+          onClick={onToggleMode}
         />
         <Chip
           label="Erase"
@@ -163,10 +189,12 @@ interface ChipProps {
 }
 
 function Chip({ label, describedAs, pressed, disabled = false, onClick }: ChipProps) {
-  const chip = label.toLowerCase();
+  // Hyphenated: `data-chip` is what tests and styles select on, and
+  // "digit first" would put a space in the attribute value.
+  const chip = label.toLowerCase().replace(/ /g, '-');
   return (
     <button
-      className={`${CHIP} ${chip === 'undo' || chip === 'redo' ? '' : CHIP_FULL_WIDTH} ${
+      className={`${CHIP} ${CHIP_FULL_WIDTH} ${
         // Erase lives on the pad below the drawer breakpoint, so the toolbar
         // drops to five chips there. `hidden` also takes it out of the
         // accessibility tree, so exactly one Erase is ever exposed.

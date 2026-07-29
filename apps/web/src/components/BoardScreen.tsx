@@ -11,7 +11,7 @@ import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
 import { createElapsedClock } from '@/lib/elapsed';
 import { backTo, canRetry, currentAttempt, dailyRef, recordFailure } from '@/lib/puzzles';
-import { DEFAULT_SETTINGS, readSettings } from '@/lib/settings';
+import { DEFAULT_SETTINGS, readSettings, writeSettings } from '@/lib/settings';
 import {
   appendSolve,
   clearAutosave,
@@ -317,6 +317,29 @@ export function BoardScreen({
     if (leaving.current !== null) clearTimeout(leaving.current);
   }, []);
 
+  /**
+   * Flipping the input mode from the board.
+   *
+   * **Dispatch and persist in one action, deliberately.** The board reads
+   * `inputMode` once on mount, into the session — so a chip that only
+   * dispatched would work until the next reload and then silently revert, and
+   * one that only persisted would not change the board under the player's
+   * hands. Either half alone is the bug.
+   *
+   * One store, two doors: this writes through `writeSettings` and Settings
+   * reads through `readSettings`, exactly as the theme now does through
+   * `readTheme` after two surfaces answered the same question from two stores
+   * (NONET-41).
+   *
+   * `setMode` also clears digit-first containment, which is right: the mistake
+   * allowance belongs to a gesture, and changing mode ends the gesture.
+   */
+  const toggleMode = useCallback(() => {
+    const next = latest.current.mode === 'digitFirst' ? 'cellFirst' : 'digitFirst';
+    dispatch({ type: 'setMode', mode: next });
+    writeSettings({ ...readSettings(), inputMode: next });
+  }, [dispatch]);
+
   const placed = 81 - session.grid.filter((cell) => cell === 0).length;
   const origin = backTo(ref);
 
@@ -361,6 +384,7 @@ export function BoardScreen({
             }
           : {})}
         onConfirmHint={() => setConfirmingHint(true)}
+        onToggleMode={toggleMode}
         back={
           /* Labelled for its origin, never "close" — the puzzle is autosaved
              and nothing is discarded (NONET-2). The origin is derived from the

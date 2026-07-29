@@ -28,6 +28,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
   const seen: Action[] = [];
   const onPause = vi.fn();
   const onHint = vi.fn();
+  const onToggleMode = vi.fn();
 
   const view = render(
     <BoardToolbar
@@ -35,6 +36,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
       onAction={() => undefined}
       onPause={onPause}
       onHint={onHint}
+      onToggleMode={onToggleMode}
       clock={clock}
     />,
   );
@@ -48,6 +50,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
         onAction={dispatch}
         onPause={onPause}
         onHint={onHint}
+        onToggleMode={onToggleMode}
         clock={clock}
       />,
     );
@@ -59,11 +62,12 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
       onAction={dispatch}
       onPause={onPause}
       onHint={onHint}
+      onToggleMode={onToggleMode}
       clock={clock}
     />,
   );
 
-  return { ...view, actions: seen, onPause, onHint, current: () => state };
+  return { ...view, actions: seen, onPause, onHint, onToggleMode, current: () => state };
 }
 
 const chip = (name: RegExp) => screen.getByRole('button', { name });
@@ -100,7 +104,7 @@ describe('status', () => {
 describe('controls', () => {
   test('offers the six board controls', () => {
     renderToolbar();
-    for (const name of [/notes/i, /undo/i, /redo/i, /erase/i, /hint/i, /pause/i]) {
+    for (const name of [/notes/i, /undo/i, /digit first/i, /erase/i, /hint/i, /pause/i]) {
       expect(chip(name)).toBeDefined();
     }
   });
@@ -188,7 +192,7 @@ describe('a locked board', () => {
 
   test('disables every control', () => {
     renderToolbar(locked());
-    for (const name of [/notes/i, /undo/i, /redo/i, /erase/i, /hint/i, /pause/i]) {
+    for (const name of [/notes/i, /undo/i, /digit first/i, /erase/i, /hint/i, /pause/i]) {
       expect(chip(name).getAttribute('aria-disabled'), String(name)).toBe('true');
     }
   });

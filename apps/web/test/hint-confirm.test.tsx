@@ -46,6 +46,7 @@ function setup(initial?: SessionState) {
         onPause={() => undefined}
         onResume={() => undefined}
         onConfirmHint={onConfirmHint}
+        onToggleMode={() => undefined}
         back={null}
       />
     );

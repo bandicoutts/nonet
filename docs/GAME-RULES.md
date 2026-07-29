@@ -24,6 +24,7 @@ Product rules locked 2026-07-26 (see DECISIONS.md #1). The design brief (DESIGN-
 Two, chosen in Settings and switchable on the board. Mode is remembered.
 - **Cell first** (default) — select a cell, then choose a digit.
 - **Digit first** — select a digit once, then tap every cell that takes it; the digit stays loaded until changed or cleared. `ERASE` can be loaded the same way.
+- The board control is the `Digit first` chip, which took Redo's slot (DECISIONS.md NONET-44). It and Settings write the same stored value, so the two agree. Switching mid-puzzle ends any digit-first containment — the mistake allowance belongs to a gesture, and changing mode ends the gesture.
 - Digit-first highlights existing instances of the loaded digit only. It must **never** highlight legal placements — that is auto-candidate assistance and is v2.
 
 ### Repeating a mistake
@@ -45,7 +46,7 @@ Containment ends when the error is corrected, when the cell is erased, or (digit
 - Selection highlights row/column/box; cells with digits highlight all matching digits (both are settings, default on). Givens selectable for highlighting, inert to editing.
 - Pad keys show per-digit remaining counts and become **non-interactive at zero**, with a non-colour cue as well as reduced contrast.
 - **Auto-advance** (setting, default off): after placing, selection moves to the next empty cell in reading order. Cell-first only.
-- Undo unlimited (covers notes/erases), with redo. Undo never uncounts a mistake and never restores a hint. The stack is **not** autosaved, so it empties on reload — unlimited means unlimited within a sitting (DECISIONS.md NONET-9).
+- Undo unlimited (covers notes/erases), with redo — **redo is keyboard-only** since NONET-44 took its chip, so it is not reachable on touch. Undo never uncounts a mistake and never restores a hint. The stack is **not** autosaved, so it empties on reload — unlimited means unlimited within a sitting (DECISIONS.md NONET-9).
 
 ## Leaving a puzzle
 The board is an immersive mode, not a page — no site nav during play. The exit is a left-aligned back control labelled for its origin: `← TODAY` for the daily and for practice, `← ARCHIVE` for an archive edition. Never "close" — the puzzle is autosaved and nothing is discarded.

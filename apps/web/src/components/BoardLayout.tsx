@@ -55,6 +55,8 @@ export interface BoardLayoutProps {
   /** Absent when the retry is spent — there is no third attempt. */
   readonly onRetry?: () => void;
   readonly onConfirmHint: () => void;
+  /** Flip the input mode, and persist it — see `BoardScreen`. */
+  readonly onToggleMode: () => void;
   /** The back control, labelled for where the player came from. */
   readonly back: ReactNode;
 }
@@ -79,6 +81,7 @@ export function BoardLayout({
   onResume,
   onRetry,
   onConfirmHint,
+  onToggleMode,
   back,
 }: BoardLayoutProps) {
   const locked = session.status === 'failed';
@@ -143,6 +146,7 @@ export function BoardLayout({
           onAction={onAction}
           onPause={onPause}
           onHint={requestHint}
+          onToggleMode={onToggleMode}
           clock={clock}
           showTimer={showTimer}
         />
