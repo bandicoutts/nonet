@@ -39,7 +39,7 @@ const LINK = 'type-body-small text-fg2 underline underline-offset-4 hover:text-f
  * Signing in is optional everywhere, so this is a convenience rather than a
  * gate: a player who never uses it loses nothing but sync.
  */
-export function SignInForm({ next = '/' }: { next?: string }) {
+export function SignInForm({ next = '/', problem = null }: { next?: string; problem?: string | null }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [state, setState] = useState<'form' | 'sending' | 'sent' | 'verifying' | 'error' | 'bad-code'>(
@@ -160,6 +160,13 @@ export function SignInForm({ next = '/' }: { next?: string }) {
         We send a six-digit code. No password to forget. Your streak and stats then follow you
         between devices.
       </p>
+
+      {/* Above the form, because it explains why the player is back here. */}
+      {problem === null ? null : (
+        <p className="type-body-small text-error" role="alert">
+          {problem}
+        </p>
+      )}
 
       <form
         className="mt-s flex flex-col gap-s"
