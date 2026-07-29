@@ -52,12 +52,13 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
   },
   /*
-   * `summary`, not `summary_large_image`: there is no OG image yet, and the
-   * large card renders as an empty slab when the image is missing rather than
-   * degrading to the small one.
+   * `summary_large_image` now that `opengraph-image.tsx` exists. It was
+   * `summary` while there was no image, because the large card renders an empty
+   * slab rather than degrading to the small one — the same reason it should be
+   * put back if the image is ever removed.
    */
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Nonet',
     description: DESCRIPTION,
   },

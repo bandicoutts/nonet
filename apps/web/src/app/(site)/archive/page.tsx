@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OG_IMAGE } from '@/lib/og';
 import { ArchiveScreen } from '@/components/ArchiveScreen';
 
 const DESCRIPTION = 'Every edition since No. 1, all of them free to play.';
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Archive',
   description: DESCRIPTION,
   alternates: { canonical: '/archive' },
-  openGraph: { title: 'Nonet — archive', description: DESCRIPTION, url: '/archive' },
+  openGraph: { title: 'Nonet — archive', description: DESCRIPTION, url: '/archive', images: [OG_IMAGE] },
   twitter: { title: 'Nonet — archive', description: DESCRIPTION },
 };
 

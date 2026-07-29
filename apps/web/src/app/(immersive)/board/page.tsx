@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OG_IMAGE } from '@/lib/og';
 import { DailyBoard } from '@/components/DailyBoard';
 import { PuzzleBoard } from '@/components/PuzzleBoard';
 import { parsePuzzleRef, parseReplay } from '@/lib/puzzles';
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   title: 'Board',
   description: DESCRIPTION,
   alternates: { canonical: '/board' },
-  openGraph: { title: 'Nonet — the board', description: DESCRIPTION, url: '/board' },
+  openGraph: { title: 'Nonet — the board', description: DESCRIPTION, url: '/board', images: [OG_IMAGE] },
   twitter: { title: 'Nonet — the board', description: DESCRIPTION },
 };
 

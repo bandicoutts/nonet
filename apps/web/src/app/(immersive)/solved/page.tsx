@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OG_IMAGE } from '@/lib/og';
 import { redirect } from 'next/navigation';
 import { SolvedView } from '@/components/SolvedView';
 import { parsePuzzleRef } from '@/lib/puzzles';
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   title: 'Solved',
   description: DESCRIPTION,
   alternates: { canonical: '/solved' },
-  openGraph: { title: 'Nonet', description: DESCRIPTION, url: '/solved' },
+  openGraph: { title: 'Nonet', description: DESCRIPTION, url: '/solved', images: [OG_IMAGE] },
   twitter: { title: 'Nonet', description: DESCRIPTION },
 };
 

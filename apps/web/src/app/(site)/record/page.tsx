@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OG_IMAGE } from '@/lib/og';
 import { RecordScreen } from '@/components/RecordScreen';
 
 const DESCRIPTION = 'Streaks, completion and times, derived from every solve.';
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Record',
   description: DESCRIPTION,
   alternates: { canonical: '/record' },
-  openGraph: { title: 'Nonet — record', description: DESCRIPTION, url: '/record' },
+  openGraph: { title: 'Nonet — record', description: DESCRIPTION, url: '/record', images: [OG_IMAGE] },
   twitter: { title: 'Nonet — record', description: DESCRIPTION },
 };
 
