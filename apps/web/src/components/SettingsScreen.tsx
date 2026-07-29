@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAccount } from '@/lib/account';
 import { DEFAULT_SETTINGS, readSettings, writeSettings } from '@/lib/settings';
 import type { Settings } from '@/lib/settings';
 import { THEME_CHOICES, readTheme, writeTheme } from '@/lib/theme';
@@ -171,18 +172,66 @@ export function SettingsScreen() {
         </Row>
       </dl>
 
-      <div className="flex flex-col gap-s border-t border-rule pt-m">
-        <p className="type-mono-label text-fg3-text">Account</p>
-        <p className="type-body text-fg">Playing as a guest</p>
-        <p className="type-body-small text-fg3-text">Progress is kept in this browser only.</p>
-        <Link
-          href="/auth"
-          className="type-button inline-flex min-h-(--tap-target-min) w-fit items-center border border-fg px-l text-fg no-underline transition-colors duration-(--motion-hover) ease-(--ease-hover) hover:bg-hover focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset-prominent)"
-        >
-          Sign in
-        </Link>
-      </div>
+      <AccountBlock />
     </section>
+  );
+}
+
+const ACCOUNT_BUTTON =
+  'type-button inline-flex min-h-(--tap-target-min) w-fit cursor-pointer items-center border border-fg ' +
+  'bg-transparent px-l text-fg no-underline transition-colors duration-(--motion-hover) ease-(--ease-hover) ' +
+  'hover:bg-hover focus-visible:outline-(--border-focus-ring) focus-visible:outline-offset-(--focus-offset-prominent)';
+
+/**
+ * Who is playing.
+ *
+ * This block used to state "Playing as a guest" and "Progress is kept in this
+ * browser only" unconditionally, having never asked. For a signed-in player
+ * both lines are false, and the second is false in the direction that matters —
+ * it tells someone whose progress is safely synced that it is not.
+ *
+ * It also carries the only sign-out control above the drawer breakpoint.
+ * `MobileDrawer` is `drawer:hidden`, so at 768 and up its Account section does
+ * not exist, and a signed-in player had no way to sign out anywhere in the
+ * product (NONET-35).
+ *
+ * The guest copy is unchanged. Nothing renders until the answer is in, because
+ * a block that says "guest" and then flips to an address has told the player
+ * something false on the way past.
+ */
+function AccountBlock() {
+  const { email, resolved, signOut } = useAccount();
+
+  return (
+    <div className="flex flex-col gap-s border-t border-rule pt-m">
+      <p className="type-mono-label text-fg3-text">Account</p>
+
+      {!resolved ? null : email === null ? (
+        <>
+          <p className="type-body text-fg">Playing as a guest</p>
+          <p className="type-body-small text-fg3-text">Progress is kept in this browser only.</p>
+          <Link href="/auth" className={ACCOUNT_BUTTON}>
+            Sign in
+          </Link>
+        </>
+      ) : (
+        <>
+          <p className="type-body text-fg">{email}</p>
+          <p className="type-body-small text-fg3-text">
+            Your streak, stats and settings follow you between devices.
+          </p>
+          <button
+            type="button"
+            className={ACCOUNT_BUTTON}
+            /* Local scope: the default revokes every session on every device,
+               which is not what signing out of one browser means. */
+            onClick={() => void signOut({ scope: 'local' })}
+          >
+            Sign out
+          </button>
+        </>
+      )}
+    </div>
   );
 }
 

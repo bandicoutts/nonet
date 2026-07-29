@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { MobileDrawer } from './MobileDrawer';
-import { createClient } from '@/lib/supabase/client';
+import { useAccount } from '@/lib/account';
 
 /**
  * The browsing-screen header.
@@ -22,25 +21,10 @@ const NAV: ReadonlyArray<{ href: Route; label: string }> = [
 ];
 
 export function SiteHeader() {
-  const [email, setEmail] = useState<string | null>(null);
-
   // Resolved here rather than passed down, so the drawer stays a pure component
-  // and can be tested without a Supabase client.
-  useEffect(() => {
-    const supabase = createClient();
-    if (supabase === null) return;
-
-    void supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? null);
-    });
-  }, []);
-
-  const signOut = async (options: { scope: 'local' }) => {
-    const supabase = createClient();
-    if (supabase === null) return;
-    await supabase.auth.signOut(options);
-    window.location.reload();
-  };
+  // and can be tested without a Supabase client. The resolution itself moved to
+  // `useAccount`, because Settings needs the same answer (NONET-35).
+  const { email, signOut } = useAccount();
 
   return (
     <header className="flex items-center gap-xs pt-ml drawer:gap-ml drawer:pt-xl">
