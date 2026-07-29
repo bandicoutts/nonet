@@ -152,7 +152,7 @@ export function ArchiveScreen({ now }: { now?: Date }) {
           <button
             type="button"
             aria-label="Earlier month"
-            aria-disabled={index >= months.length - 1 || undefined}
+            disabled={index >= months.length - 1}
             onClick={() => setIndex((i) => Math.min(months.length - 1, i + 1))}
             className={NAV}
           >
@@ -164,7 +164,7 @@ export function ArchiveScreen({ now }: { now?: Date }) {
           <button
             type="button"
             aria-label="Later month"
-            aria-disabled={index === 0 || undefined}
+            disabled={index === 0}
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
             className={NAV}
           >
@@ -228,9 +228,19 @@ export function ArchiveScreen({ now }: { now?: Date }) {
   );
 }
 
+/*
+ * `disabled:` rather than `aria-disabled:`, because these are genuinely
+ * disabled now.
+ *
+ * The chips on the board deliberately use `aria-disabled` so a keyboard player
+ * can still reach Hint and hear "0 of 3 left" — the count is the information,
+ * and it is only available on focus. An arrow at the end of the range carries
+ * no such information: the month beside it already says which month it is, so
+ * a focus stop that does nothing and explains nothing is worse than no stop.
+ */
 const NAV =
   'type-control flex size-[44px] cursor-pointer items-center justify-center border-0 bg-transparent ' +
-  'text-fg2 hover:text-fg aria-disabled:cursor-default aria-disabled:text-fg3 ' +
+  'text-fg2 hover:text-fg disabled:cursor-default disabled:text-fg3 ' +
   'focus-visible:outline-(--border-focus-ring)';
 
 function Cell({ edition, dimmed }: { edition: Edition; dimmed: boolean }) {

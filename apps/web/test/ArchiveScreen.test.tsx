@@ -81,9 +81,14 @@ describe('ArchiveScreen', () => {
   });
 
   /* There is no month after the current edition, and none before the epoch. */
+  /*
+   * `disabled`, not `aria-disabled`. These arrows used to carry only the ARIA
+   * attribute, so the handler still fired at the ends of the range and was
+   * inert only because of the clamp inside it.
+   */
   it('stops at both ends', async () => {
     show();
-    expect(arrow('→').getAttribute('aria-disabled')).toBe('true');
+    expect((arrow('→') as HTMLButtonElement).disabled).toBe(true);
     // And the labels match the direction the glyphs point.
     expect(arrow('←').getAttribute('aria-label')).toBe('Earlier month');
     expect(arrow('→').getAttribute('aria-label')).toBe('Later month');
@@ -92,7 +97,15 @@ describe('ArchiveScreen', () => {
       await userEvent.click(arrow('←'));
     }
     expect(screen.getByText('January 2026')).toBeDefined();
-    expect(arrow('←').getAttribute('aria-disabled')).toBe('true');
+    expect((arrow('←') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  /** A disabled arrow is not merely announced as one: the press does nothing. */
+  it('does not move when a disabled arrow is pressed', async () => {
+    show();
+    const shown = screen.getByText('August 2026');
+    await userEvent.click(arrow('→'));
+    expect(shown.textContent).toBe('August 2026');
   });
 
   it('links an edition to its board', () => {
