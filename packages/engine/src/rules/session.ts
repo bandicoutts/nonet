@@ -238,7 +238,24 @@ function commit(
 
 export function apply(state: SessionState, action: Action): SessionState {
   switch (action.type) {
+    /*
+     * Selecting the cell that is already selected is not a change.
+     *
+     * Returning a new object for it meant every such dispatch looked like a
+     * fresh session to everything downstream, and one arrives on every arrow
+     * press: the key moves the selection, the board then moves DOM focus to
+     * follow it, and the focused cell reports a selection that is already true.
+     * That second dispatch cost a render pass and — because the board autosaves
+     * on any session change — a second write of the whole grid and notes to
+     * localStorage, for a move that changed nothing.
+     *
+     * Safe because nothing about the selection is persisted or derived
+     * asynchronously: the autosave record has no selection field, so an
+     * identical state is genuinely nothing to save. `null` compares equal to
+     * `null`, so clearing an already-clear selection is the same no-op.
+     */
     case 'selectCell':
+      if (action.cell === state.selected) return state;
       return { ...state, selected: action.cell };
 
     case 'loadDigit':

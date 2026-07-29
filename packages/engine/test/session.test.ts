@@ -50,6 +50,57 @@ describe('createSession', () => {
   });
 });
 
+/**
+ * Selecting what is already selected.
+ *
+ * The board dispatches this on every arrow press — the key moves the selection,
+ * the focus follows it, and the newly focused cell reports a selection that is
+ * already true. Returning a new object for that made a no-op look like a change
+ * to everything downstream, including the autosave.
+ */
+describe('selectCell', () => {
+  test('returns the same state when the cell is already selected', () => {
+    const state = apply(newSession(), { type: 'selectCell', cell: 2 });
+    const again = apply(state, { type: 'selectCell', cell: 2 });
+
+    expect(again).toBe(state);
+  });
+
+  test('returns the same state when clearing an already-clear selection', () => {
+    const state = newSession();
+    expect(state.selected).toBeNull();
+
+    expect(apply(state, { type: 'selectCell', cell: null })).toBe(state);
+  });
+
+  test('still moves the selection when the cell is a different one', () => {
+    const state = apply(newSession(), { type: 'selectCell', cell: 2 });
+    const moved = apply(state, { type: 'selectCell', cell: 3 });
+
+    expect(moved).not.toBe(state);
+    expect(moved.selected).toBe(3);
+  });
+
+  test('still clears a selection that was set', () => {
+    const state = apply(newSession(), { type: 'selectCell', cell: 2 });
+    const cleared = apply(state, { type: 'selectCell', cell: null });
+
+    expect(cleared).not.toBe(state);
+    expect(cleared.selected).toBeNull();
+  });
+
+  test('changes nothing else about the session', () => {
+    const state = apply(newSession(), { type: 'selectCell', cell: 2 });
+    const again = apply(state, { type: 'selectCell', cell: 2 });
+
+    // Selection is not an undoable move, so a repeat must not have quietly
+    // become one.
+    expect(again.canUndo).toBe(state.canUndo);
+    expect(again.past).toBe(state.past);
+    expect(again.grid).toBe(state.grid);
+  });
+});
+
 describe('placing digits', () => {
   test('writes a correct digit and counts no mistake', () => {
     const state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: CORRECT_DIGIT });
