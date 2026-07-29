@@ -2,7 +2,7 @@
 
 Things that are **not decided**. Where an item carries a recommendation, none
 of them has been agreed — do not treat a recommendation here as a decision.
-Audit findings (section 2) carry none by design: they are one line and a file
+Audit findings (section 3) carry none by design: they are one line and a file
 reference, and the code is the detail. When one is settled, delete it from this
 file and record it in `DECISIONS.md`.
 
@@ -11,7 +11,34 @@ not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. Should a practice result be shareable, and as what?
+## 1. Is three lives and two attempts too strict, or just badly signposted?
+
+**A product question, not a defect.** Three mistakes lock the board and a daily
+may be retried once (GAME-RULES.md, NONET-39). That is stricter than the
+comparisons: Sudoku.com allows unlimited retries, and on NYT a puzzle cannot be
+failed at all. Nonet is the only one of the three where a player can lose a day.
+
+**The escape hatch already exists and nobody can find it.** `checking: false`
+turns auto-check off, and with it the tally, the flags and the lock entirely
+(`session.ts` — with checking off nothing is flagged and nothing is counted). A
+player who wants the relaxed game already has it. But it lives in Settings under
+a purist framing, and the moment it becomes relevant — a board locking on the
+third mistake — is the moment it is least reachable: the veil says "Three
+mistakes — locked" and offers a retry or nothing.
+
+So the question is **discoverability, not the limit**. Loosening the limit
+spends the stakes that make a daily puzzle feel like one; the alternative costs a
+line of copy.
+
+*Recommendation:* make checking-off legible at the point a board locks, rather
+than changing the economy. That is a copy and a control on `PauseVeil`'s locked
+state, and it needs `copy.md` to gain a line it does not have. Note the setting
+is per-player and not per-puzzle, so anything offered there changes the next
+board too — which is either the point or a reason to word it carefully.
+
+---
+
+## 2. Should a practice result be shareable, and as what?
 
 **A product question, not a defect.** Practice, archive and replay solves have
 no share control at all: `buildResult` gives them a `null` edition number
@@ -40,7 +67,7 @@ per-edition-only (NONET-43).
 
 ---
 
-## 2. Unfixed findings from the UX and IA audits
+## 3. Unfixed findings from the UX and IA audits
 
 Each verified against `HEAD` on 2026-07-29, not carried over on trust. The
 generators that produced them are in `docs/audits/`; re-run those rather than
@@ -63,7 +90,7 @@ the export is surplus, which is what the line above says instead.
 
 ---
 
-## 3. Nothing else is open
+## 4. Nothing else is open
 
 Every other question that was here has been settled and recorded in
 `DECISIONS.md`. The three most recently closed:
