@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { apply, createSession, generatePuzzle } from '@nonet/engine';
+import { apply, createSession } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
 import { BoardLayout } from './BoardLayout';
 import { FirstRunNotice, ResumedNotice } from './BoardNotice';
@@ -20,6 +20,7 @@ import {
   readSolves,
   takeResumedElsewhere,
 } from '@/lib/storage';
+import { puzzleFor } from '@/lib/puzzle-cache';
 import type { PuzzleRef } from '@/lib/storage';
 
 /** How often the clock alone is worth a write, in milliseconds. */
@@ -64,7 +65,7 @@ export function BoardScreen({
   readonly replay?: boolean;
 }) {
   const ref = puzzleRef;
-  const [puzzle] = useState(() => generatePuzzle(ref.difficulty, ref.seed));
+  const [puzzle] = useState(() => puzzleFor(ref.difficulty, ref.seed));
 
   const [session, setSession] = useState<SessionState>(() =>
     createSession({ givens: puzzle.givens, solution: puzzle.solution }),

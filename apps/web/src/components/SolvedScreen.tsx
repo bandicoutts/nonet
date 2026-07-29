@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { generatePuzzle } from '@nonet/engine';
 import { buildResult, difficultyLabel, formatCountdown, formatDuration, shareText } from '@/lib/result';
 import type { Result } from '@/lib/result';
+import { puzzleFor } from '@/lib/puzzle-cache';
 import { backTo, refParams } from '@/lib/puzzles';
 import { readSolves } from '@/lib/storage';
 import type { GuestSolve, PuzzleRef } from '@/lib/storage';
@@ -117,7 +117,7 @@ export function SolvedScreen({
    */
   const [entered, setEntered] = useState<number | null>(null);
   useEffect(() => {
-    const puzzle = generatePuzzle(puzzleRef.difficulty, puzzleRef.seed);
+    const puzzle = puzzleFor(puzzleRef.difficulty, puzzleRef.seed);
     setEntered(puzzle.givens.filter((cell) => cell === 0).length);
   }, [puzzleRef.difficulty, puzzleRef.seed]);
 

@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { DIFFICULTIES, generatePuzzle } from '@nonet/engine';
+import { DIFFICULTIES } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
 import { AbandonConfirm } from './AbandonConfirm';
 import { dailyStatus, practiceInFlight } from '@/lib/home';
 import type { DailyStatus, InFlightBoard } from '@/lib/home';
 import { difficultyLabel, formatDuration } from '@/lib/result';
+import { puzzleFor } from '@/lib/puzzle-cache';
 import { pickPractice, refParams } from '@/lib/puzzles';
 import { clearAutosave, readSolves } from '@/lib/storage';
 import { currentStreak, longestStreak } from '@/lib/streak';
@@ -73,7 +74,7 @@ export function HomeScreen({ now }: { now?: Date }) {
   const [givens, setGivens] = useState<number | null>(null);
   useEffect(() => {
     if (status === null) return;
-    const puzzle = generatePuzzle(status.ref.difficulty, status.ref.seed);
+    const puzzle = puzzleFor(status.ref.difficulty, status.ref.seed);
     setGivens(puzzle.givens.filter((c) => c !== 0).length);
   }, [status]);
 
