@@ -9,26 +9,16 @@ not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. Does repeating a move you have already made cost a life again?
+## 1. Does re-tapping a loaded digit-first key re-arm the charge?
 
 Found while auditing which reducer paths can be dispatched with values equal to
-the current state (NONET-38). Both are **mistake-tally questions, not identity
-questions** — which is why neither was changed along with `selectCell`, where
-"nothing happened" is unambiguous. Measured, not assumed:
+the current state (NONET-38). It is a **mistake-tally question, not an identity
+question** — which is why it was not changed along with `selectCell`, where
+"nothing happened" is unambiguous. Measured, not assumed.
 
-- **Cell-first: placing the same wrong digit into the same cell charges every
-  time.** Three repeats take the tally 1, 2, 3 and lock the board. Digit-first
-  has containment for exactly this — the doc for it says three fast taps ending
-  a puzzle is "a cliff that exists only because the mode is fast" — and
-  cell-first has no equivalent. A player holding a key down, or jabbing at a
-  cell that is not taking the digit they expect, loses the board to one wrong
-  idea rather than three.
-
-  *Recommendation:* charge a repeat of the **same wrong digit in the same cell**
-  once, which is the containment rule cell-first already lacks, and leave a
-  different wrong digit costing a fresh life. Needs a GAME-RULES.md change and
-  an engine test; it is not a bug fix, because the current behaviour is what the
-  rules as written say.
+The other half of this question — cell-first charging per press for one
+repeated wrong digit — is **settled and built**: containment now exists in
+cell-first, keyed on digit *and* cell (`DECISIONS.md` NONET-39).
 
 - **Digit-first: re-tapping the already-loaded key re-arms the charge.**
   `loadDigit` always clears containment, so tapping `6` when `6` is already
@@ -41,10 +31,12 @@ questions** — which is why neither was changed along with `selectCell`, where
   gesture at all. Note this cannot be a mechanical "return the same state"
   change, because the containment clear is the behaviour in question.
 
-Related and already noted: re-placing a digit already in a cell pushes a
-duplicate undo snapshot, so one undo appears to do nothing. That is a
-consequence of the same path, and worth fixing with whichever answer above is
-taken rather than separately.
+Note this is currently asserted by **no test at all** — the behaviour exists
+only in a doc comment on `loadDigit`, which means it has been shaping the
+mistake tally with nothing holding it in place. Whichever way it is settled
+needs a test, including the `ERASE` and cleared cases.
+
+(The related duplicate undo snapshot is fixed — `DECISIONS.md` NONET-38.)
 
 ---
 

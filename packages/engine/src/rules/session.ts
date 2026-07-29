@@ -182,6 +182,7 @@ export function restoreSession(options: RestoreOptions): SessionState {
     mistakes,
     locked: mistakes >= MAX_MISTAKES,
     containedDigit: null,
+    containedCell: null,
   };
 
   return {
@@ -336,7 +337,7 @@ function placeDigit(state: SessionState, cell: CellIndex, digit: Digit): Session
 
   const tracker = correct
     ? releaseContainment(state.tracker)
-    : recordWrongPlacement(state.tracker, { mode: state.mode, digit });
+    : recordWrongPlacement(state.tracker, { mode: state.mode, digit, cell });
 
   return commit(state, { grid, notes, tracker, selected: advanced });
 }
@@ -367,7 +368,7 @@ function replaceNothing(state: SessionState, cell: CellIndex, digit: Digit): Ses
 
   const tracker = correct
     ? releaseContainment(state.tracker)
-    : recordWrongPlacement(state.tracker, { mode: state.mode, digit });
+    : recordWrongPlacement(state.tracker, { mode: state.mode, digit, cell });
 
   return {
     ...state,

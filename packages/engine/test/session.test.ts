@@ -336,25 +336,38 @@ describe('re-placing a digit that is already there', () => {
   });
 
   /**
-   * **Encodes today's rule, which is under review.**
+   * The tally and the undo stack answer to different rules, and this is where
+   * they meet.
    *
-   * Whether a repeated wrong digit costs a second life is a containment
-   * question (OPEN-QUESTIONS #1) and is deliberately not answered by the undo
-   * fix. This test exists to prove the two are separate — it is expected to
-   * change when containment extends to cell-first, and its changing is the
-   * point.
+   * Written when the undo fix landed to pin the tally it deliberately did not
+   * touch, and updated when containment extended to cell-first (NONET-39) —
+   * which is exactly the change it was watching for. Repeating one wrong digit
+   * in one cell is now one life *and* one undo entry: one misconception, one
+   * charge, one thing to take back.
    */
-  test('charges the tally exactly as it did before, in cell-first', () => {
+  test('costs one life and one undo entry, however many times it is repeated', () => {
     let state = apply(newSession(), { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
     expect(state.mistakes).toBe(1);
-
-    state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
-
-    expect(state.mistakes).toBe(2);
-    // And the board still locks on the third, from a state with one undo entry.
-    state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
-    expect(state.status).toBe('failed');
     expect(state.past.length).toBe(1);
+
+    for (let i = 0; i < 4; i += 1) {
+      state = apply(state, { type: 'placeDigit', cell: EMPTY_CELL, digit: WRONG_DIGIT });
+    }
+
+    expect(state.mistakes).toBe(1);
+    expect(state.past.length).toBe(1);
+    expect(state.status).toBe('playing');
+  });
+
+  /**
+   * The stakes are unchanged: three misconceptions still end the board. What
+   * has gone is only the charge for repeating one of them.
+   */
+  test('three distinct wrong digits still lock the board', () => {
+    const state = lockBoard(newSession());
+
+    expect(state.mistakes).toBe(3);
+    expect(state.status).toBe('failed');
   });
 });
 

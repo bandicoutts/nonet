@@ -26,8 +26,15 @@ Two, chosen in Settings and switchable on the board. Mode is remembered.
 - **Digit first** — select a digit once, then tap every cell that takes it; the digit stays loaded until changed or cleared. `ERASE` can be loaded the same way.
 - Digit-first highlights existing instances of the loaded digit only. It must **never** highlight legal placements — that is auto-candidate assistance and is v2.
 
-### Mistakes in digit-first
-While a digit remains loaded, **repeated wrong placements of that same digit count as one mistake**, until the player changes digit or corrects the error. Distinct errors still cost distinct lives. Without this, three fast taps end a puzzle — a cliff that exists only because the mode is fast. **Engine rule; needs a unit test.**
+### Repeating a mistake
+**One misconception costs one life, in both modes — but the two modes contain it differently, because the gesture differs.** Distinct errors always cost distinct lives, and three of them still lock the board.
+
+- **Digit-first:** while a digit remains loaded, repeated wrong placements of it count as one mistake **across every cell tried**, until the player changes digit or corrects the error. The gesture is painting one digit over many cells, so the whole sweep is one intent. Without this, three fast taps end a puzzle — a cliff that exists only because the mode is fast.
+- **Cell-first:** repeated wrong placements of the same digit **in the same cell** count as one mistake. The unit of intent here is the cell — select one, commit a digit, move on — so trying 6 in cell A and then 6 in cell B are two decisions and both are charged. What is not charged is pressing 6 into cell A again, which is a player checking the key registered, or holding one belief about one cell.
+
+Containment ends when the error is corrected, when the cell is erased, or (digit-first) when the loaded digit changes. Switching input mode charges the next slip, because it is a change of gesture.
+
+**Engine rules, both unit-tested.** DECISIONS.md NONET-39.
 
 ### Notes
 - Manual only in v1. Placing a digit auto-clears that digit from notes in the same row/column/box. Erase clears entry, else notes.
