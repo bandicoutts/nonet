@@ -18,7 +18,7 @@ import type { FailureRecord } from './puzzles';
 const DAY_MS = 86_400_000;
 
 /** How many days the short window covers, today included. */
-export const WINDOW_DAYS = 30;
+const WINDOW_DAYS = 30;
 
 export interface Window {
   readonly current: number;
