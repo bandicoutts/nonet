@@ -65,11 +65,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @nonet/web exec playwright install --with-deps chromium webkit
 
-      # A cache hit restores the browsers but not the system libraries they
-      # link against, which live outside the cached path.
-      - name: Install browser system dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @nonet/web exec playwright install-deps chromium webkit
+      # EXPERIMENT: does a cache hit need install-deps at all?
 
       - name: Unit tests
         run: pnpm test
