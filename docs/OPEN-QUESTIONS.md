@@ -30,11 +30,22 @@ So the question is **discoverability, not the limit**. Loosening the limit
 spends the stakes that make a daily puzzle feel like one; the alternative costs a
 line of copy.
 
-*Recommendation:* make checking-off legible at the point a board locks, rather
-than changing the economy. That is a copy and a control on `PauseVeil`'s locked
-state, and it needs `copy.md` to gain a line it does not have. Note the setting
-is per-player and not per-puzzle, so anything offered there changes the next
-board too — which is either the point or a reason to word it carefully.
+*Recommendation:* **surface the choice during onboarding, and leave the lock
+screen alone.**
+
+Offering it at the lock was the first answer and it is the wrong one, for a
+reason that only appears once you know the setting is **per-player, not
+per-puzzle**: a player accepting it in frustration at a locked board would
+silently turn the tally off for *every future board*, without realising they had.
+A choice taken reactively, at the worst moment, that then applies forever is the
+shape of a setting people end up wanting to undo and cannot find. Onboarding is
+where the same choice is considered rather than extracted.
+
+The alternative worth naming is making checking a **per-puzzle** choice, set
+before starting, which removes the trap entirely — but it costs additional state:
+`checking` would have to travel with the board rather than the player, which
+means the autosave record, the merge rules, and the `solves` row that already
+records `checked` all have to agree about where it lives.
 
 ---
 
