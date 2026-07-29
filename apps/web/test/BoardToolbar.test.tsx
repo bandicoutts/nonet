@@ -27,14 +27,14 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
   let state = initial;
   const seen: Action[] = [];
   const onPause = vi.fn();
-  const onConfirmHint = vi.fn();
+  const onHint = vi.fn();
 
   const view = render(
     <BoardToolbar
       session={state}
       onAction={() => undefined}
       onPause={onPause}
-      onConfirmHint={onConfirmHint}
+      onHint={onHint}
       clock={clock}
     />,
   );
@@ -47,7 +47,7 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
         session={state}
         onAction={dispatch}
         onPause={onPause}
-        onConfirmHint={onConfirmHint}
+        onHint={onHint}
         clock={clock}
       />,
     );
@@ -58,12 +58,12 @@ function renderToolbar(initial: SessionState = session(), elapsedMs = 0) {
       session={state}
       onAction={dispatch}
       onPause={onPause}
-      onConfirmHint={onConfirmHint}
+      onHint={onHint}
       clock={clock}
     />,
   );
 
-  return { ...view, actions: seen, onPause, onConfirmHint, current: () => state };
+  return { ...view, actions: seen, onPause, onHint, current: () => state };
 }
 
 const chip = (name: RegExp) => screen.getByRole('button', { name });
@@ -143,22 +143,20 @@ describe('hints', () => {
     expect(chip(/hint, 3 of 3 left/i)).toBeDefined();
   });
 
-  test('the first hint asks for confirmation instead of firing', async () => {
+  /*
+   * The chip asks; it does not decide.
+   *
+   * Whether the first hint confirms lives in `BoardLayout`, so that the same
+   * rule covers the `H` key — see `hint-confirm.test.tsx`. The toolbar's job
+   * here is only to ask, and to keep asking through a hint that is spent.
+   */
+  test('the chip asks for a hint rather than dispatching one', async () => {
     const user = userEvent.setup();
     const toolbar = renderToolbar();
 
     await user.click(chip(/hint/i));
-    expect(toolbar.onConfirmHint).toHaveBeenCalledOnce();
+    expect(toolbar.onHint).toHaveBeenCalledOnce();
     expect(toolbar.actions).toHaveLength(0);
-  });
-
-  test('later hints go straight through', async () => {
-    const user = userEvent.setup();
-    const toolbar = renderToolbar(apply(session(), { type: 'hint' }));
-
-    await user.click(chip(/hint/i));
-    expect(toolbar.onConfirmHint).not.toHaveBeenCalled();
-    expect(toolbar.actions).toContainEqual({ type: 'hint' });
   });
 
   test('runs out at three and stays reachable to say so', async () => {
@@ -174,6 +172,7 @@ describe('hints', () => {
 
     await user.click(hint);
     expect(toolbar.actions).toHaveLength(0);
+    expect(toolbar.onHint).not.toHaveBeenCalled();
   });
 });
 

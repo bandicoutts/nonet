@@ -287,14 +287,27 @@ describe('modes and history', () => {
     expect(board.current().mistakes).toBe(1);
   });
 
-  test('h asks for a hint', async () => {
+  /**
+   * Forwarded, not dispatched — the same shape as `p` below.
+   *
+   * A hint is irreversible and the first one per puzzle confirms, and that
+   * decision is not the board's to make. While it was, `h` dispatched straight
+   * to the engine and skipped the confirmation the chip always showed. The rule
+   * itself is exercised for both paths in `hint-confirm.test.tsx`.
+   */
+  test('h asks for a hint, which the board does not decide', async () => {
     const user = userEvent.setup();
+    const onRequestHint = vi.fn();
     const board = renderBoard();
+    board.rerender(
+      <Board session={session()} onAction={() => undefined} onRequestHint={onRequestHint} />,
+    );
 
     screen.getByRole('gridcell', { name: /row 1, column 1/i }).focus();
     await user.keyboard('h');
 
-    expect(board.actions).toContainEqual({ type: 'hint' });
+    expect(onRequestHint).toHaveBeenCalledOnce();
+    expect(board.actions).not.toContainEqual({ type: 'hint' });
   });
 
   test('p asks to pause, which the board does not own', async () => {

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { MAX_HINTS, hintNeedsConfirmation } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
 import { Board } from './Board';
 import { BoardToolbar } from './BoardToolbar';
@@ -83,6 +84,25 @@ export function BoardLayout({
   const locked = session.status === 'failed';
   const veiled = paused || locked;
 
+  /**
+   * Asking for a hint, from anywhere.
+   *
+   * **The confirm is a property of the hint, not of the button.** The first
+   * hint per puzzle is irreversible and forfeits the percentile, so it confirms
+   * once — and while that rule lived inside the toolbar, the board's `H` key
+   * dispatched the hint directly and skipped it. One unconfirmed keystroke cost
+   * a player the thing the dialog exists to protect.
+   *
+   * So it lives here, above both callers, and there is no longer a path to a
+   * hint that does not pass through it.
+   */
+  const requestHint = () => {
+    if (session.status !== 'playing' || session.hintsUsed >= MAX_HINTS) return;
+    // Hints two and three go straight through; the cost is already accepted.
+    if (hintNeedsConfirmation(session)) onConfirmHint();
+    else onAction({ type: 'hint' });
+  };
+
   return (
     <div className={LAYOUT}>
       <div className={GRID_AREA}>
@@ -100,6 +120,7 @@ export function BoardLayout({
               session={session}
               onAction={onAction}
               onPause={onPause}
+              onRequestHint={requestHint}
               highlightMatching={highlightMatching}
               highlightUnits={highlightUnits}
             />
@@ -121,7 +142,7 @@ export function BoardLayout({
           session={session}
           onAction={onAction}
           onPause={onPause}
-          onConfirmHint={onConfirmHint}
+          onHint={requestHint}
           clock={clock}
           showTimer={showTimer}
         />

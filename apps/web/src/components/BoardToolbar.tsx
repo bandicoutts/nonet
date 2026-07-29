@@ -1,4 +1,4 @@
-import { MAX_HINTS, MAX_MISTAKES, hintNeedsConfirmation } from '@nonet/engine';
+import { MAX_HINTS, MAX_MISTAKES } from '@nonet/engine';
 import type { Action, SessionState } from '@nonet/engine';
 import { BoardTimer } from './ElapsedTime';
 import type { ElapsedClock } from '@/lib/elapsed';
@@ -40,11 +40,14 @@ export interface BoardToolbarProps {
   readonly onAction: (action: Action) => void;
   readonly onPause: () => void;
   /**
-   * The first hint per puzzle confirms once — it is irreversible and forfeits
-   * the percentile. The toolbar asks the shell to raise that dialog rather than
-   * owning it, because the same confirm is reachable from the keyboard.
+   * Ask for a hint. **Whether it confirms first is not decided here.**
+   *
+   * The first hint per puzzle is irreversible and forfeits the percentile, so
+   * it confirms once — but the same hint is reachable from the keyboard, and
+   * when this component owned that rule the `H` key quietly bypassed it. The
+   * decision lives in `BoardLayout` now, where both callers share it.
    */
-  readonly onConfirmHint: () => void;
+  readonly onHint: () => void;
   /**
    * The clock, not the time.
    *
@@ -65,19 +68,12 @@ export function BoardToolbar({
   session,
   onAction,
   onPause,
-  onConfirmHint,
+  onHint,
   clock,
   showTimer = true,
 }: BoardToolbarProps) {
   const locked = session.status !== 'playing';
   const hintsLeft = MAX_HINTS - session.hintsUsed;
-
-  const takeHint = () => {
-    if (locked || hintsLeft === 0) return;
-    // Hints two and three go straight through; the cost is already accepted.
-    if (hintNeedsConfirmation(session)) onConfirmHint();
-    else onAction({ type: 'hint' });
-  };
 
   return (
     <div className="flex flex-col gap-sm">
@@ -105,7 +101,14 @@ export function BoardToolbar({
                       'border-error bg-error'
                     : 'border-fg3-text'
                 }`}
-                data-spent={index < session.mistakes ? '' : undefined}
+                // `data-life-spent`, not `data-spent`: the pad marks an
+                // exhausted digit with the latter, and `spent` is the design's
+                // word for that key state (components.md). Two different things
+                // under one attribute cross-matched every selector that went
+                // looking for either — a check that read "three mistakes" off
+                // this board was really reading two mistakes and a used-up
+                // digit.
+                data-life-spent={index < session.mistakes ? '' : undefined}
                 aria-hidden="true"
               />
             ))}
@@ -143,7 +146,7 @@ export function BoardToolbar({
           // left without having to find a separate label.
           describedAs={`Hint, ${hintsLeft} of ${MAX_HINTS} left`}
           disabled={locked || hintsLeft === 0}
-          onClick={takeHint}
+          onClick={onHint}
         />
         <Chip label="Pause" disabled={locked} onClick={onPause} />
       </div>

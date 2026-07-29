@@ -88,6 +88,15 @@ export interface BoardProps {
    * component, so `P` is forwarded rather than handled.
    */
   readonly onPause?: () => void;
+  /**
+   * Ask for a hint, forwarded for the same reason as `onPause`.
+   *
+   * A hint is a board action, but *whether it confirms first* is not a board
+   * rule — the first one per puzzle is irreversible and forfeits the
+   * percentile. `H` used to dispatch the hint straight to the engine, which
+   * meant the keyboard skipped a confirmation the button always showed.
+   */
+  readonly onRequestHint?: () => void;
   readonly label?: string;
   /**
    * Shading, from Settings.
@@ -120,6 +129,7 @@ export function Board({
   session,
   onAction,
   onPause,
+  onRequestHint,
   label = 'Sudoku puzzle',
   highlightMatching = true,
   highlightUnits = true,
@@ -248,7 +258,7 @@ export function Board({
 
       if (key === 'h' || key === 'H') {
         event.preventDefault();
-        onAction({ type: 'hint' });
+        onRequestHint?.();
         return;
       }
 
@@ -276,7 +286,7 @@ export function Board({
         );
       }
     },
-    [focused, move, onAction, onPause],
+    [focused, move, onAction, onPause, onRequestHint],
   );
 
   /*
