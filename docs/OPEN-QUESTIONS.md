@@ -2,7 +2,7 @@
 
 Things that are **not decided**. Where an item carries a recommendation, none
 of them has been agreed — do not treat a recommendation here as a decision.
-Audit findings (section 1) carry none by design: they are one line and a file
+Audit findings (section 2) carry none by design: they are one line and a file
 reference, and the code is the detail. When one is settled, delete it from this
 file and record it in `DECISIONS.md`.
 
@@ -11,7 +11,36 @@ not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. Unfixed findings from the UX and IA audits
+## 1. Should a practice result be shareable, and as what?
+
+**A product question, not a defect.** Practice, archive and replay solves have
+no share control at all: `buildResult` gives them a `null` edition number
+(`result.ts:253-262`) and `SolvedScreen` hides the whole share block when it is
+null (`SolvedScreen.tsx:133`). Only today's daily can be shared.
+
+That is not a guard to remove. **A daily share is a claim about a shared
+object** — we all played No. 1247, here is how I did — which is why it works
+with no link: the recipient can go and get the same puzzle. A practice share has
+no shared object. The recipient cannot play the puzzle you played, so "Expert
+practice, 4:12" is a boast with nothing behind it. Dropping the guard would ship
+exactly that.
+
+Two ways that work:
+
+- **Put the seed in the share URL**, so the recipient can play the same practice
+  puzzle. That turns a boast into a challenge and is the more interesting
+  feature — and a real one: a URL scheme, a route change, and an OG variant that
+  names the challenge rather than the edition.
+- **Leave practice unshareable and make it legible.** A missing button reads as
+  broken; a stated reason does not.
+
+Recommendation: the first, eventually. Neither now. Note that the first is the
+only one of the two that would also need the OG card to stop being
+per-edition-only (NONET-43).
+
+---
+
+## 2. Unfixed findings from the UX and IA audits
 
 Each verified against `HEAD` on 2026-07-29, not carried over on trust. The
 generators that produced them are in `docs/audits/`; re-run those rather than
@@ -34,7 +63,7 @@ the export is surplus, which is what the line above says instead.
 
 ---
 
-## 2. Nothing else is open
+## 3. Nothing else is open
 
 Every other question that was here has been settled and recorded in
 `DECISIONS.md`. The three most recently closed:
