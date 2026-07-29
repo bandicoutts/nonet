@@ -32,7 +32,7 @@ Two, chosen in Settings and switchable on the board. Mode is remembered.
 - **Digit-first:** while a digit remains loaded, repeated wrong placements of it count as one mistake **across every cell tried**, until the player changes digit or corrects the error. The gesture is painting one digit over many cells, so the whole sweep is one intent. Without this, three fast taps end a puzzle — a cliff that exists only because the mode is fast.
 - **Cell-first:** repeated wrong placements of the same digit **in the same cell** count as one mistake. The unit of intent here is the cell — select one, commit a digit, move on — so trying 6 in cell A and then 6 in cell B are two decisions and both are charged. What is not charged is pressing 6 into cell A again, which is a player checking the key registered, or holding one belief about one cell.
 
-Containment ends when the error is corrected, when the cell is erased, or (digit-first) when the loaded digit changes. Switching input mode charges the next slip, because it is a change of gesture.
+Containment ends when the error is corrected, when the cell is erased, or (digit-first) when the loaded digit **changes**. Re-tapping the key that is already loaded is a stutter, not a return: it expresses no change of mind and keeps the containment. Loading `ERASE`, or clearing the cursor, does end it — those are a different tool. Switching input mode charges the next slip, because it is a change of gesture.
 
 **Engine rules, both unit-tested.** DECISIONS.md NONET-39.
 

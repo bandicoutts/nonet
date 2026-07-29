@@ -38,11 +38,22 @@ function withMistakes(
 }
 
 /**
- * Load a digit in digit-first mode, or clear the loaded digit with null.
- * Loading always ends containment — the rule holds only while one digit stays
- * loaded, so returning to a digit costs a fresh life.
+ * Load a digit in digit-first mode, load `ERASE`, or clear the cursor with
+ * null.
+ *
+ * Loading ends containment, because the allowance holds only while one digit
+ * stays loaded and returning to a digit is a fresh decision — **but re-tapping
+ * the key that is already loaded is not returning to anything.** It is a
+ * stutter: a second press of a key the player never left, expressing no change
+ * of mind, and it used to silently re-arm the charge so the next slip with that
+ * digit cost another life.
+ *
+ * `ERASE` and null still clear. Neither can equal a digit, and both are a
+ * genuine change of tool — and erasing is how the error gets fixed, which ends
+ * containment on its own path anyway.
  */
-export function loadDigit(tracker: MistakeTracker, _loaded: Digit | 'erase' | null): MistakeTracker {
+export function loadDigit(tracker: MistakeTracker, loaded: Digit | 'erase' | null): MistakeTracker {
+  if (loaded !== null && loaded === tracker.containedDigit) return tracker;
   return { ...tracker, containedDigit: null, containedCell: null };
 }
 

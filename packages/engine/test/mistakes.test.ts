@@ -152,6 +152,64 @@ describe('digit-first containment', () => {
     expect(tracker.locked).toBe(true);
   });
 
+  /**
+   * A stutter is not a return.
+   *
+   * Re-tapping the key that is already loaded expresses no change of mind, and
+   * it used to clear containment silently — so a player double-tapping a pad
+   * key, or leaning on it, paid a second life for the same wrong idea.
+   *
+   * Until NONET-40 this whole behaviour was asserted by nothing at all: it
+   * lived in a doc comment while shaping the mistake tally, which is why the
+   * cleared cases below are written out rather than left to fall out of the
+   * type.
+   */
+  test('re-tapping the loaded key keeps containment, so a repeat is still free', () => {
+    let tracker = loadDigit(createMistakeTracker(), 5);
+    tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: CELL });
+    expect(tracker.mistakes).toBe(1);
+
+    tracker = loadDigit(tracker, 5);
+    expect(tracker.containedDigit).toBe(5);
+
+    tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: OTHER_CELL });
+    expect(tracker.mistakes).toBe(1);
+  });
+
+  test('loading ERASE clears containment — a different tool, not a stutter', () => {
+    let tracker = loadDigit(createMistakeTracker(), 5);
+    tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: CELL });
+
+    tracker = loadDigit(tracker, 'erase');
+    expect(tracker.containedDigit).toBeNull();
+
+    tracker = loadDigit(tracker, 5);
+    tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: CELL });
+    expect(tracker.mistakes).toBe(2);
+  });
+
+  test('clearing the cursor with null clears containment', () => {
+    let tracker = loadDigit(createMistakeTracker(), 5);
+    tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: CELL });
+
+    tracker = loadDigit(tracker, null);
+    expect(tracker.containedDigit).toBeNull();
+
+    tracker = loadDigit(tracker, 5);
+    tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: CELL });
+    expect(tracker.mistakes).toBe(2);
+  });
+
+  /**
+   * Re-tapping is only free while the containment is that digit's. With nothing
+   * contained there is nothing to keep, and loading must not invent one.
+   */
+  test('re-tapping a key with no containment in play changes nothing', () => {
+    const tracker = loadDigit(loadDigit(createMistakeTracker(), 5), 5);
+    expect(tracker.containedDigit).toBeNull();
+    expect(tracker.mistakes).toBe(0);
+  });
+
   test('changing digit and coming back charges again', () => {
     let tracker = loadDigit(createMistakeTracker(), 5);
     tracker = recordWrongPlacement(tracker, { mode: 'digitFirst', digit: 5, cell: CELL });

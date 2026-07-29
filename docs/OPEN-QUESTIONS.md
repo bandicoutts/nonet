@@ -9,41 +9,16 @@ not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. Does re-tapping a loaded digit-first key re-arm the charge?
+## 1. Nothing is open
 
-Found while auditing which reducer paths can be dispatched with values equal to
-the current state (NONET-38). It is a **mistake-tally question, not an identity
-question** — which is why it was not changed along with `selectCell`, where
-"nothing happened" is unambiguous. Measured, not assumed.
+Every question that was here has been settled and recorded in `DECISIONS.md`.
+The three most recently closed:
 
-The other half of this question — cell-first charging per press for one
-repeated wrong digit — is **settled and built**: containment now exists in
-cell-first, keyed on digit *and* cell (`DECISIONS.md` NONET-39).
-
-- **Digit-first: re-tapping the already-loaded key re-arms the charge.**
-  `loadDigit` always clears containment, so tapping `6` when `6` is already
-  loaded takes `containedDigit` from `6` to `null` and the next wrong placement
-  of that same digit costs a second life. The rule was written as "returning to
-  a digit costs a fresh life", and re-tapping a key that is already loaded is
-  arguably not returning to it — the player has expressed no change of mind.
-
-  *Recommendation:* treat loading the digit that is already loaded as no
-  gesture at all. Note this cannot be a mechanical "return the same state"
-  change, because the containment clear is the behaviour in question.
-
-Note this is currently asserted by **no test at all** — the behaviour exists
-only in a doc comment on `loadDigit`, which means it has been shaping the
-mistake tally with nothing holding it in place. Whichever way it is settled
-needs a test, including the `ERASE` and cleared cases.
-
-(The related duplicate undo snapshot is fixed — `DECISIONS.md` NONET-38.)
-
----
-
-## 2. Nothing else is open
-
-Every other question that was here has been settled and recorded in
-`DECISIONS.md`. The two most recently closed:
+- **Repeating a mistake** (NONET-39, NONET-40). Cell-first gained containment
+  keyed on digit *and* cell, and re-tapping an already-loaded digit-first key no
+  longer re-arms the charge. Both were found by auditing which reducer paths can
+  be dispatched with values equal to the current state (NONET-38), and the
+  second had been shaping the mistake tally with no test holding it in place.
 
 - **Email delivery** (NONET-30). Custom SMTP is configured through
   `config.toml` and pushed with `supabase config push`, so the sign-in template

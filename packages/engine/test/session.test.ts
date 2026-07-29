@@ -171,6 +171,37 @@ describe('digit-first containment through the session', () => {
     state = apply(state, { type: 'placeDigit', cell: 3, digit: WRONG_DIGIT });
     expect(state.mistakes).toBe(2);
   });
+
+  /**
+   * Through the reducer, because this is the path the pad actually takes: a
+   * second press of a loaded key dispatches `loadDigit` again (NONET-40).
+   */
+  test('tapping the loaded pad key again does not re-arm the charge', () => {
+    let state = newSession({ mode: 'digitFirst' });
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+    state = apply(state, { type: 'placeDigit', cell: 2, digit: WRONG_DIGIT });
+    expect(state.mistakes).toBe(1);
+
+    // The stutter: same key, twice more, no change of mind.
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+
+    state = apply(state, { type: 'placeDigit', cell: 3, digit: WRONG_DIGIT });
+    expect(state.mistakes).toBe(1);
+    expect(state.loadedDigit).toBe(WRONG_DIGIT);
+  });
+
+  test('loading ERASE and returning to the digit does re-arm it', () => {
+    let state = newSession({ mode: 'digitFirst' });
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+    state = apply(state, { type: 'placeDigit', cell: 2, digit: WRONG_DIGIT });
+
+    state = apply(state, { type: 'loadDigit', digit: 'erase' });
+    state = apply(state, { type: 'loadDigit', digit: WRONG_DIGIT });
+
+    state = apply(state, { type: 'placeDigit', cell: 3, digit: WRONG_DIGIT });
+    expect(state.mistakes).toBe(2);
+  });
 });
 
 describe('loading ERASE in digit-first', () => {
