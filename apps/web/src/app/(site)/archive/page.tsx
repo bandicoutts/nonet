@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import { ArchiveScreen } from '@/components/ArchiveScreen';
 
-export const metadata: Metadata = { title: 'Archive' };
+const DESCRIPTION = 'Every edition since No. 1, all of them free to play.';
+
+export const metadata: Metadata = {
+  title: 'Archive',
+  description: DESCRIPTION,
+  alternates: { canonical: '/archive' },
+  openGraph: { title: 'Nonet — archive', description: DESCRIPTION, url: '/archive' },
+  twitter: { title: 'Nonet — archive', description: DESCRIPTION },
+};
 
 /**
  * Archive: every edition since No. 1.

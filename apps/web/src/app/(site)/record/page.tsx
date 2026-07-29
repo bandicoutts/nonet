@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import { RecordScreen } from '@/components/RecordScreen';
 
-export const metadata: Metadata = { title: 'Record' };
+const DESCRIPTION = 'Streaks, completion and times, derived from every solve.';
+
+export const metadata: Metadata = {
+  title: 'Record',
+  description: DESCRIPTION,
+  alternates: { canonical: '/record' },
+  openGraph: { title: 'Nonet — record', description: DESCRIPTION, url: '/record' },
+  twitter: { title: 'Nonet — record', description: DESCRIPTION },
+};
 
 /**
  * Record: streaks, completion and times, all derived from the solve rows.

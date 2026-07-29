@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { HomeScreen } from '@/components/HomeScreen';
 
-export const metadata: Metadata = { title: 'Today' };
+export const metadata: Metadata = { title: 'Today', alternates: { canonical: '/' } };
 
 /**
  * Home: the daily hero, the streak band and the practice section.

@@ -3,7 +3,22 @@ import { redirect } from 'next/navigation';
 import { SolvedView } from '@/components/SolvedView';
 import { parsePuzzleRef } from '@/lib/puzzles';
 
-export const metadata: Metadata = { title: 'Solved' };
+/*
+ * Written for a stranger, not for the player who just solved it.
+ *
+ * A shared link goes to the root (`lib/site.ts`), and anyone opening `/solved`
+ * without a solve of their own is redirected to Home — so the card that shows
+ * has to sell the game rather than describe a result the reader cannot see.
+ */
+const DESCRIPTION = 'One grid a day, the same one for everyone. See how today went.';
+
+export const metadata: Metadata = {
+  title: 'Solved',
+  description: DESCRIPTION,
+  alternates: { canonical: '/solved' },
+  openGraph: { title: 'Nonet', description: DESCRIPTION, url: '/solved' },
+  twitter: { title: 'Nonet', description: DESCRIPTION },
+};
 
 /**
  * The result screen: time, mistakes, percentile where one was earned, and share.

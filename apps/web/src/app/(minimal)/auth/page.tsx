@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { SignInForm } from '@/components/SignInForm';
 import { safeRedirect } from '@/lib/redirect';
 
-export const metadata: Metadata = { title: 'Sign in' };
+export const metadata: Metadata = { title: 'Sign in', alternates: { canonical: '/auth' } };
 
 /**
  * `searchParams` is a Promise in Next 16, so it is awaited. The `next` value is

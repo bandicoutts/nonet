@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'How to play',
   description: 'Fill every row, column and box with 1 to 9.',
+  alternates: { canonical: '/how-to-play' },
 };
 
 /**

@@ -3,7 +3,20 @@ import { DailyBoard } from '@/components/DailyBoard';
 import { PuzzleBoard } from '@/components/PuzzleBoard';
 import { parsePuzzleRef, parseReplay } from '@/lib/puzzles';
 
-export const metadata: Metadata = { title: 'Board' };
+/*
+ * The board's own description, because "one sudoku a day" is the product and
+ * this route is the thing itself — and it serves practice and archive puzzles
+ * too, so it cannot claim to be today's.
+ */
+const DESCRIPTION = 'The grid. Three mistakes, three hints, and a clock you can hide.';
+
+export const metadata: Metadata = {
+  title: 'Board',
+  description: DESCRIPTION,
+  alternates: { canonical: '/board' },
+  openGraph: { title: 'Nonet — the board', description: DESCRIPTION, url: '/board' },
+  twitter: { title: 'Nonet — the board', description: DESCRIPTION },
+};
 
 /**
  * The board is immersive: no site nav, and the only way out is the back control

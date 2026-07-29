@@ -4,6 +4,7 @@ import { PUZZLE_EPOCH } from '@nonet/engine';
 export const metadata: Metadata = {
   title: 'About',
   description: 'A nonet is a set of nine.',
+  alternates: { canonical: '/about' },
 };
 
 const MONTHS = [
