@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { THEME_CHOICES, writeTheme } from '@/lib/theme';
+import { THEME_CHOICES, readTheme, writeTheme } from '@/lib/theme';
 import type { ThemeChoice } from '@/lib/theme';
 import { readSettings, writeSettings } from '@/lib/settings';
 
@@ -63,10 +63,23 @@ export function MobileDrawer({ email, signOut }: MobileDrawerProps) {
     triggerRef.current?.focus();
   }, []);
 
-  // Read on open rather than on mount: there is no localStorage during the
-  // server render, and the value can have changed on the Settings screen since.
+  /*
+   * Read on open rather than on mount: there is no localStorage during the
+   * server render, and the value can have changed on the Settings screen since.
+   *
+   * **`readTheme` is the read source, not `readSettings().theme`.** The choice
+   * is stored twice — under its own key, and again in the settings blob — and
+   * the standalone key is the one that decides what the player actually sees:
+   * a blocking script in `<head>` reads it before any module loads, because it
+   * cannot parse JSON and a light choice must not flash dark. The blob copy
+   * exists so the setting syncs to `profiles` with the other six.
+   *
+   * This read used to come off the blob while Settings read the key, so two
+   * surfaces answered the same question from two stores with nothing
+   * reconciling them (NONET-35).
+   */
   useEffect(() => {
-    if (isOpen) setTheme(readSettings().theme);
+    if (isOpen) setTheme(readTheme());
   }, [isOpen]);
 
   // No page scroll behind the overlay (DESIGN.md).
@@ -119,7 +132,8 @@ export function MobileDrawer({ email, signOut }: MobileDrawerProps) {
   const chooseTheme = (choice: ThemeChoice) => {
     setTheme(choice);
     // Both, and in this order: the attribute is what the page reads now, the
-    // settings record is what the next load and the account read later.
+    // settings record is what the next load and the account read later. The
+    // key is the read source (see the open effect); the blob copy is for sync.
     writeTheme(choice);
     writeSettings({ ...readSettings(), theme: choice });
   };

@@ -17,6 +17,12 @@ import type { ThemeChoice } from './theme';
 const SETTINGS_KEY = 'nonet:settings';
 
 export interface Settings {
+  /**
+   * A copy, for the sync. `readTheme` is what a screen reads — the standalone
+   * key is what the `<head>` script applies before first paint, so it is the
+   * one the player is looking at. This field exists so the choice travels to
+   * `profiles` with the other six (NONET-35).
+   */
   readonly theme: ThemeChoice;
   readonly inputMode: 'cellFirst' | 'digitFirst';
   /** The purist toggle. Off means nothing flagged, nothing tallied, no percentile. */

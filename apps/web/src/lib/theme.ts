@@ -33,7 +33,16 @@ export function isThemeChoice(value: unknown): value is ThemeChoice {
  */
 export const THEME_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}}catch(e){}`;
 
-/** The stored choice, or `system` when there is none. Client only. */
+/**
+ * The stored choice, or `system` when there is none. Client only.
+ *
+ * **This is where a screen reads the theme from.** The choice also lives in the
+ * settings blob so it syncs to `profiles` with the other six, but the blob is a
+ * copy for the sync's benefit — this key is what the `<head>` script reads
+ * before first paint, so it is what the player is actually looking at. Both
+ * surfaces that draw a theme control read it here; a surface reading the blob
+ * instead is one that can disagree with the page it is drawn on (NONET-35).
+ */
 export function readTheme(): ThemeChoice {
   try {
     const stored = window.localStorage.getItem(THEME_KEY);
