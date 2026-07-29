@@ -1,10 +1,9 @@
 // @vitest-environment node
 // A filesystem test, not a DOM one — and under jsdom `import.meta.url` is an
 // http URL, which `fileURLToPath` refuses.
-import { readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { APP, collectRoutes } from './route-tree';
 
 /**
  * The chrome a route gets is decided by which route group it sits in, so the
@@ -16,32 +15,6 @@ import { describe, expect, it } from 'vitest';
  * DESIGN.md: site header + footer on browsing screens, immersive header on
  * Board and Solved, minimal header on Auth, 404 and load error.
  */
-const APP = fileURLToPath(new URL('../src/app', import.meta.url));
-
-type Route = { pathname: string; group: string | null };
-
-function collectRoutes(dir: string, segments: string[] = [], group: string | null = null): Route[] {
-  const found: Route[] = [];
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (!statSync(full).isDirectory()) {
-      if (entry === 'page.tsx') {
-        found.push({ pathname: `/${segments.join('/')}` || '/', group });
-      }
-      continue;
-    }
-    const isGroup = entry.startsWith('(') && entry.endsWith(')');
-    found.push(
-      ...collectRoutes(
-        full,
-        isGroup ? segments : [...segments, entry],
-        isGroup ? entry.slice(1, -1) : group,
-      ),
-    );
-  }
-  return found;
-}
-
 const routes = collectRoutes(APP);
 const groupOf = new Map(routes.map((r) => [r.pathname, r.group]));
 
