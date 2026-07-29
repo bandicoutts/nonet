@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { palettes } from '@nonet/design';
 import { TokenStyles } from '@/components/TokenStyles';
 import { mono, sans } from '@/lib/fonts';
 import { OfflineBanner } from '@/components/OfflineBanner';
@@ -65,10 +66,19 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Both grounds, so the browser chrome matches whichever theme resolves.
+  /*
+   * Both grounds, so the browser chrome matches whichever theme resolves — and
+   * **read from the tokens**, because the literals these replaced had already
+   * drifted: the dark one said `#101215` against a `--bg` of `#131518`, so the
+   * chrome and the page had been a shade apart for as long as it existed.
+   *
+   * This is the surface that *can* answer per theme. The manifest has one
+   * `theme_color` and no media query, so it covers the install only — see
+   * `manifest.ts`.
+   */
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F1F2F3' },
-    { media: '(prefers-color-scheme: dark)', color: '#101215' },
+    { media: '(prefers-color-scheme: light)', color: palettes.light['--bg'] },
+    { media: '(prefers-color-scheme: dark)', color: palettes.dark['--bg'] },
   ],
 };
 
