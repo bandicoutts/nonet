@@ -9,6 +9,7 @@ import {
   shareText,
   variantOf,
 } from '@/lib/result';
+import { SITE_URL } from '@/lib/site';
 import type { GuestSolve, PuzzleRef } from '@/lib/storage';
 
 const DAILY: PuzzleRef = { kind: 'daily', difficulty: 'hard', seed: 4242 };
@@ -224,7 +225,7 @@ describe('shareText', () => {
    */
   it('is the three specified lines', () => {
     expect(shareText({ number: 1247, difficulty: 'hard', durationMs: 432_000, mistakes: 1, percentile: 22 }))
-      .toBe('NONET No. 1247 · Hard\n07:12 · 1 mistake · top 22%\nnonet.app');
+      .toBe(`NONET No. 1247 · Hard\n07:12 · 1 mistake · top 22%\n${SITE_URL}`);
   });
 
   it('pluralises the mistake count', () => {
@@ -245,12 +246,33 @@ describe('shareText', () => {
    */
   it('drops the percentile when the solve was not ranked', () => {
     const text = shareText({ number: 7, difficulty: 'hard', durationMs: 432_000, mistakes: 1, percentile: null });
-    expect(text).toBe('NONET No. 7 · Hard\n07:12 · 1 mistake\nnonet.app');
+    expect(text).toBe(`NONET No. 7 · Hard\n07:12 · 1 mistake\n${SITE_URL}`);
   });
 
   it('drops the mistake count when checking was off', () => {
     const text = shareText({ number: 7, difficulty: 'hard', durationMs: 432_000, mistakes: null, percentile: null });
-    expect(text).toBe('NONET No. 7 · Hard\n07:12\nnonet.app');
+    expect(text).toBe(`NONET No. 7 · Hard\n07:12\n${SITE_URL}`);
+  });
+
+  /*
+   * The share line is the one string in the product that leaves it, and it was
+   * `nonet.app` — a domain the project does not own, so every result ever
+   * shared named an address that does not resolve. A bare hostname is also not
+   * a link in most clients that receive it.
+   *
+   * The root, not `/solved`: a recipient has no solve in their storage, so that
+   * route gives them a blank frame and a redirect back to Home.
+   */
+  it('ends with an absolute, followable link to the site root', () => {
+    const text = shareText({ number: 1247, difficulty: 'hard', durationMs: 432_000, mistakes: 1, percentile: 22 });
+    const last = text.split('\n')[2];
+
+    expect(last).toBe(SITE_URL);
+
+    const url = new URL(SITE_URL);
+    expect(url.protocol).toBe('https:');
+    expect(url.pathname).toBe('/');
+    expect(url.search).toBe('');
   });
 
   it('never contains a digit from the grid or the word solution', () => {

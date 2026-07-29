@@ -33,7 +33,13 @@ function longDate(isoDate: string): string {
  * **The contact address is omitted.** The export gives `hello@nonet.app`, and
  * that domain is not owned (NONET-30) — a contact address that bounces is worse
  * than no contact at all, because it looks like being ignored rather than like
- * an omission. It returns with the domain.
+ * an omission.
+ *
+ * The *site* address is settled even though the mailbox is not: it is
+ * `SITE_URL` in `lib/site.ts`, currently the Vercel deployment, and that is the
+ * product's address by choice rather than a placeholder waiting on a custom
+ * domain. A custom domain would change that one constant. A contact address
+ * needs a mailbox as well as a domain, which is why it is still absent here.
  */
 export default function Page() {
   return (

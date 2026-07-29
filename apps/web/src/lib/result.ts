@@ -14,6 +14,7 @@
  * else survives Supabase being down, which is what guest-first requires.
  */
 import { currentStreak, longestStreak } from './streak';
+import { SITE_URL } from './site';
 import type { GuestSolve } from './storage';
 import { PUBLISH_MINUTE, puzzleNumber } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
@@ -201,6 +202,10 @@ export interface ShareInput {
  * rather than being written as some invented placeholder: the prototype only
  * ever drew the ranked, checked case, so those are omissions rather than new
  * copy. Recorded in DECISIONS.md NONET-20.
+ *
+ * The third line is `SITE_URL`, not a literal. It was `nonet.app` — a domain
+ * the project does not own — so every result ever shared named an address that
+ * does not resolve.
  */
 export function shareText(input: ShareInput): string {
   const segments = [formatDuration(input.durationMs)];
@@ -215,7 +220,7 @@ export function shareText(input: ShareInput): string {
   return [
     `NONET No. ${input.number} · ${DIFFICULTY_LABEL[input.difficulty]}`,
     segments.join(' · '),
-    'nonet.app',
+    SITE_URL,
   ].join('\n');
 }
 

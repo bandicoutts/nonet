@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SolvedScreen } from '@/components/SolvedScreen';
+import { SITE_URL } from '@/lib/site';
 import type { GuestSolve, PuzzleRef } from '@/lib/storage';
 
 const DAILY: PuzzleRef = { kind: 'daily', difficulty: 'hard', seed: 4242 };
@@ -169,7 +170,9 @@ describe('SolvedScreen', () => {
 
       await userEvent.click(screen.getByRole('button', { name: /Share result/ }));
 
-      expect(writeText).toHaveBeenCalledWith('NONET No. 208 · Hard\n07:12 · 1 mistake · top 22%\nnonet.app');
+      expect(writeText).toHaveBeenCalledWith(
+        `NONET No. 208 · Hard\n07:12 · 1 mistake · top 22%\n${SITE_URL}`,
+      );
       await waitFor(() => expect(screen.getByText('Copied')).toBeDefined());
     });
 
