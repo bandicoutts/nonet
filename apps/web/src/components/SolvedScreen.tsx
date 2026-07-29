@@ -238,11 +238,15 @@ export function SolvedScreen({
             Share result &#8599;
           </button>
         )}
-        <Link
-          href="/"
-          className={SECONDARY}
-        >
-          Practice another
+        {/*
+          It says "choose" because it does not deal a puzzle — it lands on
+          Home's practice picker. Dealing one from here would have to invent a
+          difficulty the player did not pick, and would walk straight past the
+          abandon confirm that guards an unfinished practice board (NONET-23),
+          which is the one control in the product that destroys something.
+        */}
+        <Link href="/#practice" className={SECONDARY}>
+          Choose a practice puzzle
         </Link>
         {/* Restored now that replay mode exists (NONET-32). It was absent while
             the link would have landed on the ordinary board and recorded a

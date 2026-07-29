@@ -138,7 +138,9 @@ export function HomeScreen({ now }: { now?: Date }) {
         <StreakBand current={streak.current} best={streak.best} solved={streak.solved} />
       )}
 
-      <div className="flex flex-col gap-s border-t border-rule pt-m">
+      {/* Named so the result screen can land a player on the picker rather
+          than at the top of Home. */}
+      <div id="practice" className="flex flex-col gap-s border-t border-rule pt-m scroll-mt-l">
         <p className="type-mono-label text-fg3-text">Practice — unlimited</p>
 
         {practice === null ? null : (
