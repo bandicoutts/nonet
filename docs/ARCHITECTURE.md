@@ -13,6 +13,29 @@ System overview for Nonet. Mirrors Halve's proven architecture; deltas are calle
 - `solves` — user id, puzzle id, solved_at, local_date, duration_ms, mistakes, used_hint, attempt (1|2), checked (bool), kind (daily/archive/practice/replay). One row per completed solve. Streaks/stats **derived** from this, never denormalized. `puzzle_id` is `on delete restrict`: deleting a puzzle would silently shorten earned streaks.
 - `autosaves` — the one *unfinished* puzzle per player per board: grid, notes (81 masks), elapsed_ms, mistakes, hints_used, updated_at, and a denormalised `puzzle_kind` held honest by a composite FK. Separate from `solves` because an autosave is overwritten constantly, a solve is written once, and the sign-in merge resolves them by opposite rules. **Never the undo stack** (NONET-9).
 
+### The guest side: every `localStorage` key
+
+Guest-first means this is the *primary* store and the tables above are the copy
+(DECISIONS.md NONET-9). Every read is wrapped and falls back, so a browser that
+refuses storage still plays. `lib/sync.ts` + `lib/merge.ts` copy it up on
+sign-in.
+
+| Key | Owner | Scope | Shape | Server counterpart |
+|---|---|---|---|---|
+| `nonet:autosave:<kind>:<difficulty>:<seed>` | `storage.ts` | per puzzle | `{version, ref, grid (81 chars), notes (81 masks), elapsedMs, mistakes, hintsUsed, updatedAt}` | `autosaves` row |
+| `nonet:solves` | `storage.ts` | global, append-only | `GuestSolve[]` — `{ref, solvedAt, localDate, durationMs, mistakes, usedHint, attempt, checked, kind}` | `solves` rows |
+| `nonet:attempt:<kind>:<difficulty>:<seed>` | `puzzles.ts` | per puzzle | `{attempts, localDate}` (legacy: a bare number) | none — a failure is not a solve (NONET-27) |
+| `nonet:resumed:<kind>:<difficulty>:<seed>` | `storage.ts` | per puzzle, one-shot | `true`; written by the merge, deleted on read | none |
+| `nonet:settings` | `settings.ts` | global | the seven settings, camelCased | the seven `profiles` columns |
+| `nonet:theme` | `theme.ts` | global | `'light' \| 'dark' \| 'system'` | `profiles.theme`, via the blob |
+| `nonet:seen-intro` | `BoardScreen.tsx` | global, one-shot | `'1'`; suppresses `FirstRunNotice` | none |
+
+Two things the table cannot show. **The theme is stored twice on purpose** — the
+standalone key is what a screen reads and what the blocking `<head>` script
+applies, the blob copy exists so it syncs with the other six (NONET-41). And a
+**locked board writes an attempt record and no solve row**, which is why Archive
+and Record each read two stores to draw one day.
+
 Publication is gated on `published_at <= now()` — a timestamp, not a date. The row contains the solution, so read access is spoiler access, and a date boundary would open a pre-generated edition five minutes before its 00:05 UTC publish (DECISIONS.md NONET-14).
 
 ## Routes & navigation

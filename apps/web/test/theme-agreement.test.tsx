@@ -13,7 +13,7 @@ import { THEME_KEY } from '@/lib/theme';
  * again in the settings blob so it syncs to `profiles` with the other six. What
  * was not on purpose is that the two surfaces read *different* copies —
  * Settings from the key, the drawer from the blob — with three writers keeping
- * them in step and nothing reconciling them if they ever diverged (NONET-35).
+ * them in step and nothing reconciling them if they ever diverged (NONET-41).
  *
  * These tests do not assert that both copies are written. `SettingsScreen.test`
  * already pins that. They assert the weaker and more useful thing: that a

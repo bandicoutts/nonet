@@ -193,7 +193,7 @@ const ACCOUNT_BUTTON =
  * It also carries the only sign-out control above the drawer breakpoint.
  * `MobileDrawer` is `drawer:hidden`, so at 768 and up its Account section does
  * not exist, and a signed-in player had no way to sign out anywhere in the
- * product (NONET-35).
+ * product (NONET-42).
  *
  * The guest copy is unchanged. Nothing renders until the answer is in, because
  * a block that says "guest" and then flips to an address has told the player

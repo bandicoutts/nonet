@@ -54,6 +54,8 @@ function distinctDays(solves: readonly DailySolve[]): number[] {
  * A solve dated in the future is ignored rather than counted — it can only come
  * from a device clock that is wrong or a timezone jump, and letting it anchor
  * the run would inflate the streak.
+ *
+ * Exported for the tests; no other module imports it.
  */
 export function streakDays(solves: readonly DailySolve[], today: string): string[] {
   const days = distinctDays(solves);

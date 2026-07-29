@@ -10,6 +10,8 @@ import type { Action, Digit, SessionState } from '@nonet/engine';
  * **arming is a visible step, not silent**: the key shows it is held as soon as
  * the press begins, then changes again when it arms, so a player can tell
  * whether letting go will place a digit or pencil one.
+ *
+ * Exported for the tests; no other module imports it.
  */
 export const HOLD_MS = 340;
 

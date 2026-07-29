@@ -40,7 +40,12 @@ function toDate(day: number): string {
   return new Date(day * DAY_MS).toISOString().slice(0, 10);
 }
 
-/** The edition for a date, with the player's history applied. */
+/**
+ * The edition for a date, with the player's history applied.
+ *
+ * **Exported for the tests**, which reach it directly. No other module imports
+ * it, and that is not the same as it being dead.
+ */
 export function editionFor(
   date: string,
   solves: readonly GuestSolve[],

@@ -41,7 +41,7 @@ export const THEME_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THE
  * copy for the sync's benefit — this key is what the `<head>` script reads
  * before first paint, so it is what the player is actually looking at. Both
  * surfaces that draw a theme control read it here; a surface reading the blob
- * instead is one that can disagree with the page it is drawn on (NONET-35).
+ * instead is one that can disagree with the page it is drawn on (NONET-41).
  */
 export function readTheme(): ThemeChoice {
   try {

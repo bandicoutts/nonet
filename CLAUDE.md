@@ -15,7 +15,7 @@ Premium daily Sudoku web app — classic 9×9, one shared daily puzzle (00:05 UT
 - `docs/GAME-RULES.md` — game mechanics + product rules (mistakes, hints, streaks, daily/practice)
 - `docs/DESIGN.md` — locked design language (cool/architectural; NOT Halve's warm editorial)
 - `docs/DESIGN-BRIEF.md` — the original Claude Design brief; **historical, superseded in part by DECISIONS.md NONET-2**
-- `docs/DECISIONS.md` — decision log; **append a new entry in the same commit as any architectural change**
+- `docs/DECISIONS.md` — decision log; **append a new entry in the same commit as any architectural change**. **Read the file and take the next free ID before assigning one — never assume an ID is free.** Two sessions working in parallel both reached for NONET-35, and six code comments ended up citing an unrelated decision.
 - `docs/ROADMAP.md` — phases & milestone checklist
 - `docs/OPEN-QUESTIONS.md` — **what is not decided.** Read before assuming something was overlooked; it may be deliberate and unresolved
 

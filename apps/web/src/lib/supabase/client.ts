@@ -16,7 +16,7 @@ export function createClient() {
   return createBrowserClient(url, key);
 }
 
-/** Whether sign-in can be offered at all. */
+/** Whether sign-in can be offered at all. Exported for the tests; no other module imports it. */
 export function isConfigured(): boolean {
   return (
     process.env['NEXT_PUBLIC_SUPABASE_URL'] !== undefined &&

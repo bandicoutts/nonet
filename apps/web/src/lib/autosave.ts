@@ -16,6 +16,7 @@ import type { AutosaveRecord, PuzzleRef } from './storage';
  * pausing is not a board rule — so it is passed in rather than read off the
  * state.
  */
+/** Exported for the tests; no other module imports it. */
 export function toRecord(
   ref: PuzzleRef,
   session: SessionState,

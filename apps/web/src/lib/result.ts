@@ -64,6 +64,8 @@ const PUBLISH_MS = PUBLISH_MINUTE * 60_000;
  * unexplained. Assisted beats second attempt because a hint is a choice made
  * during this solve, where the attempt is a fact about a board that already
  * ended.
+ *
+ * Exported for the tests; no other module imports it.
  */
 export function variantOf(solve: GuestSolve): ResultVariant {
   if (!solve.checked) return 'unchecked';
@@ -80,6 +82,8 @@ export function variantOf(solve: GuestSolve): ResultVariant {
  * to state, that only a daily has a cohort at all. Practice puzzles are dealt at
  * random and archive editions are played years apart, so there is nobody to be
  * in the top 22% of.
+ *
+ * Exported for the tests; no other module imports it.
  */
 export function isRanked(solve: GuestSolve): boolean {
   return (
@@ -99,6 +103,8 @@ export function isRanked(solve: GuestSolve): boolean {
  *
  * `null` for anything that cannot extend a run — practice, archive and replay
  * record stats and never touch the streak (GAME-RULES.md).
+ *
+ * Exported for the tests; no other module imports it.
  */
 export function runFor(solve: GuestSolve, history: readonly GuestSolve[]): Run | null {
   if (solve.kind !== 'daily') return null;
@@ -168,6 +174,8 @@ function pad(n: number): string {
  * zero five minutes before the puzzle it is counting to has been published, and
  * a player who acts on it gets an error instead of a board — the client half of
  * the same publish gate `currentEdition` implements (NONET-17).
+ *
+ * Exported for the tests; no other module imports it.
  */
 export function msUntilNextEdition(at: Date = new Date()): number {
   const midnight = Math.floor(at.getTime() / DAY_MS) * DAY_MS;

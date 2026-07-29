@@ -32,6 +32,8 @@ const TIMER_SAVE_MS = 10_000;
  * seen, short enough that it does not read as the app having stalled. Skipped
  * entirely under `prefers-reduced-motion`, where the product's rule is that a
  * duration collapses rather than shortens.
+ *
+ * Exported for the tests; no other module imports it.
  */
 export const SOLVED_DWELL_MS = 1200;
 

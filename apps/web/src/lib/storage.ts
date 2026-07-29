@@ -76,6 +76,7 @@ export interface GuestSolve {
   readonly kind: 'daily' | 'archive' | 'practice' | 'replay';
 }
 
+/** Used throughout this module; the export itself is for the tests. */
 export function refKey(ref: PuzzleRef): string {
   return `${AUTOSAVE_PREFIX}${ref.kind}:${ref.difficulty}:${ref.seed}`;
 }

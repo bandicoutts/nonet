@@ -9,6 +9,8 @@
  *
  * `/board` is deliberately absent: it needs a puzzle to be meaningful, and
  * "sign in, land on a board you did not choose" is not a flow.
+ *
+ * Exported for the tests; no other module imports it.
  */
 export const SAFE_REDIRECTS = [
   '/',

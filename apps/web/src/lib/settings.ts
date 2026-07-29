@@ -21,7 +21,7 @@ export interface Settings {
    * A copy, for the sync. `readTheme` is what a screen reads — the standalone
    * key is what the `<head>` script applies before first paint, so it is the
    * one the player is looking at. This field exists so the choice travels to
-   * `profiles` with the other six (NONET-35).
+   * `profiles` with the other six (NONET-41).
    */
   readonly theme: ThemeChoice;
   readonly inputMode: 'cellFirst' | 'digitFirst';
@@ -44,7 +44,11 @@ export const DEFAULT_SETTINGS: Settings = {
   showTimer: true,
 };
 
-/** The `profiles` column for each setting, which is what the sync copies into. */
+/**
+ * The `profiles` column for each setting, which is what the sync copies into.
+ *
+ * Used internally by `toProfileRow`; the export itself is for the tests.
+ */
 export const SETTING_COLUMNS: Readonly<Record<keyof Settings, string>> = {
   theme: 'theme',
   inputMode: 'input_mode',

@@ -76,7 +76,7 @@ export function MobileDrawer({ email, signOut }: MobileDrawerProps) {
    *
    * This read used to come off the blob while Settings read the key, so two
    * surfaces answered the same question from two stores with nothing
-   * reconciling them (NONET-35).
+   * reconciling them (NONET-41).
    */
   useEffect(() => {
     if (isOpen) setTheme(readTheme());

@@ -23,7 +23,7 @@ const NAV: ReadonlyArray<{ href: Route; label: string }> = [
 export function SiteHeader() {
   // Resolved here rather than passed down, so the drawer stays a pure component
   // and can be tested without a Supabase client. The resolution itself moved to
-  // `useAccount`, because Settings needs the same answer (NONET-35).
+  // `useAccount`, because Settings needs the same answer (NONET-42).
   const { email, signOut } = useAccount();
 
   return (

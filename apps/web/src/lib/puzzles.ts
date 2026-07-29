@@ -13,7 +13,7 @@ import type { Difficulty } from '@nonet/engine';
 import { localDate, readSolves } from './storage';
 import type { PuzzleRef } from './storage';
 
-/** How many puzzles per band `seed.sql` holds. */
+/** How many puzzles per band `seed.sql` holds. Exported for the tests; no other module imports it. */
 export const PRACTICE_BANK_SIZE = 1000;
 
 const ATTEMPT_PREFIX = 'nonet:attempt:';

@@ -1,18 +1,43 @@
 # Open questions
 
-Things that are **not decided**. Each carries a recommendation, but none of
-them has been agreed — do not treat a recommendation here as a decision. When
-one is settled, delete it from this file and record it in `DECISIONS.md`.
+Things that are **not decided**. Where an item carries a recommendation, none
+of them has been agreed — do not treat a recommendation here as a decision.
+Audit findings (section 1) carry none by design: they are one line and a file
+reference, and the code is the detail. When one is settled, delete it from this
+file and record it in `DECISIONS.md`.
 
 Settled questions live in `DECISIONS.md` (NONET-1 … NONET-19). If something is
 not here and not there, it has probably not been thought about.
 
 ---
 
-## 1. Nothing is open
+## 1. Unfixed findings from the UX and IA audits
 
-Every question that was here has been settled and recorded in `DECISIONS.md`.
-The three most recently closed:
+Each verified against `HEAD` on 2026-07-29, not carried over on trust. The
+generators that produced them are in `docs/audits/`; re-run those rather than
+asking here for detail.
+
+- Board and result back controls are hardcoded `← Today` → `/` whatever the origin, against NONET-2 — `BoardScreen.tsx:364`, `SolvedScreen.tsx:171`.
+- "Practice another" goes to `/` rather than starting a practice puzzle — `SolvedScreen.tsx:240`.
+- Three `?error=` codes are written to the redirect and read by nothing — `auth/callback/route.ts:24,29,36`.
+- `PageStub.tsx` is unreferenced.
+- `placeholder.ts` is unreferenced.
+- `WINDOW_DAYS` is exported but used only inside its own module — `record.ts:21,102`.
+- Archive month arrows carry `aria-disabled` with no `disabled`; the clamp in the handler is what makes a press inert — `ArchiveScreen.tsx:155,167`.
+- `HomeScreen` and `SolvedScreen` each generate a whole puzzle from its seed to count givens — `HomeScreen.tsx:76`, `SolvedScreen.tsx:120`.
+
+Two findings from those runs are **not** carried, for different reasons. The
+missing sign-out above 768 was **fixed** by `e9d1464` — Settings reads auth
+state and renders the control at every width, reachable from the footer. The
+dead `WINDOW_DAYS` was **never true**: it is used at `record.ts:102`, so only
+the export is surplus, which is what the line above says instead.
+
+---
+
+## 2. Nothing else is open
+
+Every other question that was here has been settled and recorded in
+`DECISIONS.md`. The three most recently closed:
 
 - **Repeating a mistake** (NONET-39, NONET-40). Cell-first gained containment
   keyed on digit *and* cell, and re-tapping an already-loaded digit-first key no
@@ -31,8 +56,7 @@ The three most recently closed:
 - **Security review** (NONET-20, re-run after Phase 4). No findings. RLS on the
   new `failures` table verified live: anon reads `[]` and is denied on insert.
 
-What is *not* built is on `ROADMAP.md`. What is deliberately not decided would
-be here, and at the moment nothing is.
+What is *not* built is on `ROADMAP.md`.
 
 ---
 
