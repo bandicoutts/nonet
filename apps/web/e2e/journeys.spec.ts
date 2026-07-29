@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { SITE_URL } from '../src/lib/site';
 import { answerFor, clearState, solveAllButOne, solveBoard } from './helpers';
 
 test.beforeEach(async ({ page }) => {
@@ -26,7 +27,10 @@ test.describe('the daily', () => {
     // Three lines, no grid, no spoilers.
     const share = await page.locator('pre').innerText();
     expect(share.split('\n')).toHaveLength(3);
-    expect(share).toContain('nonet.app');
+    // From `lib/site.ts`, not a literal: this asserted `nonet.app` — a domain
+    // the project does not own — until NONET-30 changed the constant and left
+    // the assertion behind.
+    expect(share).toContain(SITE_URL);
   });
 
   /*
@@ -143,11 +147,21 @@ test.describe('settings', () => {
      * The autosave writes on a board change, carrying whatever the clock says
      * at that moment — so time has to pass *between* two changes for the saved
      * value to prove the clock is still running.
+     *
+     * Two *different* cells. This clicked the same one twice until NONET-38,
+     * when selecting an already-selected cell began returning the session
+     * unchanged: the second click stopped being a change, so nothing was
+     * written and the clock looked stopped when it was running.
      */
-    const empty = await firstEmptyCell(page);
-    await page.locator(`[data-cell="${empty}"]`).click();
+    const first = await firstEmptyCell(page);
+    await page.locator(`[data-cell="${first}"]`).click();
     await page.waitForTimeout(3000);
-    await page.locator(`[data-cell="${empty}"]`).click();
+    const second = await page.evaluate((skip) => {
+      const cells = [...document.querySelectorAll('[data-cell]')];
+      return cells.find((c) => !c.hasAttribute('data-given') && c.getAttribute('data-cell') !== String(skip))
+        ?.getAttribute('data-cell');
+    }, first);
+    await page.locator(`[data-cell="${second}"]`).click();
 
     // The readout is gone; the recording is not.
     const elapsed = await page.evaluate(() => {
