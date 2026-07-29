@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "pnpm -r test",
+    "e2e": "pnpm --filter @nonet/web e2e",
     "typecheck": "pnpm -r exec tsc --noEmit"
   },
   "devDependencies": {

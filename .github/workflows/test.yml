@@ -43,33 +43,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # The browsers are the slow part of a cold run — far slower than the
-      # install — so they are cached on the resolved Playwright version. Read
-      # from the installed package rather than the lockfile, because that is the
-      # version that will actually launch.
-      - name: Resolve Playwright version
-        id: playwright
-        run: |
-          echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-
       # Chromium for the desktop project, WebKit for the mobile one — the
       # iPhone 13 device descriptor is WebKit, so Chromium alone would fail
       # half the matrix.
+      #
+      # **Deliberately not cached.** Caching the browsers was measured against
+      # this repo and made runs *slower*: a cache hit skips a 38s download and
+      # then spends 67s on `install-deps`, because the system libraries the
+      # browsers link against live outside the cached path and have to be
+      # apt-installed anyway. WebKit will not launch without them — dropping
+      # that step fails with `libevent-2.1.so.7: cannot open shared object
+      # file`, which is how the 67s was shown to be load-bearing rather than
+      # habit. One unconditional install is both simpler and faster.
       - name: Install browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @nonet/web exec playwright install --with-deps chromium webkit
-
-      # A cache hit restores the browsers but not the system libraries they
-      # link against, which live outside the cached path.
-      - name: Install browser system dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter @nonet/web exec playwright install-deps chromium webkit
 
       - name: Unit tests
         run: pnpm test
@@ -79,10 +66,8 @@ jobs:
       # here so it starts a fresh server rather than reusing one. A separate
       # build step would build the app twice.
       #
-      # `pnpm e2e` is not a root script — it lives in apps/web — so this calls
-      # the script that exists rather than inventing one.
       - name: End-to-end tests
-        run: pnpm --filter @nonet/web e2e
+        run: pnpm e2e
 
       - uses: actions/upload-artifact@v4
         # Only when something failed: the config keeps a trace and a screenshot
