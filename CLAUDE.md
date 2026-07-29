@@ -32,6 +32,7 @@ Global Next.js 16 / Supabase / TypeScript rules apply. Project-specific:
 - Guest-first: everything must work signed-out via localStorage; sign-in only adds sync. Both Supabase client factories return `null` when unconfigured rather than throwing, and the app runs.
 - **The merge rules are pure functions in `apps/web/src/lib/merge.ts`, tested without a database.** It is the one place where being wrong destroys a player's history. Change them there, not in `sync.ts`.
 - **Verify in a browser, not just jsdom.** Every serious defect in Phase 3 — the selection ring on 32 cells, the fonts never loading, the cron calling a function that does not exist, every overlay not covering the screen — passed the test suite and was obvious on screen or when run by hand.
+- **Never pipe a test run through `grep` and chain the next step with `&&`.** The exit code tested is grep's, not the suite's, so a red suite still commits — which is exactly how a failing `ArchiveScreen` assertion got committed.
 - No emoji, no exclamation marks anywhere in UI copy.
 
 ## Locked decisions worth knowing before you touch anything
