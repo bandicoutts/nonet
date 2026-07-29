@@ -10,7 +10,7 @@ import { ElapsedReadout } from './ElapsedTime';
 import { HintConfirm } from './HintConfirm';
 import { resume, save } from '@/lib/autosave';
 import { createElapsedClock } from '@/lib/elapsed';
-import { canRetry, currentAttempt, dailyRef, recordFailure } from '@/lib/puzzles';
+import { backTo, canRetry, currentAttempt, dailyRef, recordFailure } from '@/lib/puzzles';
 import { DEFAULT_SETTINGS, readSettings } from '@/lib/settings';
 import {
   appendSolve,
@@ -317,6 +317,7 @@ export function BoardScreen({
   }, []);
 
   const placed = 81 - session.grid.filter((cell) => cell === 0).length;
+  const origin = backTo(ref);
 
   return (
     <>
@@ -361,12 +362,13 @@ export function BoardScreen({
         onConfirmHint={() => setConfirmingHint(true)}
         back={
           /* Labelled for its origin, never "close" — the puzzle is autosaved
-             and nothing is discarded (NONET-2). */
+             and nothing is discarded (NONET-2). The origin is derived from the
+             ref rather than recorded; see `backTo`. */
           <Link
-            href="/"
+            href={origin.href}
             className="type-control flex min-h-(--tap-target-min) items-center text-fg2 no-underline hover:text-fg"
           >
-            &larr; Today
+            &larr; {origin.label}
           </Link>
         }
       />

@@ -8,6 +8,7 @@
  * needed when a solve is recorded or a percentile is wanted, and it is resolved
  * then, by `(kind, difficulty, seed)`.
  */
+import type { Route } from 'next';
 import { DIFFICULTIES, currentEdition, dailyDifficulty, dailySeed } from '@nonet/engine';
 import type { Difficulty } from '@nonet/engine';
 import { localDate, readSolves } from './storage';
@@ -250,4 +251,29 @@ export function refParams(ref: PuzzleRef): string {
     difficulty: ref.difficulty,
     seed: String(ref.seed),
   }).toString();
+}
+
+/**
+ * Where a board's back control goes, and what it says.
+ *
+ * **Derived from the puzzle, not from navigation history.** An archive edition
+ * is only reachable from `/archive` — every other link into `/board` carries
+ * today's daily or a practice ref — so the ref already answers "where did this
+ * come from" without anything being recorded.
+ *
+ * That is the same argument as NONET-16, and it is why this beats the
+ * alternatives. A `?from=` parameter would survive a reload but would also
+ * travel in a shared link, so a stranger opening it would be told to go "back"
+ * somewhere they have never been. `document.referrer` is empty on reload, on a
+ * pasted URL, and under most privacy settings — the label would flicker between
+ * visits to the same board. `sessionStorage` survives reload but not a new tab,
+ * and adds state to un-record when a board is left.
+ *
+ * Deriving is also *truer*: the label describes the puzzle on screen rather
+ * than the route taken to it, so it is right even for someone who arrived by
+ * pasting a URL, which is the case the other three all get wrong.
+ */
+export function backTo(ref: PuzzleRef, at: Date = new Date()): { label: string; href: Route } {
+  const archived = ref.kind === 'daily' && ref.seed !== dailyRef(at).seed;
+  return archived ? { label: 'Archive', href: '/archive' } : { label: 'Today', href: '/' };
 }

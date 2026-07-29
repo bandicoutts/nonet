@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { generatePuzzle } from '@nonet/engine';
 import { buildResult, difficultyLabel, formatCountdown, formatDuration, shareText } from '@/lib/result';
 import type { Result } from '@/lib/result';
-import { refParams } from '@/lib/puzzles';
+import { backTo, refParams } from '@/lib/puzzles';
 import { readSolves } from '@/lib/storage';
 import type { GuestSolve, PuzzleRef } from '@/lib/storage';
 
@@ -145,6 +145,8 @@ export function SolvedScreen({
 
   const remaining = Math.max(0, result.nextEditionMs - tick * 1000);
   const dateLabel = result.editionDate === null ? null : longDate(result.editionDate);
+  // Derived from the ref, like the board's — see `backTo`.
+  const origin = backTo(puzzleRef);
 
   async function copy() {
     if (share === null) return;
@@ -168,10 +170,10 @@ export function SolvedScreen({
             : `No. ${result.number} · ${dateLabel}`}
         </p>
         <Link
-          href="/"
+          href={origin.href}
           className="type-control flex min-h-(--tap-target-min) items-center text-fg2 no-underline hover:text-fg"
         >
-          &larr; Today
+          &larr; {origin.label}
         </Link>
       </header>
 
